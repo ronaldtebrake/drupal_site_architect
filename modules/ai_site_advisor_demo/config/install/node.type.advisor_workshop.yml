@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - ai_site_advisor_demo
+name: Workshop
+type: advisor_workshop
+description: 'Recurring workshops with a date, location, capacity and description. Each workshop is an independently editable record.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

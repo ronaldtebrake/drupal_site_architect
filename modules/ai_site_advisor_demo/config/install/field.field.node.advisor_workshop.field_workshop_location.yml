@@ -1,0 +1,22 @@
+"langcode": "en"
+"status": true
+"dependencies":
+  "config":
+    - "field.storage.node.field_workshop_location"
+    - "node.type.advisor_workshop"
+  "module": []
+  "enforced":
+    "module":
+      - "ai_site_advisor_demo"
+"id": "node.advisor_workshop.field_workshop_location"
+"field_name": "field_workshop_location"
+"entity_type": "node"
+"bundle": "advisor_workshop"
+"label": "Location"
+"description": "Location for this workshop."
+"required": true
+"translatable": true
+"default_value": []
+"default_value_callback": ""
+"settings": {}
+"field_type": "string"

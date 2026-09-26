@@ -1,0 +1,15 @@
+<section class="sa-evidence">
+  <div class="sa-section-title"><div><span class="sa-eyebrow">{{ 'Collected from this Drupal site'|t }}</span><h3>{{ 'What the advisor can see'|t }}</h3></div><span class="sa-badge">{{ snapshot.bundles|length }} {{ 'content types'|t }}</span></div>
+  <p class="sa-note">{{ snapshot.scope }} · Drupal {{ snapshot.drupal_version }} · {{ 'No content values or credentials'|t }}</p>
+  <div class="sa-grid">
+    {% for bundle in snapshot.bundles %}
+      <article class="sa-card"><span class="sa-eyebrow">{{ 'Existing content type'|t }}</span><h4>{{ bundle.label }}</h4><code>{{ bundle.id }}</code><p>{{ bundle.description }}</p><div class="sa-chips">{% for name, field in bundle.fields %}<span title="{{ name }} · {{ field.type }}">{{ field.label }}</span>{% endfor %}</div></article>
+    {% else %}<p>{{ 'No node content types were found in the selected scope.'|t }}</p>{% endfor %}
+  </div>
+  <details class="sa-details"><summary>{{ 'Available capabilities and recipe catalog'|t }}</summary>
+    <div class="sa-chips">{% for module, enabled in snapshot.enabled_features %}<span class="{{ enabled ? 'sa-enabled' : '' }}">{{ module }} · {{ enabled ? 'enabled'|t : 'not enabled'|t }}</span>{% endfor %}</div>
+    <p>{{ 'These recipes are present in this Drupal codebase. Their presence does not mean they have been applied.'|t }}</p>
+    {% for recipe in recipes %}<p><strong>{{ recipe.label }}</strong> — {{ recipe.description }} <code>{{ recipe.source }}</code></p>{% endfor %}
+    <p><strong>{{ 'Site policy'|t }}:</strong> {{ snapshot.site_policy }}</p>
+  </details>
+</section>

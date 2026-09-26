@@ -1,0 +1,10 @@
+name: AI Site Advisor
+type: module
+description: Assess a content brief against live Drupal configuration before building.
+package: AI
+core_version_requirement: ^11.2
+configure: ai_site_advisor.settings
+dependencies:
+  - drupal:node
+  - ai:ai
+  - ai_decision:ai_decision

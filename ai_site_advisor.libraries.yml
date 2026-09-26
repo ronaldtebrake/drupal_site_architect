@@ -1,0 +1,9 @@
+advisor:
+  css:
+    theme:
+      css/advisor.css: {}
+  js:
+    js/advisor.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

@@ -1,0 +1,8 @@
+name: AI Site Advisor Tool API
+type: module
+description: Expose the read-only site assessment through Tool API.
+package: AI
+core_version_requirement: ^11.2
+dependencies:
+  - ai_site_advisor:ai_site_advisor
+  - tool:tool (>=1.0.0-beta8)

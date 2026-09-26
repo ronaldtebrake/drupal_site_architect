@@ -1,0 +1,9 @@
+ai_site_advisor.assess:
+  title: 'AI Site Advisor'
+  description: 'Assess a content brief against the current Drupal site.'
+  route_name: ai_site_advisor.assess
+  parent: system.admin_structure
+ai_site_advisor.settings:
+  title: 'AI Site Advisor'
+  route_name: ai_site_advisor.settings
+  parent: system.admin_config_services

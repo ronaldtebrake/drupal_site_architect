@@ -1,0 +1,12 @@
+ai_site_advisor.settings:
+  type: config_object
+  label: 'AI Site Advisor settings'
+  mapping:
+    site_policy:
+      type: text
+      label: 'Site planning policy'
+    included_bundles:
+      type: sequence
+      label: 'Content types in scope (empty means all)'
+      sequence:
+        type: string

@@ -1,0 +1,18 @@
+ai_site_advisor.assess:
+  path: '/admin/structure/ai-site-advisor'
+  defaults:
+    _form: '\Drupal\ai_site_advisor\Form\AdvisorForm'
+    _title: 'AI Site Advisor'
+  requirements:
+    _permission: 'access ai site advisor'
+  options:
+    _admin_route: true
+ai_site_advisor.settings:
+  path: '/admin/config/ai/site-advisor'
+  defaults:
+    _form: '\Drupal\ai_site_advisor\Form\SettingsForm'
+    _title: 'AI Site Advisor settings'
+  requirements:
+    _permission: 'administer ai site advisor'
+  options:
+    _admin_route: true

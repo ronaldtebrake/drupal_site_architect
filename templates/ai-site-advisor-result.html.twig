@@ -1,0 +1,31 @@
+{% set titles = {'records': 'Structured node records'|t, 'page': 'A standalone page'|t, 'mixed': 'Records + a landing page'|t, 'unclear': 'More detail needed'|t, 'drupal_display': 'Drupal entity displays'|t, 'canvas_template': 'Shared Canvas template'|t, 'canvas_page': 'Standalone Canvas page'|t, 'canvas_both': 'Canvas template + landing page'|t} %}
+{% set labels = {'ready': 'Reuse candidate'|t, 'extend': 'Needs extension'|t, 'unrelated': 'Different purpose'|t, 'unknown': 'Needs clarification'|t, 'relevant': 'Relevant capability'|t} %}
+<section class="sa-result" aria-live="polite">
+  <div class="sa-section-title"><div><span class="sa-eyebrow">{{ 'Assessment complete'|t }}</span><h3>{{ assessment.summary }}</h3></div><span class="sa-badge">{{ assessment.model }}</span></div>
+  <p class="sa-note">{{ (assessment.elapsed_ms / 1000)|number_format(2) }} s {{ 'total'|t }} · {{ assessment.usage.input ?? '—' }} {{ 'input tokens'|t }} · {{ assessment.usage.output ?? '—' }} {{ 'output tokens'|t }} · {{ 'Read-only advice'|t }}</p>
+  <div class="sa-grid sa-grid--two">
+    {% for id, heading in {'content_model': 'Content model'|t, 'presentation': 'Presentation'|t} %}
+      {% set answer = assessment.answers[id] %}
+      <article class="sa-card sa-recommendation"><span class="sa-eyebrow">{{ heading }}</span><h4>{{ titles[answer.choice] ?? answer.choice }}</h4><p>{{ answer.criterion }}</p>{% if answer.needs_review %}<span class="sa-badge sa-review">{{ 'Review this judgment'|t }}</span>{% endif %}</article>
+    {% endfor %}
+  </div>
+  <h4>{{ 'Existing content, assessed against your brief'|t }}</h4>
+  <div class="sa-grid">
+    {% for id, bundle in assessment.site.bundles %}
+      {% set answer = assessment.answers['bundle__' ~ id] %}
+      <article class="sa-card sa-fit sa-fit--{{ answer.choice }}"><span class="sa-badge">{{ answer.needs_review ? 'Review needed'|t : labels[answer.choice] }}</span><h4>{{ bundle.label }}</h4><div class="sa-chips">{% for field in bundle.fields %}<span>{{ field.label }}</span>{% endfor %}</div><p>{{ answer.criterion }}</p><a href="{{ path('entity.node_type.edit_form', {'node_type': id}) }}">{{ 'Inspect content type'|t }} →</a></article>
+    {% endfor %}
+  </div>
+  <details class="sa-details"><summary>{{ 'Recipe suitability — inspect before applying'|t }}</summary><p>{{ 'These are independent relevance judgments. A relevant recipe may duplicate existing configuration or be incompatible with it.'|t }}</p>
+    {% for id, recipe in assessment.recipes %}{% set answer = assessment.answers['recipe__' ~ id] %}<article class="sa-recipe"><span class="sa-badge">{{ answer.needs_review ? 'Review needed'|t : labels[answer.choice] }}</span><strong>{{ recipe.label }}</strong><p>{{ recipe.description }}</p><code>{{ recipe.source }}</code></article>{% endfor %}
+  </details>
+  <div class="sa-next"><strong>{{ 'Next step'|t }}</strong><p>{{ assessment.follow_up }}</p></div>
+  <details class="sa-details"><summary>{{ 'See exactly what informed this advice'|t }}</summary>
+    <p>{{ 'Profile'|t }}: <code>{{ assessment.profile }}</code> · {{ 'Site snapshot'|t }}: <code>{{ assessment.site.fingerprint }}</code></p>
+    <p>{{ 'Questions and their possible answers are defined by this module. Jev supplies the judgments; the descriptions below are the predefined criteria, not generated explanations.'|t }}</p>
+    {% for id, question in assessment.questions %}<details><summary>{{ id }} → {{ assessment.answers[id].choice }}</summary><p>{{ question.instructions }}</p><pre>{{ question.criteria|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre><pre>{{ assessment.answers[id]|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>{% endfor %}
+    <details><summary>{{ 'Exact site evidence sent to the provider'|t }}</summary><pre>{{ assessment.site|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
+    <details><summary>{{ 'Exact recipe evidence sent to the provider'|t }}</summary><pre>{{ assessment.recipes|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
+    {% for limitation in assessment.limitations %}<p class="sa-note">{{ limitation }}</p>{% endfor %}
+  </details>
+</section>

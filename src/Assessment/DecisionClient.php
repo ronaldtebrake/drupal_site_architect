@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Drupal\ai_site_advisor\Assessment;
+
+use Drupal\ai\AiProviderPluginManager;
+use Drupal\ai_decision\OperationType\Decision\DecisionInput;
+use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
+
+/**
+ * Uses Drupal AI's provider proxy, preserving its logging and integrations.
+ */
+final class DecisionClient implements DecisionClientInterface {
+
+  /**
+   * Constructs the client.
+   */
+  public function __construct(private readonly AiProviderPluginManager $providers) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public function decide(DecisionInput $input): DecisionResponse {
+    $default = $this->providers->getDefaultProviderForOperationType('decision');
+    if (empty($default['provider_id']) || empty($default['model_id'])) {
+      throw new \RuntimeException('Configure a default Decision provider and model in Drupal AI first.');
+    }
+    $provider = $this->providers->createInstance($default['provider_id']);
+    return $provider->decision($input, $default['model_id'], ['ai_site_advisor'])->getNormalized();
+  }
+
+}
