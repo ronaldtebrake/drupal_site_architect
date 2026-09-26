@@ -200,11 +200,62 @@ drush en ai_site_advisor_tool -y
 
 | Tool API plugin | Input | Output |
 | --- | --- | --- |
-| `ai_site_advisor:discover_candidates` | `query`: 1–120 characters | `discovery`: candidates and source reports; no inference call. |
-| `ai_site_advisor:assess_content_brief` | `brief`: 10–20,000 characters; optional advanced `catalog_query` override: up to 120 | `assessment`: draft capability plan, search decisions, fresh evidence and typed judgments. |
+| `ai_site_advisor:discover_candidates` | `query`: 1–120 characters; optional `detail`: `compact` (default) or `full` | `discovery`: candidate pointers and conditional acquisition steps; no inference call. |
+| `ai_site_advisor:assess_content_brief` | `brief`: 10–20,000 characters; optional advanced `catalog_query` override: up to 120; optional `detail`: `compact` (default) or `full` | `assessment`: compact build handoff, or complete evidence with `detail: "full"`. |
 
 The operations are `Read` and `Explain`. Both check `access ai site advisor`
 inside the service, including for callers that skip Tool API's access method.
+
+### Compact agent handoff
+
+Both tools default to a compact response. **Callers expecting the previous full
+output must now pass `"detail": "full"`.** The output keys `assessment` and
+`discovery` are unchanged. PHP services and the Drupal form retain full evidence.
+This formatting happens in the Tool API adapter, so MCP and other tool callers
+get the same contract without changes to their transports.
+
+The compact assessment (`schema_version: agent-plan-v1`) contains:
+
+- `work_areas`: every identified area, its starting point, configuration links,
+  matching existing configuration, candidate references and an unresolved check.
+- `candidates`: one entry per retained candidate, with project or manifest
+  pointers, availability and conditional acquisition/configuration steps.
+- `discovery`: extraction coverage, search truncation and source warnings.
+- `needs_review` and individual review flags, plus the site fingerprint.
+
+Each work area keeps its preferred package and up to two candidates for each
+useful contribution role (foundation or complement), deduplicated. Ranking uses
+the independent contribution judgment, not the competing starting-point score.
+`other_package_options` counts omitted packages; an empty shortlist does not
+prove that no solution exists. Complete alternatives and scores remain available
+with `detail: "full"`.
+
+An external candidate includes this conditional acquisition instruction:
+
+```json
+{
+  "acquire": {
+    "action": "composer_require_if_selected",
+    "argv": ["composer", "require", "vendor/package"]
+  }
+}
+```
+
+The building agent chooses among alternatives and checks a compatible release
+before running Composer in its project environment. This is structured command
+data, not an executed command. Packages already available locally instead return
+`code_available`; enabled modules and local recipes have separate next steps.
+Recipe files do not establish recipe application, and available code does not
+establish enabled modules. Unknown package identities require inspection.
+
+The default response omits repeated descriptions, raw questions, fields, score
+distributions and provider usage. `detail: "full"` performs a fresh assessment,
+not a lookup of a saved report, so results can differ. Formatting reduces the
+agent-facing payload; it does not reduce the adviser's internal inference work
+or establish a token-cost saving. The current MCP bridge includes the output
+in both its text content and `structuredContent`.
+
+### MCP connection
 
 For an MCP client, install
 [MCP Server Tool Bridge](https://www.drupal.org/project/mcp_server_tool_bridge)
@@ -317,13 +368,14 @@ field-oriented recurrence module may extend an existing model. The adviser uses
 retrieved descriptions to judge this distinction; it does not contain package
 rules or automatically install combinations. Roles needing review are identified
 in the summary and table. Missing evidence and runtime compatibility remain open.
-The same structured `plan`, full option list and judgments are returned to MCP.
+The same structured `plan`, full option list and judgments are available to MCP
+with `detail: "full"`; the default agent handoff is compact.
 
 ### A handoff for site builders
 
 The default view presents readable next steps; probabilities remain in the
-expandable evidence table. `plan.areas.*.handoff` contains the same guidance for
-Tool API and MCP callers:
+expandable evidence table. `plan.areas.*.handoff` contains the same guidance in
+the service response and the full Tool API/MCP response:
 
 - A concrete starting point and an explanation of what remains undecided.
 - A suggested administration area, selected from Drupal's registered config

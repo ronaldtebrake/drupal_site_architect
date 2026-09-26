@@ -394,6 +394,48 @@ reported 14.825 seconds; this is a smoke observation, not a speed or cost
 benchmark. Session termination returned HTTP 200. Temporary test scripts were
 removed; credentials, cookies and session identifiers were not persisted.
 
+## Compact agent handoff
+
+The Tool API assessment and discovery plugins now default to `detail: compact`.
+Full output is opt-in with `detail: full`; the underlying PHP services and form
+still receive complete evidence. The compact contract keeps every work area,
+configuration pointers, a deduplicated candidate registry, conditional Composer
+acquisition instructions, independent contribution roles, open checks and review
+flags. Preferred packages and up to two candidates per useful role are retained;
+the count of omitted package options and search boundaries remain visible.
+
+Automated checks passed **50 tests / 855 assertions**, Drupal/DrupalPractice
+PHPCS and `git diff --check`. Tests cover useful contributions with low
+starting-point probability, uncertain preferred choices, unresolved areas,
+existing configuration routes, candidate deduplication, unavailable sources,
+local versus external acquisition and malformed package identities. Kernel tests
+execute both actual Tool API plugins: omitted detail returns compact output,
+full preserves the original service result, and invalid detail fails before
+either service is called.
+
+Authenticated HTTPS MCP calls sent the complete community brief, first with
+detail omitted and then with `detail: full`. Both returned HTTP 200 and successful
+results. `tools/list` advertises an optional compact/full enum for both plugins;
+the default is described in its schema text and verified through execution.
+The final compact response retained **10 work areas and 26 candidate pointers**,
+covering all **14 input segments**. Full output contained 118 candidates. All
+compact candidate references resolved; local code had no Composer acquisition
+step. Existing Image configuration retained edit/field/display routes and 21
+explicit recipe configuration names present, zero missing.
+
+The compact plan alone was **21,946 bytes** as compact UTF-8 JSON. The complete
+MCP response body was **72,968 bytes**, versus **4,662,203 bytes** for full mode,
+approximately **98.43% smaller**. The bridge includes the tool result in text
+content and structuredContent; those representations were checked equal. Each
+mode performs a fresh assessment and choices can differ. This validates payload
+size and transport behavior, not inference savings, billing, latency improvements
+or recommendation quality. Internal inference work is unchanged.
+
+Session termination returned HTTP 200. Exact requests, bodies and decoded
+responses were saved as local review artifacts outside this module and the
+public document root. Credentials, cookies and session IDs were not exported.
+No packages were installed and no content or configuration was changed.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's

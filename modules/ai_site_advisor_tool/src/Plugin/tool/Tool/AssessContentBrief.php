@@ -10,6 +10,7 @@ use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
+use Drupal\ai_site_advisor\Assessment\AgentPlan;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface;
 use Drupal\tool\Attribute\Tool;
 use Drupal\tool\ExecutableResult;
@@ -24,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Tool(
   id: 'ai_site_advisor:assess_content_brief',
   label: new TranslatableMarkup('Assess a Drupal content brief'),
-  description: new TranslatableMarkup("Send the original brief before building. The Decision model identifies capabilities in batches, decides whether ecosystem discovery helps, and searches enabled Project Browser sources separately for each capability. Returns a draft plan with existing configuration, candidate projects, open decisions, integration checks, source evidence and summed usage across requests. Larger plans take more time and provider usage. Uncertain choices remain unresolved. This is not an executable or verified installation plan. No packages are installed and no content or configuration is changed."),
+  description: new TranslatableMarkup('Send the original brief before building. Discovers relevant Drupal capabilities and ecosystem projects. By default returns a compact handoff: every work area, existing configuration links, a few candidate building blocks, open decisions and conditional Composer acquisition steps. Choose among alternatives; do not install them all. Inspect dependencies and compatibility before enabling modules, applying recipes or building. Use detail="full" only for complete evidence and scores; it can be very large and performs a fresh assessment. Compact output reduces response size, not internal inference work. No site changes are made.'),
   operation: ToolOperation::Explain,
   input_definitions: [
     'brief' => new InputDefinition(
@@ -35,9 +36,17 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
       constraints: ['Length' => ['min' => 10, 'max' => BriefCapabilities::MAX_BRIEF_LENGTH]],
     ),
     'catalog_query' => new InputDefinition(data_type: 'string', label: new TranslatableMarkup('Explicit search override'), description: new TranslatableMarkup('Normally omit: the Decision model decides whether and what to search from the brief. Advanced callers can supply up to 120 characters to explicitly request a catalog search and bypass automatic planning.'), required: FALSE, constraints: ['Length' => ['max' => 120]]),
+    'detail' => new InputDefinition(
+      data_type: 'string',
+      label: new TranslatableMarkup('Response detail'),
+      description: new TranslatableMarkup('compact (default): a small building handoff with pointers and dependency steps. full: the complete assessment and diagnostics.'),
+      required: FALSE,
+      default_value: 'compact',
+      constraints: ['AllowedValues' => ['choices' => ['compact', 'full']]],
+    ),
   ],
   output_definitions: [
-    'assessment' => new ContextDefinition(data_type: 'map', label: new TranslatableMarkup('Assessment and evidence'), required: TRUE),
+    'assessment' => new ContextDefinition(data_type: 'map', label: new TranslatableMarkup('Compact build handoff or full assessment'), required: TRUE),
   ],
 )]
 final class AssessContentBrief extends ToolBase {
@@ -62,7 +71,10 @@ final class AssessContentBrief extends ToolBase {
   protected function doExecute(array $values): ExecutableResult {
     // The service repeats access checks even if a caller skips tool->access().
     $result = $this->advisor->assess($values['brief'], $this->currentUser, $values['catalog_query'] ?? '');
-    return ExecutableResult::success(new TranslatableMarkup('Content brief assessed. Review the evidence and uncertainty before building.'), ['assessment' => $result]);
+    if (($values['detail'] ?? 'compact') === 'compact') {
+      $result = AgentPlan::compact($result);
+    }
+    return ExecutableResult::success(new TranslatableMarkup('Planning handoff ready. Choose the parts to use, inspect dependencies, and validate before building.'), ['assessment' => $result]);
   }
 
   /**
