@@ -26,8 +26,15 @@ final class DecisionClient implements DecisionClientInterface {
     if (empty($default['provider_id']) || empty($default['model_id'])) {
       throw new \RuntimeException('Configure a default Decision provider and model in Drupal AI first.');
     }
-    $provider = $this->providers->createInstance($default['provider_id']);
-    return $provider->decision($input, $default['model_id'], ['ai_site_advisor'])->getNormalized();
+    try {
+      $provider = $this->providers->createInstance($default['provider_id']);
+      return $provider->decision($input, $default['model_id'], ['ai_site_advisor'])->getNormalized();
+    }
+    catch (\Throwable) {
+      // Transport adapters may log exception messages. Do not let raw provider
+      // responses or credentials escape through Tool API or MCP Server.
+      throw new \RuntimeException('The configured Decision provider could not complete the assessment. Check its configuration and retry.');
+    }
   }
 
 }

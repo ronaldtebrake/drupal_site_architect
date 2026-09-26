@@ -12,7 +12,7 @@ use Drupal\ai_decision\Value\ChoiceAnswer;
 use Drupal\ai_site_advisor\Assessment\ContentPlanningProfile;
 use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisor;
-use Drupal\ai_site_advisor\Context\RecipeCatalog;
+use Drupal\ai_site_advisor\Context\CandidateCatalog;
 use Drupal\ai_site_advisor\Context\SiteContextCollectorInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
@@ -56,8 +56,8 @@ final class SiteAdvisorTest extends UnitTestCase {
   private function assess(?callable $respond = NULL): array {
     $context = $this->createMock(SiteContextCollectorInterface::class);
     $context->expects($this->once())->method('collect')->willReturn($this->site());
-    $catalog = $this->createMock(RecipeCatalog::class);
-    $catalog->method('collect')->willReturn([]);
+    $catalog = $this->createMock(CandidateCatalog::class);
+    $catalog->method('discover')->willReturn(['items' => []]);
     $decision = $this->createMock(DecisionClientInterface::class);
     $decision->expects($this->once())->method('decide')->willReturnCallback($respond ?? fn ($input) => $this->response($input));
     $account = $this->createMock(AccountInterface::class);
@@ -76,7 +76,7 @@ final class SiteAdvisorTest extends UnitTestCase {
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->willReturn(FALSE);
     $this->expectException(AccessDeniedHttpException::class);
-    (new SiteAdvisor($context, $this->createMock(RecipeCatalog::class), new ContentPlanningProfile(), $decision))->assess('Build workshops', $account);
+    (new SiteAdvisor($context, $this->createMock(CandidateCatalog::class), new ContentPlanningProfile(), $decision))->assess('Build workshops', $account);
   }
 
   /**
@@ -102,6 +102,7 @@ final class SiteAdvisorTest extends UnitTestCase {
         'canvas_template' => 0.6,
         'canvas_page' => 0.0,
         'canvas_both' => 0.0,
+        'not_applicable' => 0.0,
       ], 0.2),
     ]));
     $this->assertSame('needs_clarification', $result['status']);
@@ -121,6 +122,7 @@ final class SiteAdvisorTest extends UnitTestCase {
         'canvas_template' => 0.0,
         'canvas_page' => 1.0,
         'canvas_both' => 0.0,
+        'not_applicable' => 0.0,
       ], 1.0),
     ]));
     $this->assertTrue($result['contradictory_judgments']);
@@ -155,8 +157,14 @@ final class SiteAdvisorTest extends UnitTestCase {
         'invented',
         ['records' => 0.0, 'page' => 0.0, 'mixed' => 0.0, 'unclear' => 0.0, 'invented' => 1.0],
       ],
-      'bad sum' => ['records', ['records' => 0.8, 'page' => 0.4, 'mixed' => 0.0, 'unclear' => 0.0]],
-      'wrong winner' => ['records', ['records' => 0.1, 'page' => 0.9, 'mixed' => 0.0, 'unclear' => 0.0]],
+      'bad sum' => [
+        'records',
+        ['records' => 0.8, 'page' => 0.4, 'mixed' => 0.0, 'unclear' => 0.0, 'not_applicable' => 0.0],
+      ],
+      'wrong winner' => [
+        'records',
+        ['records' => 0.1, 'page' => 0.9, 'mixed' => 0.0, 'unclear' => 0.0, 'not_applicable' => 0.0],
+      ],
     ];
   }
 
@@ -165,7 +173,7 @@ final class SiteAdvisorTest extends UnitTestCase {
    */
   public function testCoreOnlyPresentationOptions(): void {
     $input = (new ContentPlanningProfile())->buildInput('A visual page', $this->site(FALSE), []);
-    $this->assertSame(['drupal_display', 'unclear'], $input->getQuestions()['presentation']->getOptionKeys());
+    $this->assertSame(['drupal_display', 'unclear', 'not_applicable'], $input->getQuestions()['presentation']->getOptionKeys());
   }
 
 }

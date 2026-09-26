@@ -89,6 +89,38 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
       }
       ksort($supporting[$entity_type]);
     }
+    $workflows = [];
+    if ($this->entities->hasDefinition('workflow')) {
+      foreach ($this->entities->getStorage('workflow')->loadMultiple() as $id => $workflow) {
+        if (!$workflow->status() || $workflow->get('type') !== 'content_moderation') {
+          continue;
+        }
+        $workflow_settings = $workflow->get('type_settings');
+        $states = [];
+        foreach ($workflow_settings['states'] ?? [] as $state_id => $state) {
+          $states[$state_id] = [
+            'label' => (string) ($state['label'] ?? $state_id),
+            'published' => (bool) ($state['published'] ?? FALSE),
+          ];
+        }
+        $transitions = [];
+        foreach ($workflow_settings['transitions'] ?? [] as $transition_id => $transition) {
+          $transitions[$transition_id] = [
+            'label' => (string) ($transition['label'] ?? $transition_id),
+            'from' => $transition['from'] ?? [],
+            'to' => $transition['to'] ?? '',
+          ];
+        }
+        $workflows[$id] = [
+          'label' => (string) $workflow->label(),
+          'states' => $states,
+          'transitions' => $transitions,
+          'node_bundles' => $workflow_settings['entity_types']['node'] ?? [],
+          'source' => 'workflows.workflow.' . $id,
+          'scope' => 'Active state, transition and bundle configuration. Role permissions, notifications and automation behavior are not inspected.',
+        ];
+      }
+    }
     $snapshot = [
       'schema_version' => '1',
       'drupal_version' => \Drupal::VERSION,
@@ -96,9 +128,10 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
       'bundles' => $bundles,
       'enabled_features' => $features,
       'supporting_configuration' => $supporting,
+      'workflows' => $workflows,
       'site_policy' => (string) $settings->get('site_policy'),
       'limitations' => [
-        'Views, workflows and templates are listed by identity only; their behavior and field mappings are not verified.',
+        'Views and templates are listed by identity only. Moderation workflow structure is inspected, but role access and automation behavior are not verified.',
         'No content values, credentials or arbitrary configuration are collected.',
         'Only node content models are assessed. Other entity types require a separate profile.',
       ],

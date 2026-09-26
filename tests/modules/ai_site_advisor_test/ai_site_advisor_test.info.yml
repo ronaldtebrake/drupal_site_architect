@@ -1,0 +1,6 @@
+name: 'AI Site Advisor test source'
+type: module
+package: Testing
+core_version_requirement: ^11.2
+dependencies:
+  - project_browser:project_browser

@@ -45,6 +45,12 @@ final class SettingsForm extends ConfigFormBase {
       '#description' => $this->t('Optional comma-separated content type machine names. Empty includes all. At most 24 content types can be assessed at once.'),
     ];
     $form['provider'] = ['#markup' => '<p>' . $this->t('The advisor uses the default Decision provider and model configured in Drupal AI. Configure the TypeSafe provider to use Jev. Credentials remain managed by the provider and Key modules.') . '</p>'];
+    $form['recipe_directories'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Additional recipe directories'),
+      '#default_value' => implode("\n", $config->get('recipe_directories') ?? []),
+      '#description' => $this->t('One directory per line, relative to the Composer project root or absolute. Core recipes, conventional recipe directories and installed Composer recipe packages are discovered automatically.'),
+    ];
     return parent::buildForm($form, $form_state);
   }
 
@@ -64,7 +70,12 @@ final class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $this->config('ai_site_advisor.settings')->set('site_policy', trim((string) $form_state->getValue('site_policy')))->set('included_bundles', $form_state->get('bundle_ids'))->save();
+    $directories = preg_split('/\R/', trim((string) $form_state->getValue('recipe_directories')), -1, PREG_SPLIT_NO_EMPTY);
+    $this->config('ai_site_advisor.settings')
+      ->set('site_policy', trim((string) $form_state->getValue('site_policy')))
+      ->set('included_bundles', $form_state->get('bundle_ids'))
+      ->set('recipe_directories', array_values(array_unique(array_map('trim', $directories))))
+      ->save();
     parent::submitForm($form, $form_state);
   }
 

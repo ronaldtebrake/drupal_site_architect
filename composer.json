@@ -11,6 +11,9 @@
   },
   "suggest": {
     "drupal/ai_provider_typesafeai": "Use Jev as the configured AI Decision provider.",
-    "drupal/tool": "Enable the optional ai_site_advisor_tool submodule (^1.0@beta)."
+    "drupal/tool": "Enable the optional ai_site_advisor_tool submodule (^1.0@beta).",
+    "drupal/project_browser": "Enable the optional ai_site_advisor_project_browser integration (^2.1).",
+    "drupal/api_browser": "Add external recipe catalogs as Project Browser sources (^2.0@beta).",
+    "drupal/mcp_server_tool_bridge": "Expose the two Tool API operations through the optional ai_site_advisor_mcp submodule (^1.0@beta; match your MCP Server version)."
   }
 }

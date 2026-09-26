@@ -4,7 +4,13 @@ services:
     arguments: ['@entity_type.manager', '@entity_field.manager', '@module_handler', '@config.factory']
   ai_site_advisor.catalog:
     class: Drupal\ai_site_advisor\Context\RecipeCatalog
-    arguments: ['%app.root%']
+    arguments: ['%app.root%', '@config.factory']
+    tags:
+      - { name: ai_site_advisor.catalog_source }
+  ai_site_advisor.candidates:
+    class: Drupal\ai_site_advisor\Context\CandidateCatalog
+    tags:
+      - { name: service_collector, tag: ai_site_advisor.catalog_source, call: addSource }
   ai_site_advisor.profile:
     class: Drupal\ai_site_advisor\Assessment\ContentPlanningProfile
   ai_site_advisor.decision:
@@ -12,6 +18,6 @@ services:
     arguments: ['@ai.provider']
   ai_site_advisor.advisor:
     class: Drupal\ai_site_advisor\Assessment\SiteAdvisor
-    arguments: ['@ai_site_advisor.context', '@ai_site_advisor.catalog', '@ai_site_advisor.profile', '@ai_site_advisor.decision']
+    arguments: ['@ai_site_advisor.context', '@ai_site_advisor.candidates', '@ai_site_advisor.profile', '@ai_site_advisor.decision']
   Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface:
     alias: ai_site_advisor.advisor

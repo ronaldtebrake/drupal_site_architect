@@ -1,0 +1,6 @@
+services:
+  ai_site_advisor.project_browser_source:
+    class: Drupal\ai_site_advisor_project_browser\ProjectBrowserCatalogSource
+    arguments: ['@Drupal\project_browser\Plugin\ProjectBrowserSourceManager', '@module_handler']
+    tags:
+      - { name: ai_site_advisor.catalog_source }

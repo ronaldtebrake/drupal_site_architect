@@ -12,7 +12,7 @@ use Drupal\ai_decision\Value\ChoiceQuestion;
  */
 final class ContentPlanningProfile {
 
-  public const VERSION = 'content-planning-v1';
+  public const VERSION = 'content-planning-v2';
 
   /**
    * Builds independent bounded questions over a shared evidence packet.
@@ -24,12 +24,14 @@ final class ContentPlanningProfile {
         'records' => 'Repeated, independently editable records with shared attributes, filtering, reuse or relationships (such as workshops, courses, products or news).',
         'page' => 'A single standalone editorial or campaign page with composed sections; no collection of reusable structured records is requested.',
         'mixed' => 'Both a collection of structured records and a separately composed landing page are explicitly requested.',
+        'not_applicable' => 'The brief asks to change a workflow or other capability on existing content; no new content model is requested.',
         'unclear' => 'The kind of content or its intended use is not specified sufficiently to choose a model.',
       ]),
     ];
     $presentation = [
       'drupal_display' => 'Use ordinary Drupal entity displays for structured content or a simple page. The request does not require Canvas-specific layout composition.',
       'unclear' => 'There is insufficient evidence about the desired presentation.',
+      'not_applicable' => 'The brief asks for a workflow or other capability change without requesting a change to page presentation.',
     ];
     if ($site['enabled_features']['canvas'] ?? FALSE) {
       $presentation += [
@@ -49,10 +51,18 @@ final class ContentPlanningProfile {
       $questions['bundle__' . $id] = new ChoiceQuestion($guard . 'Assess only site.bundles.' . $id . ' against brief. Is this existing content type suitable for the requested content? A title and body alone do not represent explicitly requested dates, locations or other structured attributes. A content type with another subject is not a match just because both use dates. Do not confuse support for a presentation with stored data.', $fit);
     }
     foreach ($recipes as $id => $recipe) {
-      $questions['recipe__' . $id] = new ChoiceQuestion($guard . 'Assess whether recipes.' . $id . ' provides a capability actually requested in brief. Read only the supplied recipe evidence. This is semantic relevance, not approval to apply the recipe and not a compatibility check.', [
-        'relevant' => 'The described recipe addresses a capability explicitly requested in the brief.',
-        'unrelated' => 'The recipe does not address the requested capability; do not recommend merely adjacent functionality.',
-        'unknown' => 'The brief or recipe description lacks enough detail to judge relevance.',
+      $questions['recipe__' . $id] = new ChoiceQuestion($guard . 'Assess whether recipes.' . $id . ' provides a capability actually requested in brief. A candidate may be a recipe or module: read its kind and supplied evidence. This is semantic relevance, not approval to apply or install anything and not a compatibility check. Source compatibility claims are not verified. Do not infer that a recipe was applied from local availability.', [
+        'relevant' => 'The described candidate addresses a capability explicitly requested in the brief.',
+        'unrelated' => 'The candidate does not address the requested capability; do not recommend merely adjacent functionality.',
+        'unknown' => 'The brief or candidate description lacks enough detail to judge relevance.',
+      ]);
+    }
+    foreach ($site['workflows'] ?? [] as $id => $workflow) {
+      $questions['workflow__' . $id] = new ChoiceQuestion($guard . 'Assess site.workflows.' . $id . ' against brief. Compare the actual configured states, transitions and target node bundles. Do not infer permissions, notifications or automation from labels. Is this existing moderation workflow a useful starting point?', [
+        'ready' => 'Its configured states, transitions and target bundles cover the requested moderation structure. Permissions and operational behavior still need separate verification.',
+        'extend' => 'It is a suitable starting point, but requested states, transitions, target bundles or behavior need changes or verification.',
+        'unrelated' => 'This workflow is unrelated to the request, or the brief does not request moderation or editorial workflow changes.',
+        'unknown' => 'The brief or inspected workflow evidence is insufficient to judge.',
       ]);
     }
     return new DecisionInput(['brief' => $brief, 'site' => $site, 'recipes' => $recipes], $questions);

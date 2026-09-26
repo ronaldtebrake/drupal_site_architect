@@ -1,31 +1,68 @@
-{% set titles = {'records': 'Structured node records'|t, 'page': 'A standalone page'|t, 'mixed': 'Records + a landing page'|t, 'unclear': 'More detail needed'|t, 'drupal_display': 'Drupal entity displays'|t, 'canvas_template': 'Shared Canvas template'|t, 'canvas_page': 'Standalone Canvas page'|t, 'canvas_both': 'Canvas template + landing page'|t} %}
+{% set titles = {'records': 'Structured node records'|t, 'page': 'A standalone page'|t, 'mixed': 'Records + a landing page'|t, 'unclear': 'More detail needed'|t, 'not_applicable': 'No change requested here'|t, 'drupal_display': 'Drupal entity displays'|t, 'canvas_template': 'Shared Canvas template'|t, 'canvas_page': 'Standalone Canvas page'|t, 'canvas_both': 'Canvas template + landing page'|t} %}
 {% set labels = {'ready': 'Reuse candidate'|t, 'extend': 'Needs extension'|t, 'unrelated': 'Different purpose'|t, 'unknown': 'Needs clarification'|t, 'relevant': 'Relevant capability'|t} %}
+{% set availability = {'local_code': 'Code available locally'|t, 'catalog_only': 'Available in the ecosystem'|t, 'enabled_module': 'Module already enabled'|t} %}
 <section class="sa-result" aria-live="polite">
   <div class="sa-section-title"><div><span class="sa-eyebrow">{{ 'Assessment complete'|t }}</span><h3>{{ assessment.summary }}</h3></div><span class="sa-badge">{{ assessment.model }}</span></div>
-  <p class="sa-note">{{ (assessment.elapsed_ms / 1000)|number_format(2) }} s {{ 'total'|t }} · {{ assessment.usage.input ?? '—' }} {{ 'input tokens'|t }} · {{ assessment.usage.output ?? '—' }} {{ 'output tokens'|t }} · {{ 'Read-only advice'|t }}</p>
-  <div class="sa-grid sa-grid--two">
-    {% for id, heading in {'content_model': 'Content model'|t, 'presentation': 'Presentation'|t} %}
-      {% set answer = assessment.answers[id] %}
-      <article class="sa-card sa-recommendation"><span class="sa-eyebrow">{{ heading }}</span><h4>{{ titles[answer.choice] ?? answer.choice }}</h4><p>{{ answer.criterion }}</p>{% if answer.needs_review %}<span class="sa-badge sa-review">{{ 'Review this judgment'|t }}</span>{% endif %}</article>
-    {% endfor %}
-  </div>
-  <h4>{{ 'Existing content, assessed against your brief'|t }}</h4>
+  <p class="sa-note">{{ (assessment.elapsed_ms / 1000)|number_format(2) }} s {{ 'total'|t }} · {{ 'Read-only advice'|t }} · {{ 'Provider usage is available with the evidence below.'|t }}</p>
   <div class="sa-grid">
-    {% for id, bundle in assessment.site.bundles %}
-      {% set answer = assessment.answers['bundle__' ~ id] %}
-      <article class="sa-card sa-fit sa-fit--{{ answer.choice }}"><span class="sa-badge">{{ answer.needs_review ? 'Review needed'|t : labels[answer.choice] }}</span><h4>{{ bundle.label }}</h4><div class="sa-chips">{% for field in bundle.fields %}<span>{{ field.label }}</span>{% endfor %}</div><p>{{ answer.criterion }}</p><a href="{{ path('entity.node_type.edit_form', {'node_type': id}) }}">{{ 'Inspect content type'|t }} →</a></article>
-    {% endfor %}
+    <article class="sa-card sa-recommendation"><span class="sa-eyebrow">01 · {{ 'Reuse this site'|t }}</span><h4>{{ 'Start with existing configuration'|t }}</h4><p>{{ assessment.reuse_candidates|length }} {{ 'content types to reuse'|t }} · {{ assessment.workflow_candidates|length }} {{ 'workflow starting points'|t }}</p><p>{{ 'Inspect the actual fields, states and transitions below.'|t }}</p></article>
+    <article class="sa-card sa-recommendation"><span class="sa-eyebrow">02 · {{ 'Consider existing solutions'|t }}</span><h4>{{ assessment.adoption_candidates|length }} {{ 'relevant catalog candidates'|t }}</h4><p>{{ 'Compare recipes and modules discovered from configured sources. Relevance does not establish installation compatibility.'|t }}</p></article>
+    <article class="sa-card"><span class="sa-eyebrow">03 · {{ 'Build the remaining gap'|t }}</span><h4>{{ 'Keep custom work informed'|t }}</h4><p>{{ assessment.build_guidance }}</p></article>
   </div>
-  <details class="sa-details"><summary>{{ 'Recipe suitability — inspect before applying'|t }}</summary><p>{{ 'These are independent relevance judgments. A relevant recipe may duplicate existing configuration or be incompatible with it.'|t }}</p>
-    {% for id, recipe in assessment.recipes %}{% set answer = assessment.answers['recipe__' ~ id] %}<article class="sa-recipe"><span class="sa-badge">{{ answer.needs_review ? 'Review needed'|t : labels[answer.choice] }}</span><strong>{{ recipe.label }}</strong><p>{{ recipe.description }}</p><code>{{ recipe.source }}</code></article>{% endfor %}
+
+  {% if assessment.site.workflows %}
+    <h4>{{ 'Moderation workflows already on this site'|t }}</h4>
+    <div class="sa-grid">
+      {% for id, workflow in assessment.site.workflows %}
+        {% set answer = assessment.answers['workflow__' ~ id] %}
+        <article class="sa-card sa-fit sa-fit--{{ answer.choice }}"><span class="sa-badge">{{ answer.needs_review ? 'Review needed'|t : labels[answer.choice] }}</span><h4>{{ workflow.label }}</h4><div class="sa-chips">{% for state in workflow.states %}<span>{{ state.label }}</span>{% endfor %}</div><p>{{ answer.criterion }}</p><details><summary>{{ 'Configured transitions and content types'|t }}</summary>{% for transition in workflow.transitions %}<p>{{ transition.label }}: {{ transition.from|join(', ') }} → {{ transition.to }}</p>{% endfor %}<p>{{ 'Applies to'|t }}: {{ workflow.node_bundles|join(', ') ?: 'No node content types'|t }}</p><p class="sa-note">{{ workflow.scope }}</p></details><a href="{{ path('entity.workflow.edit_form', {'workflow': id}) }}">{{ 'Inspect workflow'|t }} →</a></article>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <h4>{{ 'Discovered recipes and modules'|t }}</h4>
+  <p class="sa-note">{{ 'Search'|t }}: “{{ assessment.discovery.query }}” · {{ assessment.discovery.returned }} {{ 'candidates assessed'|t }}{% if assessment.discovery.truncated %} · {{ 'Results limited: refine the search to see other candidates'|t }}{% endif %}</p>
+  {% for warning in assessment.discovery.warnings %}<p class="sa-note">{{ warning }}</p>{% endfor %}
+  <div class="sa-grid sa-grid--two">
+    {% for id, candidate in assessment.candidates %}
+      {% set answer = assessment.answers['recipe__' ~ id] %}
+      <article class="sa-card sa-fit sa-fit--{{ answer.choice }}">
+        <span class="sa-badge">{{ answer.needs_review ? 'Review needed'|t : labels[answer.choice] }}</span>
+        <h4>{{ candidate.label }}</h4>
+        <p class="sa-note">{{ candidate.kind }} · {{ availability[candidate.availability] }}</p>
+        <code>{{ candidate.package }}</code>
+        <p>{{ candidate.description|length > 320 ? candidate.description|slice(0, 320) ~ '…' : candidate.description }}</p>
+        <details><summary>{{ 'Evidence and adoption checks'|t }}</summary>
+          {% if candidate.description|length > 320 %}<p>{{ candidate.description }}</p>{% endif %}
+          <p>{{ answer.criterion }}</p>
+          <p>{{ 'Source'|t }}: <code>{{ candidate.source }}</code></p><p>{{ candidate.scope }}</p>
+          {% if candidate.installs %}<p>{{ 'Declares extensions'|t }}: {{ candidate.installs|join(', ') }}</p>{% endif %}
+          {% if candidate.includes_recipes %}<p>{{ 'Includes recipes'|t }}: {{ candidate.includes_recipes|join(', ') }}</p>{% endif %}
+          {% if candidate.kind == 'recipe' %}<p>{{ 'Recipe application history is unknown.'|t }}</p>{% endif %}
+          <p>{{ 'Verify dependencies, configuration overlap and permissions before adopting.'|t }}</p>
+          {% if candidate.url %}<a href="{{ candidate.url }}" target="_blank" rel="noopener noreferrer">{{ 'Inspect upstream project'|t }} →</a>{% endif %}
+        </details>
+      </article>
+    {% else %}<p>{{ 'No candidates were returned within this search. Try different keywords or another source before deciding to build.'|t }}</p>{% endfor %}
+  </div>
+  <details class="sa-details"><summary>{{ 'Which sources were searched?'|t }}</summary><p>{{ assessment.discovery.scope }}</p>{% for source in assessment.discovery.sources %}<p><strong>{{ source.label }}</strong> · {{ source.matches }} {{ 'reported matches'|t }}{% if source.truncated %} · {{ 'first page only'|t }}{% endif %}</p>{% endfor %}</details>
+
+  <details class="sa-details"><summary>{{ 'Content modeling and presentation'|t }}</summary>
+    <div class="sa-grid sa-grid--two">
+      {% for id, heading in {'content_model': 'Content model'|t, 'presentation': 'Presentation'|t} %}{% set answer = assessment.answers[id] %}<article class="sa-card"><span class="sa-eyebrow">{{ heading }}</span><h4>{{ titles[answer.choice] ?? answer.choice }}</h4><p>{{ answer.criterion }}</p>{% if answer.needs_review %}<span class="sa-badge sa-review">{{ 'Review this judgment'|t }}</span>{% endif %}</article>{% endfor %}
+    </div>
+    <div class="sa-grid">
+      {% for id, bundle in assessment.site.bundles %}{% set answer = assessment.answers['bundle__' ~ id] %}<article class="sa-card sa-fit sa-fit--{{ answer.choice }}"><span class="sa-badge">{{ answer.needs_review ? 'Review needed'|t : labels[answer.choice] }}</span><h4>{{ bundle.label }}</h4><div class="sa-chips">{% for field in bundle.fields %}<span>{{ field.label }}</span>{% endfor %}</div><p>{{ answer.criterion }}</p><a href="{{ path('entity.node_type.edit_form', {'node_type': id}) }}">{{ 'Inspect content type'|t }} →</a></article>{% endfor %}
+    </div>
   </details>
   <div class="sa-next"><strong>{{ 'Next step'|t }}</strong><p>{{ assessment.follow_up }}</p></div>
   <details class="sa-details"><summary>{{ 'See exactly what informed this advice'|t }}</summary>
     <p>{{ 'Profile'|t }}: <code>{{ assessment.profile }}</code> · {{ 'Site snapshot'|t }}: <code>{{ assessment.site.fingerprint }}</code></p>
-    <p>{{ 'Questions and their possible answers are defined by this module. Jev supplies the judgments; the descriptions below are the predefined criteria, not generated explanations.'|t }}</p>
+    <p>{{ 'Provider-reported usage'|t }}: {{ assessment.usage.input ?? '—' }} {{ 'input tokens'|t }} · {{ assessment.usage.output ?? '—' }} {{ 'output tokens'|t }}. {{ 'Provider caching may reuse a previous response and its usage figures. These are not a measurement of this call’s billed cost.'|t }}</p>
+    <p>{{ 'The module defines the questions and possible answers. Jev supplies judgments; displayed criteria are not generated explanations.'|t }}</p>
     {% for id, question in assessment.questions %}<details><summary>{{ id }} → {{ assessment.answers[id].choice }}</summary><p>{{ question.instructions }}</p><pre>{{ question.criteria|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre><pre>{{ assessment.answers[id]|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>{% endfor %}
-    <details><summary>{{ 'Exact site evidence sent to the provider'|t }}</summary><pre>{{ assessment.site|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
-    <details><summary>{{ 'Exact recipe evidence sent to the provider'|t }}</summary><pre>{{ assessment.recipes|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
+    <details><summary>{{ 'Exact site evidence'|t }}</summary><pre>{{ assessment.site|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
+    <details><summary>{{ 'Exact candidate evidence'|t }}</summary><pre>{{ assessment.candidates|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
     {% for limitation in assessment.limitations %}<p class="sa-note">{{ limitation }}</p>{% endfor %}
   </details>
 </section>

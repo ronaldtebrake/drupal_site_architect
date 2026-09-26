@@ -55,10 +55,10 @@ final class AdvisorForm extends FormBase {
       '#context' => [
         'eyebrow' => $this->t('Drupal + typed AI decisions'),
         'title' => $this->t('A better starting point for your build.'),
-        'body' => $this->t('Describe what you need. Compare it with the content structures and capabilities already on this site.'),
+        'body' => $this->t('Describe what you need. Compare what this site already supports with recipes and modules from configured catalogs before building.'),
         'a' => $this->t('Inspect this site'),
-        'b' => $this->t('Assess the fit'),
-        'c' => $this->t('Review before building'),
+        'b' => $this->t('Discover existing solutions'),
+        'c' => $this->t('Assess before building'),
       ],
     ];
     $form['examples'] = ['#type' => 'container', '#weight' => -40, '#attributes' => ['class' => ['sa-examples']]];
@@ -79,6 +79,10 @@ final class AdvisorForm extends FormBase {
         $this->t('An unclear brief'),
         'We need something better for our website. Please help us figure out the right approach.',
       ],
+      'workflow' => [
+        $this->t('Editorial workflow'),
+        'We need an editorial workflow for our existing news content. Writers should save drafts, editors review them and then publish approved articles. Check what the site already supports, and compare available workflow recipes or modules before proposing custom development.',
+      ],
     ];
     foreach ($examples as $id => [$label, $brief]) {
       $form['examples'][$id] = [
@@ -89,6 +93,7 @@ final class AdvisorForm extends FormBase {
           'type' => 'button',
           'class' => ['sa-example'],
           'data-advisor-example' => $brief,
+          'data-advisor-search' => $id === 'workflow' ? 'workflow' : '',
         ],
       ];
     }
@@ -104,6 +109,15 @@ final class AdvisorForm extends FormBase {
       '#attributes' => ['data-advisor-brief' => 'true'],
     ];
     $form['actions'] = ['#type' => 'actions', '#weight' => -20];
+    $form['catalog_query'] = [
+      '#type' => 'textfield',
+      '#weight' => -25,
+      '#title' => $this->t('Search the ecosystem for'),
+      '#default_value' => $form_state->getValue('catalog_query') ?? '',
+      '#maxlength' => 120,
+      '#description' => $this->t('Optional short keywords, for example workflow. Searches enabled Project Browser sources when the integration is installed. Leave empty to assess local recipe files only. Search keywords go to configured catalogs; your site evidence goes only to the Decision provider.'),
+      '#attributes' => ['data-advisor-query' => 'true'],
+    ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Assess this brief'),
@@ -160,10 +174,14 @@ final class AdvisorForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $form_state->set('assessment', NULL)->set('advisor_error', NULL);
     try {
-      $form_state->set('assessment', $this->advisor->assess((string) $form_state->getValue('brief'), $this->currentUser()));
+      $form_state->set('assessment', $this->advisor->assess((string) $form_state->getValue('brief'), $this->currentUser(), (string) $form_state->getValue('catalog_query')));
     }
     catch (\LengthException $e) {
       $form_state->set('advisor_error', $e->getMessage());
+    }
+    catch (\UnexpectedValueException) {
+      $form_state->set('advisor_error', $this->t('The Decision provider returned an incomplete or inconsistent assessment. Refine the brief or retry. No partial advice or site changes were produced.'));
+      $this->getLogger('ai_site_advisor')->warning('Assessment rejected by the response contract checks. No provider response was logged.');
     }
     catch (\Throwable $e) {
       // Provider errors can contain request data. Never echo or log raw errors.

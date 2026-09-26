@@ -1,0 +1,8 @@
+name: AI Site Advisor Project Browser
+type: module
+description: Discover ecosystem candidates through enabled Project Browser sources.
+package: AI
+core_version_requirement: ^11.2
+dependencies:
+  - ai_site_advisor:ai_site_advisor
+  - project_browser:project_browser (>=2.1)

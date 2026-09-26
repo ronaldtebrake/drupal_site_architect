@@ -1,216 +1,305 @@
 # AI Site Advisor
 
-Assess a content brief against what a Drupal site actually has, before an agent
-starts building. The module collects site structure, asks typed AI Decision
-questions, and returns inspectable advice about content models, presentation,
-reuse and recipe relevance.
+Help an agent decide what to reuse, investigate or build on a Drupal site.
+The adviser reads the current site structure, discovers recipe and module
+candidates, then asks typed AI Decision questions about their suitability.
+The phase-one demo uses **Jev through the TypeSafe AI provider**.
 
-The phase-one demo uses **Jev through the TypeSafe AI provider**. It can recognise
-an existing Workshop content type, distinguish its stored fields from its Canvas
-presentation, and ask for clarification when the brief is ambiguous. The same
-service is available to a normal Drupal form and an optional Tool API plugin.
+A site builder can inspect the same advice in a normal Drupal form. Optional
+submodules connect Project Browser, Tool API and MCP Server. The main service
+works independently of those integrations and of Canvas, WebMCP and ECA.
 
-This is an advisory prototype. It does not create content types, apply recipes,
-generate layouts or publish content. Phase one includes implementation tests and
-live smoke checks, but **no model eval suite, accuracy calibration or cost
-comparison**.
+For example: “We need an editorial workflow for our existing news content.
+What can we reuse here, which ecosystem solutions should we investigate, and
+what would remain to build?” The adviser compares actual moderation states,
+transitions and assigned content types with discovered recipes and modules.
+It works whether the existing workflow came from a recipe, a site builder or
+custom code. Recipe application history is not required.
 
-## Requirements
+This is read-only advice. A relevance judgment is not a compatibility check or
+permission to install. No recipe is applied, package installed, content created
+or configuration changed by either adviser tool. Phase one includes software
+tests and live checks; model evals and cost comparisons remain later work.
 
-- PHP 8.3 or later; Drupal 11.2 or later within Drupal 11.
-- Core Node and its dependencies.
-- [Drupal AI](https://www.drupal.org/project/ai) 1.5 or later within version 1
-  (tested with 1.5.0-rc4; allow RC stability while 1.5 is a prerelease).
-- [AI Decision](https://www.drupal.org/project/ai_decision), compatible with the
-  1.0 development API (`DecisionInput`, `ChoiceQuestion`, `DecisionResponse`).
-- A configured provider supporting the **Decision** operation, with a default
-  provider and model selected in Drupal AI. The module has no provider fallback.
+## Requirements and standalone installation
 
-For Jev, install
-[AI Provider TypeSafe AI](https://www.drupal.org/project/ai_provider_typesafeai)
-and configure its credential through Drupal Key. This module neither stores nor
-ships API credentials. AI Decision and the TypeSafe provider are development
-dependencies at the time of this prototype; pin the tested revisions in the host
-site's Composer lock file.
+- PHP 8.3+, Drupal 11.2+ within Drupal 11, and core Node.
+- [Drupal AI](https://www.drupal.org/project/ai) `^1.5@RC`.
+- [AI Decision](https://www.drupal.org/project/ai_decision) `^1.0@dev`.
+- A configured default **Decision** provider and model in Drupal AI.
 
-**Canvas, Canvas Tools, WebMCP, MCP Server, Tool API and CCC are not required by
-the main module.** Canvas options are offered only when Canvas is enabled. It
-does not change the site's default AI provider or replace an existing LLM.
-
-## Installation
-
-This directory is a self-contained module, ready to become its own contribution.
-Until it has a published release, place it at
-`web/modules/contrib/ai_site_advisor` (or use a Composer path/VCS repository).
-From the Drupal project's root:
+This directory is a self-contained module with its own Composer metadata and
+license. Until it has a published release, place it at
+`web/modules/contrib/ai_site_advisor`, or use a Composer path/VCS repository.
+From the Drupal project root:
 
 ```sh
 composer require 'drupal/ai:^1.5@RC' 'drupal/ai_decision:^1.0@dev'
 drush en ai_site_advisor -y
-drush cr
 ```
 
-For the Jev demo:
+For Jev, install
+[AI Provider TypeSafe AI](https://www.drupal.org/project/ai_provider_typesafeai):
 
 ```sh
 composer require 'drupal/ai_provider_typesafeai:^1.0@dev'
-drush en ai_provider_typesafeai ai_site_advisor_demo -y
+drush en ai_provider_typesafeai -y
 ```
 
-In DDEV, prefix these commands with `ddev`.
+Configure its credential through Drupal Key and choose the Jev model as the
+default **Decision** model. Credentials and provider configuration are never
+shipped with this module. Pin development dependencies in the host site's lock
+file; tested versions are recorded in [VALIDATION.md](VALIDATION.md).
 
-Configure the TypeSafe provider's key and choose its Jev model as the default
-**Decision** model under Drupal AI settings. Grant `access ai site advisor` to
-trusted site builders. This restricted permission allows inspection of the
-selected structural metadata and calls to the configured provider.
+Grant `access ai site advisor` to trusted site builders. It permits structural
+metadata inspection, configured catalogue searches and provider calls.
 
-Open **Structure → AI Site Advisor**:
+- Adviser: `/admin/structure/ai-site-advisor` (Structure → AI Site Advisor).
+- Policy, content-type scope and additional recipe directories:
+  `/admin/config/ai/site-advisor`.
+- Optional sample content type: `drush en ai_site_advisor_demo -y` creates a
+  regular Workshop node type with description, date, location and capacity.
+  Its normal form is `/node/add/advisor_workshop`. It creates no content records.
 
-```
-/admin/structure/ai-site-advisor
-```
+In DDEV, prefix Composer and Drush commands with `ddev`.
 
-Set site policy and optional content-type scope at:
+## Dynamic recipe discovery
 
-```
-/admin/config/ai/site-advisor
-```
+There is no fixed list of recipe names. The local source discovers `recipe.yml`
+files from:
 
-The optional demo submodule creates a regular **Workshop** node type with date,
-location, capacity and description fields. Its normal content form is
-`/node/add/advisor_workshop`. The adviser reads these real definitions; it does
-not receive a hard-coded recommendation. The demo creates no content records.
-Uninstalling it removes its owned configuration, subject to Drupal's normal
-content-deletion safeguards.
+- Drupal core's `core/recipes` directory.
+- Composer packages of type `drupal-recipe`, using their recorded install paths.
+- Conventional `recipes` directories at the Composer root and Drupal docroot.
+- Additional directories configured in the adviser settings, relative to the
+  Composer root or absolute. Directory scans include manifests up to two
+  subdirectory levels down and follow links. Add a nearer root for deeper trees.
 
-## A short demo
+The source reads names, descriptions, declared extensions, included recipe names,
+configuration-action targets and a source hash. It also reads a sibling
+`composer.json` for package identity when present. A newly added or edited
+manifest appears on the next discovery call without editing this module.
+Malformed manifests are reported while valid results remain available.
 
-1. Inspect the Workshop fields in Drupal's content-type UI.
-2. Open the adviser and assess **Recurring workshops**. Inspect the reuse
-   candidate and the separate presentation judgment. A shared visual layout can
-   have several implementations, so a review prompt is a useful outcome.
-3. Add a requirement to the brief: “Each workshop also needs a separately stored
-   ticket price, which visitors must be able to filter on.” Assess again. The
-   Workshop type currently has no price field, so look for an extension/review
-   judgment rather than unquestioned reuse.
-4. Try **One campaign page**. With Canvas installed, this can favour a standalone
-   Canvas page over a new repeated-record model.
-5. Try **News + review** and inspect the bounded recipe catalog. Recipe relevance
-   does not mean it is safe or necessary to apply: an equivalent workflow may
-   already exist.
-6. Open **See exactly what informed this advice**. Show the live evidence,
-   versioned questions, option probabilities, model and reported token usage.
-7. Try **An unclear brief** to show how a caller receives questions before it
-   proceeds to build.
+Local availability means **code is present**. It does not prove that a recipe
+was applied, that its configuration remains in use, or that applying it would
+be compatible. The site collector separately reads current configuration.
 
-These are live model judgments, not guaranteed outcomes. The useful handover is
-the evidence, candidate IDs and unresolved decisions. The UI does not fabricate
-an explanation: displayed descriptions are the predefined option criteria.
+## Discovering the ecosystem through Project Browser
 
-## Service contract
+Enable the optional adapter:
 
-Inject `Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface` (service alias)
-or `ai_site_advisor.advisor`:
-
-```php
-$assessment = $advisor->assess($brief, $account);
+```sh
+composer require 'drupal/project_browser:^2.1'
+drush en ai_site_advisor_project_browser -y
 ```
 
-The account must have `access ai site advisor`. Access is checked inside the
-service before evidence collection or inference, including for direct callers.
-Briefs must contain 10–4,000 characters. The evidence collector supports at most
-24 selected node content types; the request also has a 100 KB size limit.
+The adapter calls Project Browser's public source plugin API and respects its
+enabled-source configuration. It accepts recipe and module projects. The built-in
+local recipe source is skipped because the main module already reads those
+manifests with richer evidence.
 
-The result is a serializable array containing:
+Project Browser supplies a contributed-module catalogue. To include recipes
+that have **not** been downloaded or applied, the demo uses
+[API Browser](https://www.drupal.org/project/api_browser):
 
-| Key | Meaning |
-| --- | --- |
-| `status` | `assessed` or `needs_clarification`; never authorisation to build. |
-| `answers` | Choices, complete probability distributions, confidence, review flags and static criteria. |
-| `reuse_candidates` / `extension_candidates` | Machine names of confidently matched node types. |
-| `site` / `recipes` | The exact inspected evidence; site fingerprint and recipe source hashes. |
-| `questions` / `profile` | Exact questions and the versioned assessment profile. |
-| `follow_up` | What the caller or human needs to resolve next. |
-| `model` / `usage` / `elapsed_ms` | Reported model, input/output/total tokens and server-side elapsed time. Unknown usage remains `null`. |
-| `contradictory_judgments` / `limitations` | Cross-answer conflicts and boundaries callers must retain. |
+```sh
+composer require 'drupal/api_browser:^2.0@beta'
+drush en api_browser -y
+```
 
-The service throws on denied access, invalid input, oversize evidence, missing
-provider configuration, failed inference, missing answers or invalid probability
-distributions. Callers should stop and display a safe error. They should not
-treat a failed assessment as approval to build, or display raw provider errors.
+At `/admin/config/development/project_browser`, enable **Packagist Drupal
+Recipes**, keeping any existing sources you need. API Browser ships this source
+configuration; its plugin ID is `api_browser_project:packagist_recipes`.
+Use its **API Browser Services** settings to configure other external JSON
+catalogues. The adviser has no dependency on Packagist or a particular source ID.
+Project Browser's installation UI does not need to be enabled for discovery.
 
-All independent questions are sent in one Decision request. No LLM is asked to
-invent the rubric, retrieve the site configuration or parse free-form advice.
-The Drupal collector supplies facts; a versioned profile defines what to judge;
-Jev supplies bounded judgments; PHP handles validation and the next-step policy.
+Use short keywords such as `workflow` in the adviser's **Search the ecosystem
+for** field. The API Browser Packagist source currently filters titles, so a
+paragraph-length requirement is a poor search query. An agent can try a second
+term when the first search is narrow. An empty search field assesses local
+recipes only; it does not send the full brief to catalogue providers.
 
-Review flags currently use selected-option probability below 0.75, confidence
-below 0.7, an unknown/unclear answer, or contradictory primary judgments. These
-are **prototype display thresholds**, not measured correctness guarantees.
+Discovery reports source IDs, candidate packages, availability, match counts,
+truncation and failures. Searches assess at most 12 candidates, alternating
+local and Project Browser results and alternating Project Browser sources.
+Stable IDs are based on kind and package, with separate core component IDs.
+Duplicate packages retain additional source references.
 
-## Tool API and other callers
+Search is bounded, and upstream sources manage their own caches. A source may
+hide upstream fetch failures or provide fixed compatibility flags. Such flags
+remain explicitly **unverified source claims**. No results, partial results or
+high relevance cannot establish that custom development is necessary or that a
+package is safe to adopt. Inspect dependencies, recipe actions, configuration
+overlap and target-site compatibility before choosing an installation plan.
 
-Install Tool API and enable the optional integration:
+## Tool API and MCP Server
+
+Enable Tool API integration:
 
 ```sh
 composer require 'drupal/tool:^1.0@beta'
 drush en ai_site_advisor_tool -y
-drush tool:info ai_site_advisor:assess_content_brief
-drush tool:run ai_site_advisor:assess_content_brief --uid=1 \
-  --input='{"brief":"We run recurring workshops with a date, location and capacity. Reuse an existing type where possible."}'
 ```
 
-The submodule requires Tool API beta8 or newer within the current 1.x API. Its
-tool takes a required `brief` string and returns an `assessment` map. It is an
-`Explain` operation and repeats the permission check in the service.
+| Tool API plugin | Input | Output |
+| --- | --- | --- |
+| `ai_site_advisor:discover_candidates` | `query`: 1–120 characters | `discovery`: candidates and source reports; no inference call. |
+| `ai_site_advisor:assess_content_brief` | `brief`: 10–4,000 characters; optional `catalog_query`: up to 120 | `assessment`: fresh site evidence, discovery and typed judgments. |
 
-An agent, MCP Server, ECA or WebMCP integration can call the same operation through
-its existing Tool API adapter. Register/allowlist it in that adapter and preserve
-the calling user's identity. **The module does not automatically expose a public
-endpoint, register a WebMCP tool, or enable an MCP bridge.** An adapter must handle
-its own transport, authentication, browser/page scope and interaction lifecycle.
-WebMCP does not need to call MCP Server to use this service.
+The operations are `Read` and `Explain`. Both check `access ai site advisor`
+inside the service, including for callers that skip Tool API's access method.
 
-For an agentic experience, call the adviser before build tools, resolve review
-flags, then use the existing tools to inspect and apply the chosen configuration.
-The result is advice about suitability, not executable configuration. Independent
-permission, compatibility and stale-state checks still belong to the build tools.
+For an MCP client, install
+[MCP Server Tool Bridge](https://www.drupal.org/project/mcp_server_tool_bridge)
+at a version compatible with your MCP Server installation:
 
-## Evidence and privacy
+```sh
+composer require 'drupal/mcp_server_tool_bridge:^1.0@beta'
+drush en ai_site_advisor_mcp -y
+drush cr
+```
+
+This optional submodule installs two enabled Tool API mappings. The demo uses
+MCP Server `2.0.0-beta2` and bridge `1.0.0-beta1`; newer bridge releases require
+newer server APIs. Review the host's existing MCP tool mappings when enabling
+the bridge: other installed modules can supply optional mappings of their own.
+This module owns only its two adviser mappings.
+
+The default MCP HTTP endpoint is `/mcp`. Use the host's configured authenticated
+MCP connection and an account with both `access mcp server` and `access ai site
+advisor`. This module does not provision credentials or anonymous access. The
+verified wire names are:
+
+- `tool_api__ai_site_advisor_discover`
+- `tool_api__ai_site_advisor_assess`
+
+An agent can first call discovery with `{"query":"workflow"}`, then assess:
+
+```json
+{
+  "brief": "We need an editorial workflow for our existing news content. Writers save drafts, editors review them, then publish approved articles. Compare the existing configuration with available solutions before proposing custom development.",
+  "catalog_query": "workflow"
+}
+```
+
+Assessment repeats discovery and reads the site afresh. It never accepts an
+agent-supplied evidence packet as proof. Candidate IDs are stable; the set may
+change when a source updates. Resolve review flags and inspect candidate details
+before invoking separate installation or build tools.
+
+```mermaid
+flowchart LR
+  Agent --> MCP[MCP Server]
+  MCP --> Bridge[Tool API bridge]
+  Bridge --> Tools[Discovery and assessment tools]
+  Tools --> Advisor[Shared adviser services]
+  Form[Drupal form] --> Advisor
+  Advisor --> Site[Current fields and workflows]
+  Advisor --> Local[Local recipe manifests]
+  Advisor --> PB[Enabled Project Browser sources]
+  PB --> Catalogs[Module and recipe catalogues]
+  Advisor --> Decision[AI Decision / Jev]
+```
+
+ECA, WebMCP and other callers can use the same service or Tool API plugins through
+their adapters. WebMCP can invoke them directly; it does not need MCP Server.
+Browser path scope, human handover, transport authentication and write-tool
+permissions remain responsibilities of those interfaces.
+
+## A short demo
+
+1. Open the adviser and expand **Available capabilities and recipe catalog**.
+   Show the site's actual fields, moderation states and discovered local files.
+2. Select **Editorial workflow** and click **Assess this brief**. This searches
+   the configured ecosystem for `workflow` as well as reading local manifests.
+3. Compare the existing workflows with the discovered recipe/module cards.
+   Expand a workflow to inspect its transitions and content-type assignments.
+4. Expand a candidate's **Evidence and adoption checks**. A remote recipe is
+   shown as available in the ecosystem; its presence is not called “applied”.
+5. Inspect **Which sources were searched?** and the exact questions and evidence.
+   Explain that Jev judges fit from supplied facts; it does not discover Drupal
+   projects from memory or decide installation permissions.
+6. In an MCP agent, ask: “Use the adviser to search workflow solutions and assess
+   our existing news workflow. Give me a reuse / adopt / custom-build proposal
+   with the remaining checks. Do not install or change anything yet.”
+
+The site must have a moderation workflow for the reuse part of this example.
+Without one, discovery still works and the result reports no existing workflow.
+The Workshop and campaign examples remain available for content-model planning.
+Live judgments vary; the UI shows predefined criteria and review flags rather
+than inventing a generated explanation.
+
+## Service contract and evidence
+
+Inject `Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface`, or service
+`ai_site_advisor.advisor`:
+
+```php
+$assessment = $advisor->assess($brief, $account, catalog_query: 'workflow');
+```
+
+For discovery alone, inject `ai_site_advisor.candidates`:
+
+```php
+$discovery = $catalog->discover('workflow', $account, limit: 12);
+```
+
+| Assessment key | Meaning |
+| --- | --- |
+| `status`, `summary`, `follow_up` | Advisory outcome and unresolved questions; never authorisation to build. |
+| `answers` | Choices, full distributions, confidence, individual review flags and static criteria. |
+| `reuse_candidates`, `extension_candidates` | Confidently matched node content-type IDs. |
+| `workflow_candidates` | Existing workflow IDs with a `ready` or `extend` judgment. |
+| `adoption_candidates` | Confidently relevant catalogue candidate IDs, not verified install targets. |
+| `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
+| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v2`). |
+| `model`, `usage`, `elapsed_ms` | Provider-reported model/usage and elapsed server time including discovery. |
+| `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |
+
+`recipes` remains an alias of `candidates`, and candidate question IDs retain
+the `recipe__` prefix for compatibility with the initial prototype. These now
+include module candidates; inspect each candidate's `kind`.
 
 Collected evidence is allowlisted: node-type labels/descriptions, title and
-configurable field metadata, entity-reference target bundles, selected module
-availability, IDs/labels of Views/workflows/Canvas templates, and site policy.
-No node content, user records, provider settings or arbitrary config is read.
-Evidence is collected afresh on every assessment; results are not cached for reuse.
+configurable field definitions, reference targets, selected enabled features,
+Views/template identities, active moderation states/transitions/bundles and site
+policy. Node content, user records, provider settings and arbitrary config are
+not collected. Role permissions, notifications, ECA models and runtime behavior
+are not inferred from workflow labels.
 
-The recipe catalog reads four real Drupal core `recipe.yml` manifests: Article,
-Basic page, Editorial workflow and Content search. It includes their declared
-descriptions, module installs and source hashes. It does **not** inspect all recipe
-configuration actions, resolve compatibility, search drupal.org, or infer existing
-configuration behavior from labels. Missing recipes are omitted.
+The brief, selected structural metadata and bounded candidates go to the
+configured Decision provider. Catalogue sources receive the separate search
+keywords, not site evidence or the full brief. Drupal's normal form/session
+handling and host AI logging/cache settings still apply. This module sanitizes
+provider exceptions before they reach Tool API or MCP transport logs.
 
-Briefs and selected structural metadata go to the configured AI provider. The
-form uses Drupal's normal session/form cache; site-configured AI logging and
-guardrails still apply. This module logs only the exception class on failures,
-not raw provider errors. Review the host site's provider and logging settings
-before using private project briefs.
+All independent judgments go in one Decision request. Evidence is collected
+afresh; the adviser does not cache assessments. The provider may cache its own
+responses, including their usage metadata. Reported tokens are **not necessarily
+newly billed tokens for this call**, and elapsed time is not a full agent-task
+measurement. Unknown usage remains `null`; cached-input/billing breakdown is not
+available through this response contract.
 
-## Extending and contributing
+Assessment supports at most 24 selected node types and a 100 KB request. Missing
+answers, invalid options/distributions, denied access and failed inference stop
+assessment. Review flags use probability below 0.75, confidence below 0.7,
+unknown/unclear answers or contradictory primary judgments. These are prototype
+display thresholds, not calibrated correctness guarantees. Callers must retain
+individual review flags even when the overall status is `assessed`.
 
-The main service, collector, profile, provider adapter, UI and Tool API adapter are
-separate classes. No procedural `.module` file is needed. Decorate the evidence
-collector or replace the adviser through their interfaces in Drupal's container.
-Both the form and Tool API plugin consume the shared `SiteAdvisorInterface`.
+## Extending and validating
 
-Keep question changes versioned (`ContentPlanningProfile::VERSION`). Add wider
-recipe catalogs, CCC-backed policies or other entity types as bounded evidence
-sources. Evals, calibrated thresholds, automatic building and wider ecosystem
-discovery are later work, outside phase one.
+The collector, profile, provider adapter, adviser and UI are separate classes.
+Decorate the collector or replace the adviser through their interfaces. Add a
+catalogue adapter by implementing `CatalogSourceInterface` and tagging its
+service `ai_site_advisor.catalog_source`. No procedural `.module` file is needed.
+Keep rubric changes versioned. New entity types, package compatibility checks,
+approved installation workflows and model evals are separate follow-up work.
 
-### Validation
-
-Run from a Drupal project with its development dependencies installed:
+Run from a Drupal project with development tools and the optional integration
+dependencies installed:
 
 ```sh
 SIMPLETEST_DB=sqlite://localhost/:memory: vendor/bin/phpunit \
@@ -220,23 +309,23 @@ vendor/bin/phpcs --standard=Drupal,DrupalPractice --extensions=php \
 node --check web/modules/contrib/ai_site_advisor/js/advisor.js
 ```
 
-Adjust `contrib` to `custom` if installed there. PHPUnit bootstraps Drupal core;
-the kernel test uses an isolated database and a mocked account, with no provider
-credentials or inference calls. It installs the module's dependencies, verifies
-operation without Canvas/WebMCP/Tool/TypeSafe, checks fresh field evidence, then
-installs and removes the optional Tool API integration. Unit tests exercise the
-service's access, response and uncertainty contracts. See [VALIDATION.md](VALIDATION.md)
-for the live smoke-check record.
+Adjust `contrib` to `custom` as needed. Tests use an isolated SQLite database,
+real local manifests and a fixture Project Browser source. They make no external
+catalogue or inference requests and require no API key. See
+[VALIDATION.md](VALIDATION.md) for verified behavior and live MCP/browser checks.
 
 ## Attribution and license
 
-This module is original integration code under GPL-2.0-or-later. It consumes
-Drupal core, Drupal AI, AI Decision, the TypeSafe AI provider and optionally Tool
-API through their public APIs. It does not vendor or fork Canvas, Canvas Tools,
-WebMCP Integration or their demo code. The optional Workshop configuration is
-owned by this module. The core recipe manifests are read from the host Drupal
-installation, not copied into this repository.
+Original integration code, GPL-2.0-or-later. It consumes Drupal core, Drupal AI,
+AI Decision, the TypeSafe provider and optional
+[Tool API](https://www.drupal.org/project/tool),
+[Project Browser](https://www.drupal.org/project/project_browser),
+[API Browser](https://www.drupal.org/project/api_browser),
+[MCP Server](https://www.drupal.org/project/mcp_server) and
+[MCP Server Tool Bridge](https://www.drupal.org/project/mcp_server_tool_bridge)
+through their APIs and configuration.
 
-The direction grew out of discussions about shared Drupal operations across
-human and agent interfaces. Please retain the upstream project links above when
-adapting or contributing this work.
+No upstream module was forked or vendored for this work. Recipe manifests are
+read from the host installation; API Browser supplies the Packagist source
+configuration. The optional Workshop configuration belongs to this module.
+Please retain these upstream attributions when contributing or adapting it.

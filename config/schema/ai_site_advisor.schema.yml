@@ -10,3 +10,8 @@ ai_site_advisor.settings:
       label: 'Content types in scope (empty means all)'
       sequence:
         type: string
+    recipe_directories:
+      type: sequence
+      label: 'Additional local recipe discovery roots'
+      sequence:
+        type: string

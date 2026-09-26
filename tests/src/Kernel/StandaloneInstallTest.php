@@ -34,7 +34,17 @@ final class StandaloneInstallTest extends KernelTestBase {
     $installer->install(['ai_site_advisor_demo']);
     $this->assertInstanceOf(SiteAdvisorInterface::class, $this->container->get('ai_site_advisor.advisor'));
     $handler = $this->container->get('module_handler');
-    foreach (['canvas', 'canvas_tools', 'tool', 'webmcp_integration', 'ai_provider_typesafeai'] as $module) {
+    $optional_modules = [
+      'canvas',
+      'canvas_tools',
+      'tool',
+      'webmcp_integration',
+      'ai_provider_typesafeai',
+      'project_browser',
+      'api_browser',
+      'mcp_server',
+    ];
+    foreach ($optional_modules as $module) {
       $this->assertFalse($handler->moduleExists($module), $module . ' is not required.');
     }
     $account = $this->createMock(AccountInterface::class);
@@ -51,6 +61,18 @@ final class StandaloneInstallTest extends KernelTestBase {
     $form = unserialize(serialize(AdvisorForm::create($this->container)), ['allowed_classes' => [AdvisorForm::class]]);
     $rebuilt = $form->buildForm([], new FormState());
     $this->assertArrayHasKey('advisor_workshop', $rebuilt['context']['#snapshot']['bundles']);
+
+    // A malformed model result clears prior advice and offers a safe retry.
+    $invalid_advisor = $this->createMock(SiteAdvisorInterface::class);
+    $invalid_advisor->method('assess')->willThrowException(new \UnexpectedValueException('Untrusted response detail.'));
+    $error_form = new AdvisorForm($invalid_advisor, $collector, $this->container->get('ai_site_advisor.catalog'));
+    $error_state = (new FormState())->setValues(['brief' => 'An editorial workflow.', 'catalog_query' => '']);
+    $error_state->set('assessment', ['previous' => 'advice']);
+    $empty_form = [];
+    $error_form->submitForm($empty_form, $error_state);
+    $this->assertNull($error_state->get('assessment'));
+    $this->assertStringContainsString('incomplete or inconsistent', (string) $error_state->get('advisor_error'));
+    $this->assertStringNotContainsString('Untrusted', (string) $error_state->get('advisor_error'));
 
     FieldStorageConfig::create(['entity_type' => 'node', 'field_name' => 'field_test_price', 'type' => 'decimal'])->save();
     FieldConfig::create([

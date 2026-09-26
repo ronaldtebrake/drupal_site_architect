@@ -1,2 +1,3 @@
 site_policy: 'Prefer reusing a suitable existing content type over creating a duplicate. Keep repeatable records in structured fields. Choose presentation separately from the content model.'
 included_bundles: []
+recipe_directories: []

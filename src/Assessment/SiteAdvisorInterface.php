@@ -14,6 +14,6 @@ interface SiteAdvisorInterface {
   /**
    * Inspects the current site and assesses the brief; never builds content.
    */
-  public function assess(string $brief, AccountInterface $account): array;
+  public function assess(string $brief, AccountInterface $account, string $catalog_query = ''): array;
 
 }
