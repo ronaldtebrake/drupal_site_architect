@@ -43,7 +43,8 @@ final class ProjectBrowserCatalogSource implements CatalogSourceInterface {
         continue;
       }
       try {
-        $page = $source->getProjects(['search' => $query, 'page' => 0, 'limit' => $limit, 'categories' => '']);
+        $fetch_limit = max(24, $limit);
+        $page = $source->getProjects(['search' => $query, 'page' => 0, 'limit' => $fetch_limit, 'categories' => '']);
         $reports[] = [
           'id' => $id,
           'label' => $page->pluginLabel,
@@ -55,7 +56,21 @@ final class ProjectBrowserCatalogSource implements CatalogSourceInterface {
         if ($page->error) {
           $warnings[] = 'Project Browser source ' . $id . ' reported an error; results may be incomplete.';
         }
-        foreach (array_slice($page->list, 0, $limit) as $project) {
+        // Prefer matches in names to incidental mentions in long descriptions.
+        // No package-specific weights: this works for every configured source.
+        $projects = array_slice($page->list, 0, $fetch_limit);
+        $rank = static function ($project) use ($query): int {
+          $name = mb_strtolower(str_replace(['_', '-'], ' ', $project->machineName));
+          $title = mb_strtolower((string) $project->title);
+          $term = mb_strtolower($query);
+          $score = $name === $term || $title === $term ? 100 : 0;
+          foreach (explode(' ', $term) as $word) {
+            $score += str_contains($name . ' ' . $title, $word) ? 10 : 0;
+          }
+          return $score;
+        };
+        usort($projects, static fn ($a, $b) => $rank($b) <=> $rank($a));
+        foreach (array_slice($projects, 0, $limit) as $project) {
           if (!in_array($project->type, [ProjectType::Recipe, ProjectType::Module], TRUE)) {
             continue;
           }

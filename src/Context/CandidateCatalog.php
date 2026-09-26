@@ -34,6 +34,66 @@ class CandidateCatalog {
   }
 
   /**
+   * Searches several capabilities and retains evidence from every query.
+   */
+  public function discoverMany(array $queries, AccountInterface $account, int $limit = 24): array {
+    if (!$account->hasPermission('access ai site advisor')) {
+      throw new AccessDeniedHttpException();
+    }
+    if (!$queries || count($queries) > 6 || $limit < 1 || $limit > 24) {
+      throw new \InvalidArgumentException('Use 1–6 capability searches and a limit of 1–24.');
+    }
+    // Validate the entire batch before contacting any source.
+    foreach ($queries as $query) {
+      if (!is_string($query) || trim($query) === '' || mb_strlen($query) > 120) {
+        throw new \InvalidArgumentException('Use non-empty capability terms of up to 120 characters.');
+      }
+    }
+    $queries = array_values(array_unique(array_map('trim', $queries)));
+    $all = $groups = $sources = $warnings = $searches = [];
+    $truncated = FALSE;
+    foreach ($queries as $query) {
+      $result = $this->discover($query, $account, 12);
+      $groups[] = array_keys($result['items']);
+      foreach ($result['items'] as $id => $item) {
+        $all[$id] ??= $item;
+        $all[$id]['matched_queries'][] = $query;
+      }
+      foreach ($result['sources'] as $source) {
+        $sources[] = $source + ['query' => $query];
+      }
+      $searches[] = [
+        'query' => $query,
+        'returned' => $result['returned'],
+        'truncated' => $result['truncated'],
+        'warnings' => $result['warnings'],
+      ];
+      $warnings = array_merge($warnings, $result['warnings']);
+      $truncated = $truncated || $result['truncated'];
+    }
+    $selected = [];
+    for ($index = 0; $index < 12 && count($selected) < $limit; $index++) {
+      foreach ($groups as $group) {
+        if (isset($group[$index]) && count($selected) < $limit) {
+          $selected[$group[$index]] = $all[$group[$index]];
+        }
+      }
+    }
+    return [
+      'query' => implode(', ', $queries),
+      'queries' => $queries,
+      'items' => $selected,
+      'sources' => $sources,
+      'searches' => $searches,
+      'warnings' => array_values(array_unique($warnings)),
+      'returned' => count($selected),
+      'truncated' => $truncated || count($all) > count($selected),
+      'scope' => 'Up to six capability searches, twelve candidates per search and twenty-four distinct candidates assessed. Queries share the final budget. Missing results do not establish that no solution exists.',
+      'retrieved_at' => gmdate(DATE_ATOM),
+    ];
+  }
+
+  /**
    * Searches configured sources. Remote searches require explicit keywords.
    */
   public function discover(string $query, AccountInterface $account, int $limit = 12, bool $include_remote = TRUE): array {

@@ -58,11 +58,15 @@ final class AdvisorForm extends FormBase {
         'body' => $this->t('Describe what you need. Compare what this site already supports with recipes and modules from configured catalogs before building.'),
         'a' => $this->t('Inspect this site'),
         'b' => $this->t('Discover existing solutions'),
-        'c' => $this->t('Assess before building'),
+        'c' => $this->t('Review the proposed plan'),
       ],
     ];
     $form['examples'] = ['#type' => 'container', '#weight' => -40, '#attributes' => ['class' => ['sa-examples']]];
     $examples = [
+      'community' => [
+        $this->t('A community site'),
+        'We want a Community site, with events and topics, placed in groups, with an activity stream and notifications.',
+      ],
       'workshops' => [
         $this->t('Recurring workshops'),
         'We run recurring workshops. Editors need to store a date, location, capacity and description for each workshop, filter the listing by location, and present each workshop consistently with a shared visual layout. Reuse a suitable existing content type if possible.',
@@ -110,14 +114,14 @@ final class AdvisorForm extends FormBase {
     $form['actions'] = ['#type' => 'actions', '#weight' => -20];
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Assess this brief'),
+      '#value' => $this->t('Propose a plan'),
       '#button_type' => 'primary',
       '#ajax' => [
         'callback' => '::refresh',
         'wrapper' => 'site-advisor-form',
         'progress' => [
           'type' => 'throbber',
-          'message' => $this->t('Inspecting this site, deciding whether to search, and assessing the options…'),
+          'message' => $this->t('Identifying capabilities, searching for building blocks, and preparing a draft plan…'),
         ],
       ],
     ];

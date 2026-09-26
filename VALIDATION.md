@@ -17,7 +17,7 @@ not a model evaluation dataset, accuracy calibration or cost comparison.
 
 ## Automated verification
 
-PHPUnit: **27 tests, 197 assertions**, passing against isolated SQLite databases.
+PHPUnit: **32 tests, 212 assertions**, passing against isolated SQLite databases.
 No inference or external catalogue requests are made by the automated tests.
 
 - Standalone installation brings in declared dependencies and optional Workshop
@@ -47,11 +47,18 @@ No inference or external catalogue requests are made by the automated tests.
 - Assessment tests cover access before inspection/inference, independent
   presentation advice, uncertainty, contradictory judgments, unavailable Canvas,
   incomplete answers and malformed probability distributions.
-- Search planning receives actual site evidence and selects a word from the
-  brief. URL/email/numeric tokens are excluded, including when a capability word
-  is followed by punctuation. Invented term options are rejected.
-- Local and uncertain routes never query remote sources. An unused speculative
-  term is ignored on the local path. No suitable term leads to clarification.
+- Search planning receives actual site evidence and selects source phrases for
+  several capabilities. The supplied community brief includes event, topic,
+  group, activity stream and notification options, with English singularization.
+  URL/email/numeric tokens are excluded. Invented options are rejected.
+- Local and uncertain routes never query remote sources. Identified
+  capabilities remain in a local plan without querying the ecosystem. No suitable
+  term leads to clarification.
+- Multi-query discovery retains distinct capability coverage, merges duplicate
+  package provenance, validates the entire batch before any source call, and
+  checks permissions before searching.
+- Draft plan composition preserves source descriptions and uncertainty. An
+  uncertain package is an option to compare, never an endorsed selection.
 - No remote adapter and an explicit keyword override both skip planning.
   Access is checked before planning. Total usage includes both Decision stages.
 - Drupal/DrupalPractice coding standards, Composer metadata validation,
@@ -61,6 +68,9 @@ Commands and optional test dependencies are described in
 [README.md](README.md#extending-and-validating).
 
 ## Live ecosystem discovery
+
+The following initial observations used the earlier single-term assessment.
+The community-plan check below exercises the current multi-query path.
 
 Enabled Project Browser sources on the demo site:
 
@@ -152,7 +162,7 @@ pre-existing mappings were preserved. The adviser owns two enabled mappings.
   Tool API denial, the real Workshop node form, Workshop reuse/price-field
   extension, Canvas campaign presentation and clarification for vague briefs.
 
-## Live search-planning checks
+## Earlier single-term search-planning checks
 
 Three briefs were checked against the actual site snapshot and configured Jev
 provider. These are observed outcomes, not assertions about every future run:
@@ -163,10 +173,49 @@ provider. These are observed outcomes, not assertions about every future run:
 | Recurring workshops with the existing date/location/capacity/description fields | Local | None | 0.82 | 0.73 |
 | Something better for the website, with no clear requirement | Clarify | None | 0.96 | 0.94 |
 
-Search terms are selected from bounded source words, not generated. This first
-version does not expand synonyms or construct multi-word queries. Generic-word
-selection is a model judgment, not a guarantee of anonymization. Route thresholds
-remain prototype policy; evals and calibration are outside this phase.
+These checks preceded the capability-plan update. Current search terms are
+source phrases of one or two words, with English singularization. Arbitrary
+synonym expansion is still not provided. Route thresholds remain prototype
+policy; evals and calibration are outside this phase.
+
+## Community brief and draft plan
+
+Reproduced the original failure with this exact brief:
+
+> We want a Community site, with events and topics, placed in groups, with an activity stream and notifications.
+
+The previous planner selected only `community`. Its 12 candidates contained
+none of the Group/event/notification building blocks expected for the brief.
+Direct Project Browser searches for `group`, `event` and `notification` did
+return relevant packages, locating the main failure in our query coverage and
+shortlisting rather than absence of those projects from Project Browser.
+
+The revised live run selected `community site`, `event`, `topic`, `group`,
+`activity stream` and `notification`. It assessed 24 distinct candidates,
+including `drupal/group`, `drupal/drupal_cms_events`, `drupal/message`,
+`drupal/activitystream_entity` and `drupal/notification_message`. Its draft
+selected Group for investigation and the existing Workshop type for inspection
+as an event starting point. Topics, activity stream and notification choices
+remained open, with source descriptions and design checks. These are observed
+model choices, not verified architectural recommendations or compatibility.
+
+The first complete revised service call reported 34,325 input and 3,778 output
+tokens across both stages. The browser run reported 5.88 seconds. Cache warmth,
+provider response caching and catalog latency make these smoke observations
+unsuitable as a cost/speed benchmark. This broader plan asks more questions and
+uses more evidence; no reduction in billed tokens is claimed.
+
+The browser rendered the proposed plan, per-capability options, existing content
+type link, upstream Group link and explicit validation/build-handoff stages.
+An authenticated HTTP MCP `tools/call` with only this brief returned `plan.status`
+of `draft`, the six capability queries, 24 candidates and the same structured
+work areas. Group was selected for investigation; the activity stream and
+notifications retained competing options. The topics judgment varied between
+an open decision and investigating the core Tags recipe, while its design check
+still called for clarifying discussions versus taxonomy. The temporary MCP
+session was terminated successfully (HTTP 200).
+No discovered package was installed and no content/configuration was changed by
+the assessment. Evals remain outside this phase.
 
 ## Remaining boundaries
 

@@ -98,4 +98,51 @@ final class CandidateCatalogTest extends UnitTestCase {
     $catalog->discover('workflow', $this->account(FALSE));
   }
 
+  /**
+   * Independent searches retain coverage and merge duplicate provenance.
+   */
+  public function testMultipleQueriesRetainCoverage(): void {
+    $source = $this->createMock(CatalogSourceInterface::class);
+    $source->method('isRemote')->willReturn(TRUE);
+    $source->method('search')->willReturnCallback(static function ($query): array {
+      $items = [];
+      foreach ([$query, 'shared'] as $name) {
+        $items[] = ['kind' => 'module', 'package' => 'fixture/' . $name, 'machine_name' => $name, 'source' => 'fixture'];
+      }
+      return ['items' => $items, 'sources' => [], 'warnings' => []];
+    });
+    $catalog = new CandidateCatalog();
+    $catalog->addSource($source);
+    $result = $catalog->discoverMany(['event', 'group'], $this->account(), 3);
+    $items = array_column($result['items'], NULL, 'package');
+    $this->assertSame(['fixture/event', 'fixture/group', 'fixture/shared'], array_keys($items));
+    $this->assertSame(['event', 'group'], $items['fixture/shared']['matched_queries']);
+    $this->assertSame(['event', 'group'], $result['queries']);
+    $this->assertCount(2, $result['searches']);
+  }
+
+  /**
+   * An invalid later query must not allow an earlier one to contact a source.
+   */
+  public function testBatchValidationBeforeSources(): void {
+    $source = $this->createMock(CatalogSourceInterface::class);
+    $source->expects($this->never())->method('search');
+    $catalog = new CandidateCatalog();
+    $catalog->addSource($source);
+    $this->expectException(\InvalidArgumentException::class);
+    $catalog->discoverMany(['event', ''], $this->account());
+  }
+
+  /**
+   * Batch searches preserve the service permission boundary.
+   */
+  public function testBatchAccessBeforeSources(): void {
+    $source = $this->createMock(CatalogSourceInterface::class);
+    $source->expects($this->never())->method('search');
+    $catalog = new CandidateCatalog();
+    $catalog->addSource($source);
+    $this->expectException(AccessDeniedHttpException::class);
+    $catalog->discoverMany(['group'], $this->account(FALSE));
+  }
+
 }

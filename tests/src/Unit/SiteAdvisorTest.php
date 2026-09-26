@@ -44,7 +44,7 @@ final class SiteAdvisorTest extends UnitTestCase {
     $choices = ['content_model' => 'records', 'presentation' => 'canvas_template', 'bundle__workshop' => 'ready'];
     $answers = [];
     foreach ($input->getQuestions() as $id => $question) {
-      $choice = $choices[$id];
+      $choice = $choices[$id] ?? (str_starts_with($id, 'plan__') ? 'bundle__workshop' : 'scope');
       $probabilities = array_fill_keys($question->getOptionKeys(), 0.0);
       $probabilities[$choice] = 1.0;
       $answers[$id] = new ChoiceAnswer($choice, $probabilities, 1.0);

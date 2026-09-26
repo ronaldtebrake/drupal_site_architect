@@ -34,4 +34,8 @@
 .sa-recipe strong { margin-left: 12px; }
 .sa-next { background: #e3f0eb; border-radius: 10px; padding: 16px 20px; margin: 20px 0; }
 .sa-next p { margin-bottom: 0; }
+.sa-plan { list-style: none; padding: 0; display: grid; gap: 16px; }
+.sa-plan-area h4 { text-transform: none; }
+.sa-plan-check { border-left: 3px solid #aacac2; padding-left: 14px; }
+.sa-plan-option { border-top: 1px solid var(--sa-line); padding: 12px 0; }
 @media (max-width: 650px) { .sa-grid--two { grid-template-columns: 1fr; } .sa-section-title { align-items: start; flex-direction: column; } .site-advisor .sa-hero, .sa-result { padding: 22px; } }

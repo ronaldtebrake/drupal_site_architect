@@ -8,6 +8,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Field\FieldConfigInterface;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -25,6 +26,7 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
     private readonly EntityFieldManagerInterface $fields,
     private readonly ModuleHandlerInterface $modules,
     private readonly ConfigFactoryInterface $config,
+    private readonly ModuleExtensionList $extensions,
   ) {}
 
   /**
@@ -77,6 +79,15 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
     foreach (['node', 'views', 'canvas', 'content_moderation', 'workflows', 'media', 'webform'] as $module) {
       $features[$module] = $this->modules->moduleExists($module);
     }
+    $enabled_modules = [];
+    foreach ($this->modules->getModuleList() as $id => $extension) {
+      $info = $this->extensions->getExtensionInfo($id);
+      $enabled_modules[$id] = [
+        'label' => (string) ($info['name'] ?? $id),
+        'description' => mb_substr(strip_tags((string) ($info['description'] ?? '')), 0, 240),
+      ];
+    }
+    ksort($enabled_modules);
     $supporting = [];
     foreach (['view', 'workflow', 'content_template'] as $entity_type) {
       $supporting[$entity_type] = [];
@@ -122,11 +133,12 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
       }
     }
     $snapshot = [
-      'schema_version' => '1',
+      'schema_version' => '2',
       'drupal_version' => \Drupal::VERSION,
       'scope' => $included ? 'Selected content types only' : 'All node content types',
       'bundles' => $bundles,
       'enabled_features' => $features,
+      'enabled_modules' => $enabled_modules,
       'supporting_configuration' => $supporting,
       'workflows' => $workflows,
       'site_policy' => (string) $settings->get('site_policy'),
@@ -134,6 +146,7 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
         'Views and templates are listed by identity only. Moderation workflow structure is inspected, but role access and automation behavior are not verified.',
         'No content values, credentials or arbitrary configuration are collected.',
         'Only node content models are assessed. Other entity types require a separate profile.',
+        'Enabled module descriptions indicate available code, not verified configuration, entity access or working integrations.',
       ],
     ];
     // Stable digest changes with evidence, not the clock. Do not cache advice.

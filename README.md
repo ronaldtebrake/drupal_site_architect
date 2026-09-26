@@ -1,8 +1,9 @@
 # AI Site Advisor
 
 Help an agent decide what to reuse, investigate or build on a Drupal site.
-The adviser reads the current site structure, decides whether an ecosystem
-search would help, then assesses the site and discovered recipe/module candidates.
+The adviser reads the current site structure, identifies capabilities in a
+brief, decides whether ecosystem searches would help, and returns a draft plan
+grounded in the site and discovered recipe/module candidates.
 The phase-one demo uses **Jev through the TypeSafe AI provider**.
 
 A site builder can inspect the same advice in a normal Drupal form. Optional
@@ -24,6 +25,7 @@ tests and live checks; model evals and cost comparisons remain later work.
 ## Requirements and standalone installation
 
 - PHP 8.3+, Drupal 11.2+ within Drupal 11, and core Node.
+- Symfony String `^7.3` for English singularization (declared in Composer).
 - [Drupal AI](https://www.drupal.org/project/ai) `^1.5@RC`.
 - [AI Decision](https://www.drupal.org/project/ai_decision) `^1.0@dev`.
 - A configured default **Decision** provider and model in Drupal AI.
@@ -119,8 +121,8 @@ Enter the requirement in the original brief; there is no separate search field.
 When an ecosystem adapter is available, Jev receives the brief and current site
 structure and chooses one of three paths:
 
-- **Search** when comparing existing solutions would help. Jev also selects a
-  short capability term from the brief, such as `workflow`.
+- **Search** when comparing existing solutions would help. Jev selects source
+  phrases for several capabilities, such as events, groups and activity stream.
 - **Local** when current site/core configuration is a sufficient starting point,
   or the brief explicitly asks to stay local.
 - **Clarify** when the requirement or search decision is too uncertain.
@@ -130,14 +132,21 @@ remain available on every path. The resulting candidates then inform a second
 Decision request assessing fit. Without an ecosystem adapter, the adviser skips
 search planning and assesses the local evidence directly.
 
-The route and term questions share one planning request. The speculative term
-answer is consumed only on the search path. Code supplies up to 128 distinct
-words from the brief, excluding URLs, email addresses and tokens with digits;
-Jev selects an option or `none`. No topic vocabulary or recipe names are
-hardcoded. This is bounded source-word selection, not generated query rewriting
-or a guarantee that every selected word is non-sensitive. The initial approach
-uses a single word and does not expand synonyms; a specific capability in the
-brief helps title-based sources such as API Browser's Packagist catalogue.
+The route and capability questions share one planning request. Code splits the
+brief at punctuation and common conjunctions, supplying adjacent one- and
+two-word source phrases for up to 12 clauses, 32 words per clause. URLs, email
+addresses and tokens with digits are excluded. Jev selects a phrase or `none`
+for each clause. Up to six distinct capabilities are retained, including compound
+nouns such as `activity stream`; English singularization turns `groups` into
+`group` and `events` into `event`. Only the search route sends these terms to
+external sources. Local plans retain their capability scope without searching.
+
+No topic-to-module mapping or recipe list is hardcoded. This is bounded source
+selection, not arbitrary synonym generation or guaranteed anonymization. The
+English clause splitter can miss implicit requirements and complex prose. The
+UI exposes unmapped clauses and extraction truncation for review. Current module
+labels/descriptions enrich the site evidence, but do not prove that their
+configuration or integrations work.
 
 The result shows the selected path, its predefined criterion and any search
 term. Uncertain routes and the absence of a suitable term trigger a review flag
@@ -145,8 +154,14 @@ and no ecosystem search. These criteria are static descriptions of the options,
 not generated explanations of the model's reasoning.
 
 Discovery reports source IDs, candidate packages, availability, match counts,
-truncation and failures. Searches assess at most 12 candidates, alternating
-local and Project Browser results and alternating Project Browser sources.
+truncation and failures. A direct search returns at most 12 candidates,
+alternating local and Project Browser results and Project Browser sources.
+The adapter fetches up to 24 source results and prefers project-name matches
+over incidental description mentions. Compound assessments search each selected
+capability separately, deduplicate results and share a 24-candidate assessment
+budget across queries. Each candidate retains its matching queries and each
+source report retains its query. These lexical preferences are not semantic
+relevance judgments; Jev assesses the retrieved descriptions afterward.
 Stable IDs are based on kind and package, with separate core component IDs.
 Duplicate packages retain additional source references.
 
@@ -169,7 +184,7 @@ drush en ai_site_advisor_tool -y
 | Tool API plugin | Input | Output |
 | --- | --- | --- |
 | `ai_site_advisor:discover_candidates` | `query`: 1–120 characters | `discovery`: candidates and source reports; no inference call. |
-| `ai_site_advisor:assess_content_brief` | `brief`: 10–4,000 characters; optional advanced `catalog_query` override: up to 120 | `assessment`: search plan, fresh site evidence, discovery and typed judgments. |
+| `ai_site_advisor:assess_content_brief` | `brief`: 10–4,000 characters; optional advanced `catalog_query` override: up to 120 | `assessment`: draft capability plan, search decisions, fresh evidence and typed judgments. |
 
 The operations are `Read` and `Explain`. Both check `access ai site advisor`
 inside the service, including for callers that skip Tool API's access method.
@@ -239,9 +254,27 @@ permissions remain responsibilities of those interfaces.
 
 ## A short demo
 
+Select **A community site** and click **Propose a plan**. The example asks for
+events and topics in groups, an activity stream and notifications. Show the
+separate queries, the existing Workshop type as a possible event starting point,
+and `drupal/group` as a discovered candidate. Activity-stream and notification
+options remain reviewable; a package's description does not prove the combination
+works. Topics may mean discussions or taxonomy, so the plan asks to resolve that
+distinction. No project name is embedded in the example or retrieval logic.
+
+The plan has three parts: work areas with evidence and open decisions, validation
+of the chosen combination, and preparation of build tasks. Work areas follow the
+brief; they are not a verified dependency graph. Candidate descriptions come
+from sources. Actions and checks are predefined text composed from typed choices,
+not an LLM-generated implementation narrative. Uncertain winners are shown as
+open decisions rather than endorsed selections; up to three plausible options
+are visible for comparison. The same structured `plan` is returned to MCP.
+
+For the earlier workflow example:
+
 1. Open the adviser and expand **Available capabilities and recipe catalog**.
    Show the site's actual fields, moderation states and discovered local files.
-2. Select **Editorial workflow** and click **Assess this brief**. Show Jev's
+2. Select **Editorial workflow** and click **Propose a plan**. Show Jev's
    search decision and selected term above the results. In the live check it
    selected `workflow` from the brief and queried the configured sources.
 3. Compare the existing workflows with the discovered recipe/module cards.
@@ -286,8 +319,9 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `workflow_candidates` | Existing workflow IDs with a `ready` or `extend` judgment. |
 | `adoption_candidates` | Confidently relevant catalogue candidate IDs, not verified install targets. |
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
-| `search_plan` | Route, selected term, predefined criterion, review flag and planning questions/answers (`ecosystem-search-v1`). |
-| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v2`). |
+| `plan` | Draft work areas, evidence-backed selections or open decisions, candidate options, checks and handoff boundaries. |
+| `search_plan` | Route, capabilities, queries, unmapped clauses, truncation and planning questions/answers (`ecosystem-search-v2`). `query` remains the first term for compatibility. |
+| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v3`). |
 | `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
 | `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |
 
@@ -298,7 +332,8 @@ include module candidates; inspect each candidate's `kind`.
 Collected evidence is allowlisted: node-type labels/descriptions, title and
 configurable field definitions, reference targets, selected enabled features,
 Views/template identities, active moderation states/transitions/bundles and site
-policy. Node content, user records, provider settings and arbitrary config are
+policy, plus enabled module names/descriptions. Node content, user records,
+provider settings and arbitrary config are
 not collected. Role permissions, notifications, ECA models and runtime behavior
 are not inferred from workflow labels.
 
@@ -321,7 +356,8 @@ newly billed tokens for this call**, and elapsed time is not a full agent-task
 measurement. Unknown usage remains `null`; cached-input/billing breakdown is not
 available through this response contract.
 
-Assessment supports at most 24 selected node types and a 100 KB request. Missing
+Assessment supports at most 24 selected node types and a 100 KB compact JSON
+request per stage. Display formatting is not included in that size check. Missing
 answers, invalid options/distributions, denied access and failed inference stop
 assessment. Review flags use probability below 0.75, confidence below 0.7,
 unknown/unclear answers or contradictory primary judgments. These are prototype
@@ -367,5 +403,6 @@ through their APIs and configuration.
 
 No upstream module was forked or vendored for this work. Recipe manifests are
 read from the host installation; API Browser supplies the Packagist source
-configuration. The optional Workshop configuration belongs to this module.
+configuration. Symfony String supplies the English inflector. The optional
+Workshop configuration belongs to this module.
 Please retain these upstream attributions when contributing or adapting it.

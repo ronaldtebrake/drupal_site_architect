@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Tool(
   id: 'ai_site_advisor:assess_content_brief',
   label: new TranslatableMarkup('Assess a Drupal content brief'),
-  description: new TranslatableMarkup("Send the original brief before building. The Decision model inspects the current site, decides whether an ecosystem search would help, and selects a short term for enabled Project Browser sources when needed. Returns that search decision plus typed content-model, presentation, reuse, workflow-fit and candidate-relevance judgments with evidence and uncertainty. No packages are installed and no content or configuration is changed. Resolve uncertainty and verify compatibility with separate tools before building."),
+  description: new TranslatableMarkup("Send the original brief before building. The Decision model identifies up to six capabilities, decides whether ecosystem discovery helps, and searches enabled Project Browser sources separately for each capability. Returns a draft plan with existing configuration, candidate projects, open decisions, integration checks, source evidence and usage. Uncertain choices remain unresolved. This is not an executable or verified installation plan. No packages are installed and no content or configuration is changed."),
   operation: ToolOperation::Explain,
   input_definitions: [
     'brief' => new InputDefinition(

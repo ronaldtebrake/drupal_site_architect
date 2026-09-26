@@ -59,11 +59,28 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       $search_plan = $this->searchPlanner->plan($brief, $site);
     }
     $search = $search_plan['action'] === 'search';
-    $discovery = $this->catalog->discover($search ? $search_plan['query'] : $brief, $account, 12, $search);
+    $queries = $search_plan['queries'] ?? ($search ? [$search_plan['query']] : []);
+    $capabilities = $search_plan['capabilities'] ?? [];
+    if (!$capabilities) {
+      $capabilities = [
+        'brief' => [
+          'id' => 'brief',
+          'label' => 'The requested build',
+          'query' => $search_plan['query'],
+          'source_text' => $brief,
+        ],
+      ];
+    }
+    $discovery = $search && count($queries) > 1
+      ? $this->catalog->discoverMany($queries, $account)
+      : $this->catalog->discover($search ? $queries[0] : $brief, $account, 12, $search);
+    if ($search_plan['terms_truncated'] ?? FALSE) {
+      $discovery['warnings'][] = 'The brief exceeded the capability extraction budget (12 clauses, 32 words per clause, 6 capabilities). Split it into smaller briefs; some requirements may be missing from this draft.';
+    }
     $discovery['searched_ecosystem'] = $search;
     $recipes = $discovery['items'];
-    $input = $this->profile->buildInput($brief, $site, $recipes);
-    if (strlen($input->toString()) > 100000) {
+    $input = $this->profile->buildInput($brief, $site, $recipes, $capabilities);
+    if (strlen(json_encode($input->toArray(), JSON_THROW_ON_ERROR)) > 100000) {
       throw new \LengthException('The evidence is too large. Narrow the content types in AI Site Advisor settings or describe a more specific capability in the brief.');
     }
     $response = $this->decision->decide($input);
@@ -76,9 +93,10 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       // A display policy for a prototype, not a calibrated correctness claim.
       $answers[$id]['needs_review'] = $answer->getConfidence() < 0.7
         || $answer->getProbability($answer->getChoice()) < 0.75
-        || in_array($answer->getChoice(), ['unknown', 'unclear'], TRUE);
+        || in_array($answer->getChoice(), ['unknown', 'unclear', 'unresolved'], TRUE);
       $answers[$id]['criterion'] = $question->getCriteria()[$answer->getChoice()];
     }
+    $plan = CapabilityPlan::build($site, $recipes, $capabilities, $answers);
     $ready = [];
     $extend = [];
     foreach ($site['bundles'] as $id => $bundle) {
@@ -112,6 +130,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       || ($presentation === 'canvas_template' && $model === 'page')
       || ($presentation === 'canvas_both' && $model !== 'mixed');
     $needs_review = $answers['content_model']['needs_review'] || $answers['presentation']['needs_review'] || $contradiction || $search_plan['needs_review'];
+    $needs_review = $needs_review || (bool) array_filter($plan['areas'], static fn ($area) => $area['needs_review']) || ($search_plan['terms_truncated'] ?? FALSE);
     if ($contradiction) {
       $answers['presentation']['needs_review'] = TRUE;
     }
@@ -159,6 +178,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       'usage' => $usage,
       'usage_by_stage' => ['search_planning' => $search_plan['usage'], 'assessment' => $assessment_usage],
       'search_plan' => $search_plan,
+      'plan' => $plan,
       'elapsed_ms' => (int) round((microtime(TRUE) - $started) * 1000),
       'site' => $site,
       'recipes' => $recipes,
