@@ -15,6 +15,7 @@ use Drupal\ai_site_advisor\Assessment\DecisionBatch;
 use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
 use Drupal\ai_site_advisor\Assessment\SearchPlanner;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisor;
+use Drupal\ai_site_advisor\Assessment\RequirementPlanner;
 use Drupal\ai_site_advisor\Context\CandidateCatalog;
 use Drupal\ai_site_advisor\Context\CatalogSourceInterface;
 use Drupal\ai_site_advisor\Context\SiteContextCollectorInterface;
@@ -91,10 +92,12 @@ final class LongPlanTest extends UnitTestCase {
           str_starts_with($id, 'check__') => 'integration',
           str_starts_with($id, 'role__') => 'foundation',
           str_starts_with($id, 'settings__') => 'fixture',
+          str_starts_with($id, 'part_kind__') => 'capability',
+          str_starts_with($id, 'part_fit__') => 'direct',
           str_starts_with($id, 'plan__') => array_keys($input->getState()['recipes'])[0],
           default => 'none',
         };
-        if (str_starts_with($id, 'plan__')) {
+        if (str_starts_with($id, 'plan__') || str_starts_with($id, 'part_option__')) {
           $choices = array_filter($question->getOptionKeys(), static fn ($key) => str_starts_with($key, 'c_'));
           $choice = reset($choices);
           $this->assertCount(12, $choices, 'Every work area retains its full candidate shortlist.');
@@ -113,7 +116,7 @@ final class LongPlanTest extends UnitTestCase {
       }
       return new DecisionResponse($answers, 'fixture', new TokenUsageDto(10, 2, 12));
     });
-    $advisor = new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, new SearchPlanner($decision));
+    $advisor = new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, new SearchPlanner($decision), new RequirementPlanner($decision));
     $result = $advisor->assess($brief, $account);
     $this->assertCount(14, $searched);
     $this->assertContains('payment', $searched);
@@ -126,7 +129,9 @@ final class LongPlanTest extends UnitTestCase {
     $this->assertGreaterThan(1, count($result['requests_by_stage']['assessment']));
     $this->assertSame($calls * 10, $result['usage']['input']);
     $this->assertSame($calls * 2, $result['usage']['output']);
-    $this->assertSame($calls, count($result['requests_by_stage']['assessment']) + count($result['requests_by_stage']['search_planning']));
+    $this->assertSame($calls, count($result['requests_by_stage']['assessment']) + count($result['requests_by_stage']['search_planning']) + count($result['requests_by_stage']['requirement_planning']));
+    $this->assertSame('supported', end($result['plan']['areas'])['requirements']['parts'][0]['status']);
+    $this->assertFalse(end($result['plan']['areas'])['requirements']['integration_verified']);
   }
 
 }

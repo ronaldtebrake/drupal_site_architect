@@ -567,6 +567,64 @@ succeeded. Request/response bodies and the rejected normalized Choice example
 are in local artifacts outside the document root and module Git repository;
 credentials, cookies, login responses and session IDs were not exported.
 
+## Requirements assembled from multiple building blocks
+
+The overall starting point is now pinned only when both its selection and
+contribution pass the review policy. Uncertain preferences remain in the evidence;
+the UI and compact MCP handoff leave the overall choice open. Independent
+contribution ordering is shared by the full comparison, highlights and agent
+shortlist. Checked matches for individual source requirements get priority over
+generic useful components. UI highlights still contain at most three resources
+(counting a recommended existing content type).
+
+`RequirementPlanner` maps source sentences/list items to inspected options, then
+independently checks each selected match. Several parts can use the same component,
+and a work area can combine a record model with supporting capabilities. Original
+source items and judgment distributions remain available. Partial support always
+needs review; supported source evidence never marks a combination integrated.
+Ambiguous context/planning instructions remain visible checks and cannot promote
+settings tools as product features. Open record requirements explicitly prompt
+inspection of existing fields or design of a suitable new type/entity.
+
+**68 tests / 2,284 assertions** passed, together with Drupal/DrupalPractice PHPCS
+and Git whitespace checks. Tests cover a record plus reply module, partial delivery
+coverage, access conditions, uncovered configuration, rejection by independent
+verification, ambiguous direct/partial support, ambiguous planning instructions,
+exact source retention, actual field types in evidence, usage across both passes,
+requirement matches surviving the UI/MCP shortlist, and weak preferences losing
+their automatic first position. The long-plan integration test exercises the real
+requirement planner with a mocked Decision boundary, preserving request budgets
+and accounting across all stages.
+
+A live focused brief covered discussion records, replies, nested replies, club
+relationships/access, subscriptions, notification delivery and opt-out. The
+assessment separated the record choice from Comment as a reply building block;
+Notification System and Workflow Notifications appeared as notification options.
+Remaining field, relationship, subscription and access questions stayed partial,
+open or subject to verification. A before/after site fingerprint check matched.
+No modules or configuration were installed by the adviser.
+
+The browser exercised the user's full 5,252-character brief: 11 work areas,
+54 visible source parts in the observed run, no assessment error, and no more
+than three resource cards per area. Topics highlighted components for its own
+parts, including Comment; Notifications highlighted notification packages.
+Model results can vary, so these are smoke observations, not quality evals.
+
+The final authenticated HTTPS MCP check returned HTTP 200 and
+`schema_version: agent-plan-v2`, two work areas and ten source parts. It preserved
+the record-type administration links, Comment for replies, notification candidates,
+review flags and `integration_verified: false`. The 27,628-byte response took
+7.269 seconds; session cleanup succeeded. This is not a billing or autonomous
+agent benchmark. Exact bodies and a receipt are saved outside the public document
+root and module repository, without credentials, cookies or session IDs.
+
+Limits: decomposition uses source sentence/list boundaries, so a single compound
+sentence may still need further breakdown. Each work area uses its bounded
+inspected candidates. Cross-area dependencies and compatibility between the
+proposed components require additional inspection. Two additional assessment
+passes increase provider work; their usage is included under
+`usage_by_stage.requirement_planning`. No package combination is declared verified.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's

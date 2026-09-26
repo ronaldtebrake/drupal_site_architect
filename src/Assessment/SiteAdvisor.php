@@ -23,6 +23,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     private readonly ContentPlanningProfile $profile,
     private readonly DecisionClientInterface $decision,
     private readonly SearchPlannerInterface $searchPlanner,
+    private readonly RequirementPlannerInterface $requirementPlanner,
   ) {}
 
   /**
@@ -102,6 +103,16 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       $answers[$id]['criterion'] = $question->getCriteria()[$answer->getChoice()];
     }
     $plan = CapabilityPlan::build($site, $recipes, $capabilities, $answers);
+    $requirements = $this->requirementPlanner->plan($brief, $site, $plan);
+    foreach ($plan['areas'] as $id => &$area) {
+      $area['requirements'] = $requirements['areas'][$id] ?? [];
+      $area['options'] = array_values(OptionRanking::forArea($area));
+      if (array_filter($area['requirements']['parts'] ?? [], static fn ($part) => $part['needs_review'])) {
+        $area['needs_review'] = TRUE;
+        $area['status'] = 'needs_review';
+      }
+    }
+    unset($area);
     $ready = [];
     $extend = [];
     foreach ($site['bundles'] as $id => $bundle) {
@@ -168,7 +179,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     }
     $assessment_usage = $response->toArray()['usage'];
     $usage = $assessment_usage;
-    foreach ([$search_plan['usage'], $local['usage']] as $stage_usage) {
+    foreach ([$search_plan['usage'], $local['usage'], $requirements['usage'] ?? NULL] as $stage_usage) {
       if ($stage_usage === NULL) {
         continue;
       }
@@ -188,9 +199,11 @@ final class SiteAdvisor implements SiteAdvisorInterface {
         'search_planning' => $search_plan['usage'],
         'local_discovery' => $local['usage'],
         'assessment' => $assessment_usage,
+        'requirement_planning' => $requirements['usage'] ?? NULL,
       ],
       'local_discovery' => $local,
       'search_plan' => $search_plan,
+      'requirement_plan' => $requirements,
       'plan' => $plan,
       'elapsed_ms' => (int) round((microtime(TRUE) - $started) * 1000),
       'site' => $site,
@@ -203,6 +216,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
         'search_planning' => $search_plan['requests'] ?? [],
         'local_discovery' => $local['requests'],
         'assessment' => $batch['requests'],
+        'requirement_planning' => $requirements['requests'] ?? [],
       ],
       'reuse_candidates' => $ready,
       'extension_candidates' => $extend,

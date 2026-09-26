@@ -98,15 +98,11 @@ final class CapabilityOptions {
         'brief_relevance' => isset($source['package']) ? ($answers['recipe__' . $option_id] ?? NULL) : NULL,
       ];
     }
-    // The preferred starting point stays visible, followed by independently
-    // useful options. Low-ranked and unrelated options remain inspectable.
-    $order = ['foundation' => 0, 'complement' => 1, 'unknown' => 2, 'unrelated' => 3];
-    usort($options, static function ($a, $b) use ($order): int {
-      return ($b['selected'] <=> $a['selected'])
-        ?: (($order[$a['contribution']['choice'] ?? 'unknown'] ?? 2) <=> ($order[$b['contribution']['choice'] ?? 'unknown'] ?? 2))
-        ?: (($b['selection_probability'] ?? -1) <=> ($a['selection_probability'] ?? -1));
-    });
-    return $options;
+    $primary = OptionRanking::primary([
+      'options' => $options,
+      'selection' => ['id' => $selection['choice'], 'needs_review' => $selection['needs_review']],
+    ]);
+    return array_values(OptionRanking::sort($options, $primary['id'] ?? NULL));
   }
 
 }

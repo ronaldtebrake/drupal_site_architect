@@ -6,8 +6,32 @@
     <p class="sa-choice-scores">{{ 'Jev’s starting-point score'|t }}: {{ (area.selection.probability * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (area.selection.confidence * 100)|number_format(0) }}%</p>
     {% if highlight.state == 'conflicting' %}<p>{{ 'Jev selected this starting point, but its separate contribution judgment does not support that choice. Review the conflicting evidence before choosing.'|t }}</p>{% endif %}
   {% endif %}
-  {% if highlight.state != 'conflicting' %}<p class="sa-handoff-intro">{{ area.handoff.intro }}</p>{% endif %}
+  <p class="sa-handoff-intro">{% if highlight.primary %}{{ area.handoff.intro }}{% else %}{{ 'No overall starting point is sufficiently supported yet. Compare the strongest building blocks below and resolve the remaining requirements before choosing a combination.'|t }}{% endif %}</p>
 </div>
+{% if area.requirements.parts %}
+  <div class="sa-implementation-parts">
+    <h5>{{ 'Build this from the following parts'|t }}</h5>
+    <p>{{ 'Each item comes from your brief. Several parts can use the same component; different parts can need different components. These matches are investigation paths, not a verified integration.'|t }}</p>
+    <ul>
+      {% for part in area.requirements.parts %}
+        {% if part.status != 'context' %}
+          <li data-requirement-part="{{ part.id }}" data-status="{{ part.status }}">
+            <p><strong>{{ part.text }}</strong></p>
+            <p>{% if part.status in ['supported', 'partial'] %}<strong>{{ part.option_label }}</strong> · {{ part.status == 'supported' ? 'Candidate for this part'|t : 'Partial building block'|t }}{% elseif part.status == 'check' %}{{ 'Keep this as a condition to verify across the selected components.'|t }}{% else %}{{ 'Open requirement: no sufficiently supported match yet.'|t }}{% if part.option_label %} {{ 'Inspect @option as a possibility.'|t({'@option': part.option_label}) }}{% endif %}{% endif %}</p>
+            {% if part.status == 'partial' %}<p>{{ 'The evidence supports only part of this item. Identify the missing configuration, behavior or additional component before building.'|t }}</p>{% endif %}
+            {% if part.kind == 'record' and part.status in ['open', 'partial'] %}<p>{{ 'Compare existing record types and their fields for this item. If none fits, design a new type or entity and its required fields and relationships.'|t }}</p>{% endif %}
+            {% if part.needs_review and part.status != 'open' %}<p class="sa-note">{{ 'Review needed; this has not been established as complete coverage.'|t }}</p>{% endif %}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+    <details><summary>{{ 'Assembly checks and source judgments'|t }}</summary>
+      <p>{{ area.requirements.integration_check }}</p>
+      <p>{{ area.requirements.scope }}</p>
+      {% for part in area.requirements.parts %}<p>{{ part.text }} · {{ part.kind }} · {{ part.status }}{% if part.coverage %} · {{ 'Evidence match'|t }} {{ (part.coverage.probabilities[part.coverage.choice] * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (part.coverage.confidence * 100)|number_format(0) }}%{% endif %}</p>{% endfor %}
+    </details>
+  </div>
+{% endif %}
 <ol class="sa-builder-steps">
   {% set destination = area.handoff.configuration_area %}
   {% if destination %}
@@ -32,11 +56,12 @@
   {% if highlight.resources %}
     <li>
       <h5>{{ 'Options to focus on'|t }}</h5>
-      <p>{{ 'Up to three options are highlighted, including the starting point above. Compare alternative foundations; consider supporting options for the remaining needs.'|t }}</p>
+      <p>{{ 'Up to three options are highlighted. A starting point leads only when both its selection and contribution are sufficiently supported. Checked matches for specific parts come next, then other options ordered by contribution evidence. Foundations and supporting options may serve different requirements.'|t }}</p>
       {% for resource in highlight.resources %}
         <details class="sa-resource{{ resource.selected ? ' sa-resource--selected' : '' }}" data-option-id="{{ resource.option_id }}"{{ resource.selected ? ' open' : '' }}>
           <summary>{{ resource.label }} <span class="sa-note">· {{ resource.kind }}</span> <span class="sa-resource-role">{% if resource.selected %}{{ highlight.state == 'recommended' ? 'Recommended starting point'|t : 'Provisional recommendation'|t }}{% elseif resource.role == 'foundation' %}{{ highlight.primary ? 'Alternative foundation'|t : 'Possible foundation'|t }}{% else %}{{ 'Supporting option'|t }}{% endif %}{% if resource.needs_review and not resource.selected %} · {{ 'Uncertain fit'|t }}{% endif %}</span></summary>
           <p class="sa-note">{{ 'Contribution score'|t }}: {{ (resource.role_probability * 100)|number_format(0) }}% {{ resource.role == 'foundation' ? 'as a foundation'|t : 'as a supporting option'|t }} · {{ 'confidence'|t }} {{ (resource.role_confidence * 100)|number_format(0) }}%</p>
+          {% if resource.parts %}<p>{{ 'Consider for these parts of your brief'|t }}:</p><ul>{% for part in resource.parts %}<li>{{ part.text }}{% if part.status == 'partial' %} · {{ 'Partial match; gaps remain'|t }}{% endif %}</li>{% endfor %}</ul>{% endif %}
           <p>{{ resource.instruction }}</p>
           {% if resource.module_name %}<p class="sa-note">{{ 'Module'|t }}: <code>{{ resource.module_name }}</code> · {{ resource.availability == 'enabled_module' ? 'Already enabled'|t : 'Code available; not enabled'|t }}</p>{% endif %}
           {% if resource.links %}<div class="sa-action-links">{% for link in resource.links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>{% endif %}

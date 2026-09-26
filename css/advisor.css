@@ -41,6 +41,12 @@
 .sa-choice h5 { margin: 8px 0; font-size: 23px; color: var(--sa-ink); }
 .sa-choice p:last-child { margin-bottom: 0; }
 .sa-choice-scores { color: #37595a; font-variant-numeric: tabular-nums; }
+.sa-implementation-parts { background: #fff; border: 1px solid var(--sa-line); border-radius: 8px; padding: 18px 22px; margin: 20px 0; }
+.sa-implementation-parts h5 { font-size: 17px; color: var(--sa-ink); margin: 0 0 10px; }
+.sa-implementation-parts > ul { list-style: none; padding: 0; }
+.sa-implementation-parts > ul > li { border-top: 1px solid var(--sa-line); padding: 10px 0; }
+.sa-implementation-parts > ul > li p { margin: 6px 0; }
+.sa-implementation-parts [data-status="open"] { border-left: 3px solid #b48519; padding-left: 14px; }
 .sa-resource--selected { border-left: 4px solid var(--sa-teal); }
 .sa-resource-role { display: block; margin: 6px 0 0 18px; color: #37595a; font-size: 12px; }
 .sa-builder-steps { padding-left: 26px; margin: 24px 0; }

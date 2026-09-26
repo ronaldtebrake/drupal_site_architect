@@ -25,8 +25,11 @@ services:
   ai_site_advisor.search_planner:
     class: Drupal\ai_site_advisor\Assessment\SearchPlanner
     arguments: ['@ai_site_advisor.decision']
+  ai_site_advisor.requirement_planner:
+    class: Drupal\ai_site_advisor\Assessment\RequirementPlanner
+    arguments: ['@ai_site_advisor.decision']
   ai_site_advisor.advisor:
     class: Drupal\ai_site_advisor\Assessment\SiteAdvisor
-    arguments: ['@ai_site_advisor.context', '@ai_site_advisor.candidates', '@ai_site_advisor.profile', '@ai_site_advisor.decision', '@ai_site_advisor.search_planner']
+    arguments: ['@ai_site_advisor.context', '@ai_site_advisor.candidates', '@ai_site_advisor.profile', '@ai_site_advisor.decision', '@ai_site_advisor.search_planner', '@ai_site_advisor.requirement_planner']
   Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface:
     alias: ai_site_advisor.advisor

@@ -13,6 +13,7 @@ use Drupal\ai_decision\Value\ChoiceAnswer;
 use Drupal\ai_site_advisor\Assessment\ContentPlanningProfile;
 use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisor;
+use Drupal\ai_site_advisor\Assessment\RequirementPlannerInterface;
 use Drupal\ai_site_advisor\Assessment\SearchPlannerInterface;
 use Drupal\ai_site_advisor\Context\CandidateCatalog;
 use Drupal\ai_site_advisor\Context\SiteContextCollectorInterface;
@@ -66,7 +67,7 @@ final class SiteAdvisorTest extends UnitTestCase {
     $account->method('hasPermission')->with('access ai site advisor')->willReturn(TRUE);
     $planner = $this->createMock(SearchPlannerInterface::class);
     $planner->expects($this->never())->method('plan');
-    return (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess('Recurring workshops with date, location and capacity.', $account);
+    return (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner, $this->createMock(RequirementPlannerInterface::class)))->assess('Recurring workshops with date, location and capacity.', $account);
   }
 
   /**
@@ -82,7 +83,7 @@ final class SiteAdvisorTest extends UnitTestCase {
     $this->expectException(AccessDeniedHttpException::class);
     $planner = $this->createMock(SearchPlannerInterface::class);
     $planner->expects($this->never())->method('plan');
-    (new SiteAdvisor($context, $this->createMock(CandidateCatalog::class), new ContentPlanningProfile(), $decision, $planner))->assess('Build workshops', $account);
+    (new SiteAdvisor($context, $this->createMock(CandidateCatalog::class), new ContentPlanningProfile(), $decision, $planner, $this->createMock(RequirementPlannerInterface::class)))->assess('Build workshops', $account);
   }
 
   /**
@@ -205,7 +206,7 @@ final class SiteAdvisorTest extends UnitTestCase {
     ]);
     $decision = $this->createMock(DecisionClientInterface::class);
     $decision->method('decide')->willReturnCallback(fn ($input) => new DecisionResponse($this->response($input)->getAnswers(), 'test-model', new TokenUsageDto(20, 3, 23)));
-    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess($brief, $account);
+    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner, $this->createMock(RequirementPlannerInterface::class)))->assess($brief, $account);
     $this->assertSame($search, $result['discovery']['searched_ecosystem']);
     $this->assertSame($action, $result['search_plan']['action']);
     $this->assertSame($review ? 'needs_clarification' : 'assessed', $result['status']);
@@ -238,7 +239,7 @@ final class SiteAdvisorTest extends UnitTestCase {
     $planner->expects($this->never())->method('plan');
     $decision = $this->createMock(DecisionClientInterface::class);
     $decision->method('decide')->willReturnCallback(fn ($input) => $this->response($input));
-    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess('An editorial workflow.', $account, 'workflow');
+    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner, $this->createMock(RequirementPlannerInterface::class)))->assess('An editorial workflow.', $account, 'workflow');
     $this->assertNull($result['usage_by_stage']['search_planning']);
     $this->assertSame('workflow', $result['search_plan']['query']);
   }
@@ -288,7 +289,7 @@ final class SiteAdvisorTest extends UnitTestCase {
       }
       return new DecisionResponse($answers, 'fixture', new TokenUsageDto(10, 2, 12));
     });
-    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess('Use a suitable existing capability.', $account);
+    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner, $this->createMock(RequirementPlannerInterface::class)))->assess('Use a suitable existing capability.', $account);
     $this->assertSame(2, $calls);
     $this->assertSame(['input' => 20, 'output' => 4, 'total' => 24], $result['usage']);
     $this->assertSame(10, $result['usage_by_stage']['local_discovery']['input']);

@@ -62,10 +62,11 @@ final class AgentPlanTest extends UnitTestCase {
     $this->assertArrayNotHasKey('third', $compact['candidates']);
     $this->assertArrayNotHasKey('unrelated', $compact['candidates']);
     $first = $compact['work_areas'][0];
-    $this->assertSame(['candidate' => 'preferred', 'needs_review' => TRUE], $first['starting_point']);
-    $this->assertTrue($first['consider'][0]['needs_review']);
+    $this->assertSame(['kind' => 'undecided', 'needs_review' => TRUE], $first['starting_point']);
+    $this->assertSame('addition', $first['consider'][0]['candidate']);
+    $this->assertFalse($first['consider'][0]['needs_review']);
     $this->assertSame(2, $first['other_package_options']);
-    $this->assertSame($links, $first['existing_configuration'][0]['links']);
+    $this->assertEmpty($first['existing_configuration']);
     $this->assertSame($links, $first['configure']['links']);
     $this->assertTrue($first['configure']['needs_review']);
     $this->assertSame($area['check'], $first['resolve_before_building']);
@@ -95,9 +96,11 @@ final class AgentPlanTest extends UnitTestCase {
       'id' => 'reuse',
       'bundle_id' => 'fixture',
       'label' => 'Fixture',
+      'contribution' => ['choice' => 'foundation', 'needs_review' => FALSE],
     ],
     ];
     $assessment['plan']['areas']['first']['selection']['id'] = 'reuse';
+    $assessment['plan']['areas']['first']['selection']['needs_review'] = FALSE;
     $first = AgentPlan::compact($assessment)['work_areas'][0];
     $this->assertSame('existing_content_type', $first['starting_point']['kind']);
     $this->assertSame('node.type.fixture', $first['existing_configuration'][0]['config']);

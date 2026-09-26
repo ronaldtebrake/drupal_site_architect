@@ -15,8 +15,8 @@ final class AgentPlan {
   public static function compact(array $assessment): array {
     $areas = $candidates = [];
     foreach ($assessment['plan']['areas'] as $id => $area) {
-      $options = array_column($area['options'], NULL, 'id');
-      $primary = $options[$area['selection']['id']] ?? NULL;
+      $options = OptionRanking::forArea($area);
+      $primary = OptionRanking::primary($area);
       $chosen = self::shortlist($options, $primary);
       $consider = [];
       foreach ($chosen as $option) {
@@ -55,6 +55,25 @@ final class AgentPlan {
         $starting['kind'] = 'configuration_to_design';
       }
       $destination = $area['handoff']['configuration_area'];
+      $parts = [];
+      $mentioned = $chosen;
+      foreach ($area['requirements']['parts'] ?? [] as $part) {
+        if ($part['status'] === 'context') {
+          continue;
+        }
+        $item = array_intersect_key($part, array_flip(['id', 'text', 'kind', 'status', 'needs_review']));
+        $option = $options[$part['option_id'] ?? ''] ?? NULL;
+        if (isset($option['package'])) {
+          $item['candidate'] = $option['id'];
+          $candidates[$option['id']] ??= self::candidate($option);
+          $mentioned[$option['id']] = $option;
+        }
+        elseif (isset($option['bundle_id'])) {
+          $item['content_type'] = $option['bundle_id'];
+          $item['configure'] = $assessment['site']['configuration_areas']['node_type']['records'][$option['bundle_id']]['links'] ?? [];
+        }
+        $parts[] = $item;
+      }
       $areas[] = [
         'id' => $id,
         'label' => $area['label'],
@@ -67,14 +86,17 @@ final class AgentPlan {
         ] : NULL,
         'existing_configuration' => $existing,
         'consider' => $consider,
+        'parts' => $parts,
+        'integration_verified' => FALSE,
+        'assembly_check' => $area['requirements']['integration_check'] ?? $area['assembly']['guidance'] ?? 'Verify the selected components together before building.',
         'resolve_before_building' => $area['check'],
         'check_needs_review' => $area['check_needs_review'] ?? TRUE,
-        'other_package_options' => count(array_filter($options, static fn ($option) => isset($option['package']))) - count($chosen),
+        'other_package_options' => count(array_filter($options, static fn ($option) => isset($option['package']))) - count($mentioned),
       ];
     }
     return [
       'format' => 'compact',
-      'schema_version' => 'agent-plan-v1',
+      'schema_version' => 'agent-plan-v2',
       'status' => 'draft',
       'needs_review' => $assessment['status'] === 'needs_clarification',
       'site_fingerprint' => $assessment['site']['fingerprint'] ?? NULL,
@@ -98,15 +120,20 @@ final class AgentPlan {
   }
 
   /**
-   * Preserve the preference and up to two candidates per useful role.
+   * Keep up to two per useful role, with only a confirmed preference pinned.
    */
   private static function shortlist(array $options, ?array $primary): array {
     $chosen = isset($primary['package']) ? [$primary['id'] => $primary] : [];
-    foreach (['foundation', 'complement'] as $role) {
-      $matching = array_filter($options, static fn ($option) => isset($option['package']) && ($option['contribution']['choice'] ?? '') === $role);
-      uasort($matching, static fn ($a, $b) => ($a['contribution']['needs_review'] <=> $b['contribution']['needs_review'])
-        ?: ($b['contribution']['probabilities'][$role] <=> $a['contribution']['probabilities'][$role]));
-      $chosen += array_slice($matching, 0, 2, TRUE);
+    $counts = ['foundation' => 0, 'complement' => 0];
+    if ($chosen) {
+      $counts[$primary['contribution']['choice']]++;
+    }
+    foreach (OptionRanking::sort($options, $primary['id'] ?? NULL) as $option) {
+      $role = $option['contribution']['choice'] ?? '';
+      if (isset($option['package'], $counts[$role]) && $counts[$role] < 2 && !isset($chosen[$option['id']])) {
+        $chosen[$option['id']] = $option;
+        $counts[$role]++;
+      }
     }
     return $chosen;
   }

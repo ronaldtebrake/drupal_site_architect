@@ -250,18 +250,25 @@ output must now pass `"detail": "full"`.** The output keys `assessment` and
 This formatting happens in the Tool API adapter, so MCP and other tool callers
 get the same contract without changes to their transports.
 
-The compact assessment (`schema_version: agent-plan-v1`) contains:
+The compact assessment (`schema_version: agent-plan-v2`) contains:
 
 - `work_areas`: every identified area, its starting point, configuration links,
   matching existing configuration, candidate references and an unresolved check.
+  `parts` maps source requirements to content types or candidate references,
+  with `supported`, `partial`, `open` or `check` status and individual review flags.
+  `integration_verified` is always false; `assembly_check` identifies work still
+  needed to connect and verify the chosen components.
 - `candidates`: one entry per retained candidate, with project or manifest
   pointers, availability and conditional acquisition/configuration steps.
 - `discovery`: extraction coverage, search truncation and source warnings.
 - `needs_review` and individual review flags, plus the site fingerprint.
 
-Each work area keeps its preferred package and up to two candidates for each
-useful contribution role (foundation or complement), deduplicated. Ranking uses
-the independent contribution judgment, not the competing starting-point score.
+Each work area keeps up to two candidates for each useful contribution role
+(foundation or complement), deduplicated. Only a starting point supported by both
+selection and contribution is pinned; otherwise `starting_point` remains undecided.
+Checked matches for individual requirements are prioritized, followed by independent
+contribution evidence. Every component referenced by a part is included in the
+candidate dictionary even if it falls outside the general shortlist.
 `other_package_options` counts omitted packages; an empty shortlist does not
 prove that no solution exists. Complete alternatives and scores remain available
 with `detail: "full"`.
@@ -378,28 +385,29 @@ The plan has three parts: work areas with evidence and open decisions, validatio
 of the chosen combination, and preparation of build tasks. Work areas follow the
 brief; they are not a verified dependency graph. Candidate descriptions come
 from sources. Actions and checks are predefined text composed from typed choices,
-not an LLM-generated implementation narrative. Each work area leads with Jev's
-**Recommended starting point**, its selection score and confidence. Uncertain
-choices are **Provisional recommendations**. Conflicting judgments require
-clarification; a generic configuration or unresolved choice is shown as
-**No recommendation yet**, not promoted into an invented package recommendation.
+not an LLM-generated implementation narrative. A work area leads with a
+**Recommended starting point** only when its selection and contribution both pass
+the review policy. Otherwise it shows **No recommendation yet**, while useful
+components and requirement matches remain visible. The original preference and
+all scores stay in the expanded evidence, including weak or conflicting choices.
 
 The main view highlights at most **three distinct options**, including any
-recommended existing content type. The selected package leads; other resources
-are ordered by contribution review status, contribution probability and
+recommended existing content type. A confirmed choice leads. Checked matches for
+specific requirement parts come next; other resources are ordered by contribution
+review status, contribution probability and
 confidence, with a stable ID tie-break. They are labelled as alternative
 foundations or supporting options. Their separate starting-point probability
 does not exclude an independently useful addition. Every assessed option remains
 available in **Options, scores and remaining gaps**, including existing content
 types, Drupal configuration, uncertain packages and unrelated matches.
-This limit affects the UI highlights only. Full evidence and the compact agent
-handoff keep their existing contracts; no model questions or scores are changed.
+This limit affects resource highlights, not the requirement breakdown. Every
+source part remains available even when its component is outside those cards.
 
 The plan now separates three different judgments:
 
 - **Starting point**: one competing Choice across the inspected options. Its
   probability can be low for a useful module when an existing content type is
-  preferred. The preferred option stays visible even when it needs review.
+  preferred. Weak preferences remain in the evidence without leading the ranking.
 - **Contribution here**: an independent Choice for each option in each work area:
   possible foundation, possible addition, unrelated or insufficient evidence.
   Several building blocks can be useful. The role's distribution, confidence,
@@ -417,6 +425,42 @@ rules or automatically install combinations. Roles needing review are identified
 in the summary and table. Missing evidence and runtime compatibility remain open.
 The same structured `plan`, full option list and judgments are available to MCP
 with `detail: "full"`; the default agent handoff is compact.
+
+### Several components for one work area
+
+`RequirementPlanner` adds a separate `requirement-parts-v1` stage after candidate
+assessment. It copies sentences and list items from each work area's original
+source text; no feature-to-module map is embedded. Jev classifies each item and
+selects a possible component from that area's inspected options, including existing
+node types, local modules and discovered packages. A second call independently
+checks that selected component against the exact item using its description,
+actual bundle fields and any inspected recipe configuration.
+
+For example, storing an opening post and adding replies are separate needs.
+They can point to an existing record model and a reply capability, while club
+access remains a condition to verify. A named component can serve several parts.
+Different record models remain alternatives; this is not an install-all list.
+
+Each part reports direct source support, a partial building block, an open gap
+or an acceptance check. The `supported` status requires a direct judgment passing the
+existing 75% probability / 70% confidence policy. If the combined probability of
+direct or partial support is at least 75%, a match can remain **partial** even
+when the distinction between those two roles is uncertain. Partial matches always
+need review. These are prototype thresholds, not calibrated correctness claims.
+An uncertain choice between two viable candidates does not erase independently
+supported usefulness, but its selection review flag is preserved.
+
+The service reports this under `plan.areas.*.requirements` and keeps version,
+answers, requests and usage under `requirement_plan`. Usage totals include both
+new passes under `requirement_planning`, including any targeted recovery. Valid
+earlier assessments are not rerun. All request-size and response checks still apply.
+
+This is a source-based breakdown, not exhaustive semantic extraction: one sentence
+may contain several needs, and candidate metadata may not establish their coverage.
+Such items stay partial or open. Integration, entity compatibility, field wiring
+and access behavior across components still require inspection and testing; this
+stage never marks a combination verified. It uses the area's bounded candidate
+set, so cross-area dependencies can still require broader discovery.
 
 ### A handoff for site builders
 

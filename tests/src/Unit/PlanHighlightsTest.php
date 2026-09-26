@@ -29,10 +29,13 @@ final class PlanHighlightsTest extends UnitTestCase {
     $this->assertSame(0.96, $highlights['resources'][1]['role_probability']);
     $this->assertSame(0.01, $area['options'][2]['selection_probability']);
     $area['selection']['needs_review'] = TRUE;
-    $this->assertSame('provisional', PlanHighlights::build($area)['state']);
+    $this->assertSame('open', PlanHighlights::build($area)['state']);
+    $this->assertNull(PlanHighlights::build($area)['primary']);
+    $this->assertSame(['support', 'alternative', 'chosen'], array_column(PlanHighlights::build($area)['resources'], 'option_id'));
     $area['selection']['needs_review'] = FALSE;
     $area['options'][0]['contribution']['needs_review'] = TRUE;
-    $this->assertSame('provisional', PlanHighlights::build($area)['state']);
+    $this->assertSame('open', PlanHighlights::build($area)['state']);
+    $this->assertSame(['support', 'alternative', 'uncertain'], array_column(PlanHighlights::build($area)['resources'], 'option_id'));
 
     $original = ['plan' => ['areas' => ['fixture' => $area]]];
     $variables = ['assessment' => $original];
@@ -60,7 +63,7 @@ final class PlanHighlightsTest extends UnitTestCase {
     $this->assertCount(2, $highlights['resources']);
     $this->assertSame('existing', $highlights['primary']['id']);
     $area['options'][4]['contribution']['choice'] = 'unrelated';
-    $this->assertSame('conflicting', PlanHighlights::build($area)['state']);
+    $this->assertSame('open', PlanHighlights::build($area)['state']);
     $area['selection']['id'] = 'configure';
     $area['options'][] = ['id' => 'configure', 'kind' => 'configuration'];
     $highlights = PlanHighlights::build($area);
@@ -71,6 +74,33 @@ final class PlanHighlightsTest extends UnitTestCase {
     $highlights = PlanHighlights::build($area);
     $this->assertSame('open', $highlights['state']);
     $this->assertEmpty($highlights['resources']);
+  }
+
+  /**
+   * A useful part is visible even when its whole-area role remains uncertain.
+   */
+  public function testCheckedPartIsNotCrowdedOut(): void {
+    $area = $this->area();
+    $area['selection']['needs_review'] = TRUE;
+    $area['options'][0]['contribution']['probabilities']['foundation'] = 0.44;
+    $area['options'][0]['contribution']['confidence'] = 0.25;
+    $area['options'][0]['contribution']['needs_review'] = TRUE;
+    $area['handoff']['resources'][0]['needs_review'] = TRUE;
+    $this->assertNotContains('chosen', array_column(PlanHighlights::build($area)['resources'], 'option_id'));
+    $area['requirements']['parts'] = [[
+      'option_id' => 'chosen',
+      'text' => 'Provide replies on the selected record model.',
+      'status' => 'partial',
+      'coverage' => ['probabilities' => ['direct' => 0.02, 'partial' => 0.96]],
+    ],
+    ];
+    $result = PlanHighlights::build($area);
+    $this->assertSame('open', $result['state']);
+    $this->assertNull($result['primary']);
+    $this->assertSame('chosen', $result['resources'][0]['option_id']);
+    $this->assertSame('partial', $result['resources'][0]['parts'][0]['status']);
+    $this->assertFalse($result['resources'][0]['selected']);
+    $this->assertCount(3, $result['resources']);
   }
 
   /**
