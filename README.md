@@ -221,6 +221,14 @@ verified wire names are:
 - `tool_api__ai_site_advisor_discover`
 - `tool_api__ai_site_advisor_assess`
 
+Manage these mappings at `/admin/config/services/mcp-server/tools`. On the local
+demo, MCP Server currently authenticates HTTP requests through a Drupal login
+session. Adding the endpoint URL to a desktop MCP client does not establish that
+session; configure a supported authentication method for the chosen client
+before testing there. The server's OAuth companion is a separate integration,
+not enabled automatically by this module. The Decision provider credential
+stays in Drupal and is not needed in the MCP client.
+
 An agent can send the original brief directly to assessment:
 
 ```json

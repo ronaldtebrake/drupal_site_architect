@@ -270,6 +270,26 @@ the earlier MCP execution check above remains the transport smoke test.
 No package was installed and no content/configuration was changed by these
 assessments. Temporary diagnostic scripts were removed before committing.
 
+## Authenticated MCP assessment after the batching update
+
+Confirmed MCP Server, Tool API Bridge and AI Site Advisor MCP were already
+enabled; no package reinstall or version change was needed. A fresh HTTPS test
+used certificate verification and an in-memory Drupal login session. Anonymous
+initialization returned HTTP 401. Authenticated initialization negotiated
+protocol `2025-11-25`, and `tools/list` returned both adviser wire tools.
+
+An actual `tools/call` to `tool_api__ai_site_advisor_assess` with the original
+community brief succeeded. It returned six work areas, 71 distinct candidates
+including `drupal/group`, and a draft plan with unresolved decisions retained
+(`status = needs_clarification`). Server time was 9.241 seconds. Reported usage
+was 128,727 input and 7,848 output tokens; this is an observation, not a billing
+or speed benchmark. Session cleanup returned HTTP 200. No credentials, cookies
+or session identifiers were printed or persisted in the repository. The
+temporary test script was removed.
+
+This verifies the authenticated HTTP tool execution path. A persistent desktop
+client connection is separate and still needs its chosen authentication setup.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's
