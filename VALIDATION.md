@@ -522,6 +522,51 @@ root and module repository. Session cleanup returned HTTP 200; no credentials,
 cookies or session IDs were exported. Local screening adds inference work; its
 usage and request records are reported separately.
 
+## Targeted recovery and simpler evidence presentation
+
+Reproduced the reported inconsistent-assessment error with the live Jev provider
+and the full community brief plus overviews. One contribution answer selected
+`complement` at 0.48 although `unrelated` had 0.49. All four options were present
+and the distribution summed to 1.0. The highest-probability check correctly
+rejected it; it was not a brief-length limit or a lack of matching modules.
+
+`DecisionBatch` now retains valid answers and retries only failed questions once
+with identical state and criteria. Missing/wrong-type normalized answers, option
+mismatches, invalid distribution sums and inconsistent winners are recoverable.
+Validation remains unchanged; persistent invalid answers still reject all advice.
+Provider execution/normalization exceptions stop immediately. Each attempt is
+recorded, including rejection codes and usage; unknown usage remains unknown.
+UI logging on exhausted recovery includes only reason counts, not responses.
+
+Automated checks passed **64 tests / 2,097 assertions**, including the observed
+48%/49% mismatch, missing and invented options, invalid sums, missing answers,
+preservation of valid uncertain answers, identical retry evidence, accounting for
+both attempts, persistent rejection before later batches and no retry on provider
+execution errors. The form kernel test covers restoration without the removed
+evidence section and sanitization of failure messages. Drupal/DrupalPractice
+PHPCS passed.
+
+A full live assessment completed with 11 work areas. A separate browser check
+submitted the user's exact 5,252-character community brief and rendered all 11
+areas with no assessment error, no evidence panel, and at most three highlighted
+resources in each area. Content Translation and Views remained selectable local
+capabilities. These successful runs do not establish a provider failure rate;
+targeted recovery is exercised deterministically by the regression tests.
+
+The redundant "What the advisor can see" template, theme registration and form
+dependencies were removed. The form no longer recollects site/catalog evidence
+on display or AJAX rebuild; the assessment still collects its full site evidence.
+The original browser tab and its brief were preserved while verification ran in
+a separate tab.
+
+An authenticated HTTPS MCP smoke call using the focused translation/overview
+brief returned HTTP 200, success, compact format and two work areas. The JSON-RPC
+response body was 16,196 bytes and the call took 4.255 seconds; these are smoke
+observations, not an agent benchmark or billing comparison. Session termination
+succeeded. Request/response bodies and the rejected normalized Choice example
+are in local artifacts outside the document root and module Git repository;
+credentials, cookies, login responses and session IDs were not exported.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's

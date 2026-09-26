@@ -60,12 +60,13 @@ final class StandaloneInstallTest extends KernelTestBase {
     $this->container->get('current_user')->setAccount($account);
     $form = unserialize(serialize(AdvisorForm::create($this->container)), ['allowed_classes' => [AdvisorForm::class]]);
     $rebuilt = $form->buildForm([], new FormState());
-    $this->assertArrayHasKey('advisor_workshop', $rebuilt['context']['#snapshot']['bundles']);
+    $this->assertArrayHasKey('brief', $rebuilt);
+    $this->assertArrayNotHasKey('context', $rebuilt);
 
     // A malformed model result clears prior advice and offers a safe retry.
     $invalid_advisor = $this->createMock(SiteAdvisorInterface::class);
     $invalid_advisor->method('assess')->willThrowException(new \UnexpectedValueException('Untrusted response detail.'));
-    $error_form = new AdvisorForm($invalid_advisor, $collector, $this->container->get('ai_site_advisor.catalog'));
+    $error_form = new AdvisorForm($invalid_advisor);
     $error_state = (new FormState())->setValues(['brief' => 'An editorial workflow.', 'catalog_query' => '']);
     $error_state->set('assessment', ['previous' => 'advice']);
     $empty_form = [];

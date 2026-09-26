@@ -535,7 +535,8 @@ provider exceptions before they reach Tool API or MCP transport logs.
 
 Independent questions are batched within each stage. With an ecosystem adapter,
 planning precedes discovery and assessment; each stage may make multiple Decision
-requests. Global content-model and presentation questions are answered once.
+requests. Valid global content-model and presentation answers are reused throughout
+the assessment.
 Candidate relevance needs its source description; a work-area choice sees the
 matching candidates and the complete brief. Evidence is repacked when a full
 plan would exceed the per-request limit, without dropping questions or candidates.
@@ -547,6 +548,20 @@ adapter is installed. Its usage and requests are recorded as `local_discovery`.
 `usage` sums all requests; `usage_by_stage` preserves the breakdown. Unknown counts stay
 `null` rather than being treated as zero. An explicit search override skips
 planning, as does a site without a remote adapter.
+
+If a normalized response has missing answers, mismatched options, an invalid
+distribution total or a selected option below the highest score, the adviser
+retries only the affected questions once. Evidence and criteria stay identical;
+valid answers (including uncertain ones) are kept. Scores are never repaired
+or normalized locally. A second invalid response rejects the entire plan.
+Provider execution errors still stop immediately. `requests_by_stage` records
+each attempt and `rejected_answers` reason codes; usage includes rejected
+attempts and recovery. Persistent contract failures log only reason counts,
+without provider responses or site evidence.
+
+The page presents site reuse within each work area's plan and configuration
+links. There is no separate "What the advisor can see" panel or extra site scan
+when the form rebuilds. Removing that panel does not narrow assessment evidence.
 
 Evidence is collected afresh; the adviser does not cache assessments. The
 provider may cache its own responses, including their usage metadata. Reported tokens are **not necessarily
@@ -573,9 +588,9 @@ implementation detail, not a request for the site builder to split ordinary
 briefs manually. Longer plans increase latency and provider usage. This remains
 a synchronous prototype; very large planning jobs need a resumable background
 workflow rather than unbounded request limits. Display formatting is not included
-in request size checks. Missing
-answers, invalid options/distributions, denied access and failed inference stop
-assessment. Review flags use probability below 0.75, confidence below 0.7,
+in request size checks. Missing answers and invalid options/distributions stop
+assessment if targeted recovery fails; denied access and failed inference stop
+immediately. Review flags use probability below 0.75, confidence below 0.7,
 unknown/unclear answers or contradictory primary judgments. These are prototype
 display thresholds, not calibrated correctness guarantees. Callers must retain
 individual review flags even when the overall status is `assessed`.

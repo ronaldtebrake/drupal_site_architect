@@ -7,9 +7,8 @@ namespace Drupal\ai_site_advisor\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
+use Drupal\ai_site_advisor\Assessment\InvalidDecisionResponseException;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface;
-use Drupal\ai_site_advisor\Context\RecipeCatalog;
-use Drupal\ai_site_advisor\Context\SiteContextCollectorInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -22,15 +21,13 @@ final class AdvisorForm extends FormBase {
    */
   public function __construct(
     protected SiteAdvisorInterface $advisor,
-    protected SiteContextCollectorInterface $context,
-    protected RecipeCatalog $catalog,
   ) {}
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new self($container->get('ai_site_advisor.advisor'), $container->get('ai_site_advisor.context'), $container->get('ai_site_advisor.catalog'));
+    return new self($container->get('ai_site_advisor.advisor'));
   }
 
   /**
@@ -140,16 +137,6 @@ final class AdvisorForm extends FormBase {
     if ($assessment = $form_state->get('assessment')) {
       $form['result'] = ['#theme' => 'ai_site_advisor_result', '#assessment' => $assessment];
     }
-    try {
-      $form['context'] = [
-        '#theme' => 'ai_site_advisor_context',
-        '#snapshot' => $this->context->collect($this->currentUser()),
-        '#recipes' => $this->catalog->collect(),
-      ];
-    }
-    catch (\LengthException $e) {
-      $form['context'] = ['#plain_text' => $e->getMessage()];
-    }
     return $form;
   }
 
@@ -174,9 +161,14 @@ final class AdvisorForm extends FormBase {
     catch (\LengthException $e) {
       $form_state->set('advisor_error', $e->getMessage());
     }
-    catch (\UnexpectedValueException) {
-      $form_state->set('advisor_error', $this->t('The Decision provider returned an incomplete or inconsistent assessment. Refine the brief or retry. No partial advice or site changes were produced.'));
-      $this->getLogger('ai_site_advisor')->warning('Assessment rejected by the response contract checks. No provider response was logged.');
+    catch (\UnexpectedValueException $e) {
+      $form_state->set('advisor_error', $this->t('The Decision provider returned an incomplete or inconsistent assessment. Please retry. No partial advice or site changes were produced.'));
+      if ($e instanceof InvalidDecisionResponseException) {
+        $this->getLogger('ai_site_advisor')->warning('Assessment rejected after a targeted retry. Contract violation counts: @violations. No provider response was logged.', ['@violations' => json_encode($e->violations)]);
+      }
+      else {
+        $this->getLogger('ai_site_advisor')->warning('Assessment rejected by the response contract checks. No provider response was logged.');
+      }
     }
     catch (\Throwable $e) {
       // Provider errors can contain request data. Never echo or log raw errors.

@@ -13,12 +13,11 @@ use Drupal\ai_site_advisor\Presentation\PlanHighlights;
 final class ThemeHooks {
 
   /**
-   * Declares the evidence and assessment templates.
+   * Declares the assessment template.
    */
   #[Hook('theme')]
   public function theme(): array {
     return [
-      'ai_site_advisor_context' => ['variables' => ['snapshot' => [], 'recipes' => []]],
       'ai_site_advisor_result' => ['variables' => ['assessment' => []]],
     ];
   }

@@ -55,13 +55,13 @@ final class SiteAdvisorTest extends UnitTestCase {
   /**
    * Assesses against mocked boundaries.
    */
-  private function assess(?callable $respond = NULL): array {
+  private function assess(?callable $respond = NULL, int $expected_requests = 1): array {
     $context = $this->createMock(SiteContextCollectorInterface::class);
     $context->expects($this->once())->method('collect')->willReturn($this->site());
     $catalog = $this->createMock(CandidateCatalog::class);
     $catalog->method('discover')->willReturn(['items' => []]);
     $decision = $this->createMock(DecisionClientInterface::class);
-    $decision->expects($this->once())->method('decide')->willReturnCallback($respond ?? fn ($input) => $this->response($input));
+    $decision->expects($this->exactly($expected_requests))->method('decide')->willReturnCallback($respond ?? fn ($input) => $this->response($input));
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->with('access ai site advisor')->willReturn(TRUE);
     $planner = $this->createMock(SearchPlannerInterface::class);
@@ -141,7 +141,7 @@ final class SiteAdvisorTest extends UnitTestCase {
    */
   public function testMissingAnswerIsRejected(): void {
     $this->expectException(\UnexpectedValueException::class);
-    $this->assess(fn ($input) => new DecisionResponse([]));
+    $this->assess(fn ($input) => new DecisionResponse([]), 2);
   }
 
   /**
@@ -150,7 +150,7 @@ final class SiteAdvisorTest extends UnitTestCase {
   #[DataProvider('malformedAnswers')]
   public function testMalformedDistribution(string $choice, array $distribution): void {
     $this->expectException(\UnexpectedValueException::class);
-    $this->assess(fn ($input) => $this->response($input, ['content_model' => new ChoiceAnswer($choice, $distribution, 1.0)]));
+    $this->assess(fn ($input) => $this->response($input, ['content_model' => new ChoiceAnswer($choice, $distribution, 1.0)]), 2);
   }
 
   /**

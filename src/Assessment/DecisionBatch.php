@@ -60,29 +60,56 @@ final class DecisionBatch {
     $usage = ['input' => 0, 'output' => 0, 'total' => 0];
     $model = '';
     foreach ($inputs as $input) {
-      $response = $client->decide($input);
-      foreach ($input->getQuestions() as $id => $question) {
-        $answer = $response->getChoice($id);
-        ChoiceValidator::validate($answer, $question);
-        $answers[$id] = $answer;
+      // Keep successful answers. Retry only malformed/missing answers once,
+      // with exactly the same evidence and criteria, never invented scores.
+      for ($attempt = 1; $attempt <= 2; $attempt++) {
+        $response = $client->decide($input);
+        $rejected = [];
+        foreach ($input->getQuestions() as $id => $question) {
+          try {
+            $answer = $response->getChoice($id);
+          }
+          catch (\UnexpectedValueException) {
+            $rejected[$id] = 'missing_or_wrong_type';
+            continue;
+          }
+          if ($violation = ChoiceValidator::violation($answer, $question)) {
+            $rejected[$id] = $violation;
+            continue;
+          }
+          $answers[$id] = $answer;
+        }
+        $model = $response->getModel();
+        $request_usage = $response->toArray()['usage'];
+        foreach ($usage as $key => $value) {
+          $usage[$key] = $value !== NULL && $request_usage[$key] !== NULL ? $value + $request_usage[$key] : NULL;
+        }
+        $state = $input->getState();
+        $requests[] = [
+          'model' => $model,
+          'question_ids' => array_keys($input->getQuestions()),
+          'candidate_ids' => is_array($state) ? array_keys($state['recipes'] ?? []) : [],
+          'requirement_ids' => is_array($state) ? array_keys($state['requirements'] ?? []) : [],
+          'bytes' => self::bytes($input),
+          'usage' => $request_usage,
+          'attempt' => $attempt,
+          'rejected_answers' => $rejected,
+        ];
+        if (!$rejected) {
+          break;
+        }
+        if ($attempt === 2) {
+          throw new InvalidDecisionResponseException(array_count_values($rejected));
+        }
+        $input = new DecisionInput($state, array_intersect_key($input->getQuestions(), $rejected));
       }
-      $model = $response->getModel();
-      $request_usage = $response->toArray()['usage'];
-      foreach ($usage as $key => $value) {
-        $usage[$key] = $value !== NULL && $request_usage[$key] !== NULL ? $value + $request_usage[$key] : NULL;
-      }
-      $state = $input->getState();
-      $requests[] = [
-        'model' => $model,
-        'question_ids' => array_keys($input->getQuestions()),
-        'candidate_ids' => is_array($state) ? array_keys($state['recipes'] ?? []) : [],
-        'requirement_ids' => is_array($state) ? array_keys($state['requirements'] ?? []) : [],
-        'bytes' => self::bytes($input),
-        'usage' => $request_usage,
-      ];
+    }
+    $ordered_answers = [];
+    foreach ($questions as $id => $question) {
+      $ordered_answers[$id] = $answers[$id];
     }
     return [
-      'response' => new DecisionResponse($answers, $model, new TokenUsageDto($usage['input'], $usage['output'], $usage['total'])),
+      'response' => new DecisionResponse($ordered_answers, $model, new TokenUsageDto($usage['input'], $usage['output'], $usage['total'])),
       'questions' => $questions,
       'requests' => $requests,
     ];
