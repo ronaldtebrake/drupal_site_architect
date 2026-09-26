@@ -93,7 +93,6 @@ final class AdvisorForm extends FormBase {
           'type' => 'button',
           'class' => ['sa-example'],
           'data-advisor-example' => $brief,
-          'data-advisor-search' => $id === 'workflow' ? 'workflow' : '',
         ],
       ];
     }
@@ -109,15 +108,6 @@ final class AdvisorForm extends FormBase {
       '#attributes' => ['data-advisor-brief' => 'true'],
     ];
     $form['actions'] = ['#type' => 'actions', '#weight' => -20];
-    $form['catalog_query'] = [
-      '#type' => 'textfield',
-      '#weight' => -25,
-      '#title' => $this->t('Search the ecosystem for'),
-      '#default_value' => $form_state->getValue('catalog_query') ?? '',
-      '#maxlength' => 120,
-      '#description' => $this->t('Optional short keywords, for example workflow. Searches enabled Project Browser sources when the integration is installed. Leave empty to assess local recipe files only. Search keywords go to configured catalogs; your site evidence goes only to the Decision provider.'),
-      '#attributes' => ['data-advisor-query' => 'true'],
-    ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Assess this brief'),
@@ -127,13 +117,13 @@ final class AdvisorForm extends FormBase {
         'wrapper' => 'site-advisor-form',
         'progress' => [
           'type' => 'throbber',
-          'message' => $this->t('Inspecting this site and asking the Decision model…'),
+          'message' => $this->t('Inspecting this site, deciding whether to search, and assessing the options…'),
         ],
       ],
     ];
     $form['notice'] = [
       '#weight' => -10,
-      '#markup' => '<p class="sa-note">' . $this->t('This sends your brief and selected site-structure metadata to the configured AI Decision provider. It creates advice only; building remains a separate step.') . '</p>',
+      '#markup' => '<p class="sa-note">' . $this->t('Jev uses your brief and site structure to decide whether an ecosystem search would help. Selected search terms go to configured catalogs. The result shows what was searched and why; no site changes are made.') . '</p>',
     ];
     if ($error = $form_state->get('advisor_error')) {
       $form['error'] = [
@@ -174,7 +164,7 @@ final class AdvisorForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $form_state->set('assessment', NULL)->set('advisor_error', NULL);
     try {
-      $form_state->set('assessment', $this->advisor->assess((string) $form_state->getValue('brief'), $this->currentUser(), (string) $form_state->getValue('catalog_query')));
+      $form_state->set('assessment', $this->advisor->assess((string) $form_state->getValue('brief'), $this->currentUser()));
     }
     catch (\LengthException $e) {
       $form_state->set('advisor_error', $e->getMessage());

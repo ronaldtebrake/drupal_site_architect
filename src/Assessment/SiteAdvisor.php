@@ -22,6 +22,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     private readonly CandidateCatalog $catalog,
     private readonly ContentPlanningProfile $profile,
     private readonly DecisionClientInterface $decision,
+    private readonly SearchPlannerInterface $searchPlanner,
   ) {}
 
   /**
@@ -37,22 +38,40 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     }
     $started = microtime(TRUE);
     $site = $this->context->collect($account);
-    $discovery = $this->catalog->discover(trim($catalog_query) ?: $brief, $account, 12, trim($catalog_query) !== '');
+    $search_plan = [
+      'action' => 'unavailable',
+      'query' => NULL,
+      'reason' => 'No ecosystem adapter is installed. Local recipe manifests and current site configuration were considered.',
+      'needs_review' => FALSE,
+      'usage' => NULL,
+    ];
+    if (trim($catalog_query) !== '') {
+      // Retain the explicit keyword override for existing programmatic callers.
+      $search_plan = [
+        'action' => 'search',
+        'query' => trim($catalog_query),
+        'reason' => 'The caller supplied explicit search keywords.',
+        'needs_review' => FALSE,
+        'usage' => NULL,
+      ];
+    }
+    elseif ($this->catalog->hasRemoteSources()) {
+      $search_plan = $this->searchPlanner->plan($brief, $site);
+    }
+    $search = $search_plan['action'] === 'search';
+    $discovery = $this->catalog->discover($search ? $search_plan['query'] : $brief, $account, 12, $search);
+    $discovery['searched_ecosystem'] = $search;
     $recipes = $discovery['items'];
     $input = $this->profile->buildInput($brief, $site, $recipes);
     if (strlen($input->toString()) > 100000) {
-      throw new \LengthException('The evidence is too large. Narrow the content types in AI Site Advisor settings or use more specific catalog keywords.');
+      throw new \LengthException('The evidence is too large. Narrow the content types in AI Site Advisor settings or describe a more specific capability in the brief.');
     }
     $response = $this->decision->decide($input);
     $answers = [];
     foreach ($input->getQuestions() as $id => $question) {
       // Incomplete, malformed or invented options must never become advice.
       $answer = $response->getChoice($id);
-      $probabilities = $answer->getProbabilities();
-      $expected = $question->getOptionKeys();
-      if (array_diff(array_keys($probabilities), $expected) || array_diff($expected, array_keys($probabilities)) || abs(array_sum($probabilities) - 1.0) > 0.01 || $answer->getProbability($answer->getChoice()) < max($probabilities)) {
-        throw new \UnexpectedValueException('The Decision provider returned an invalid assessment distribution.');
-      }
+      ChoiceValidator::validate($answer, $question);
       $answers[$id] = $answer->toArray();
       // A display policy for a prototype, not a calibrated correctness claim.
       $answers[$id]['needs_review'] = $answer->getConfidence() < 0.7
@@ -92,7 +111,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     $contradiction = ($presentation === 'canvas_page' && in_array($model, ['records', 'mixed'], TRUE))
       || ($presentation === 'canvas_template' && $model === 'page')
       || ($presentation === 'canvas_both' && $model !== 'mixed');
-    $needs_review = $answers['content_model']['needs_review'] || $answers['presentation']['needs_review'] || $contradiction;
+    $needs_review = $answers['content_model']['needs_review'] || $answers['presentation']['needs_review'] || $contradiction || $search_plan['needs_review'];
     if ($contradiction) {
       $answers['presentation']['needs_review'] = TRUE;
     }
@@ -108,6 +127,9 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       $summary = 'Compare the discovered solutions before designing something custom.';
     }
     $follow_up = [];
+    if ($search_plan['needs_review']) {
+      $follow_up[] = $search_plan['reason'];
+    }
     if ($answers['content_model']['needs_review']) {
       $follow_up[] = 'Will editors maintain repeated records, a one-off page, or both? Specify the attributes that must be stored or filtered.';
     }
@@ -120,13 +142,23 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     if (!$follow_up) {
       $follow_up[] = 'Verify the proposed configuration and resolve uncertain matches before using separate build tools.';
     }
+    $assessment_usage = $response->toArray()['usage'];
+    $usage = $assessment_usage;
+    if ($search_plan['usage'] !== NULL) {
+      foreach ($usage as $key => $value) {
+        $planning_value = $search_plan['usage'][$key] ?? NULL;
+        $usage[$key] = $value !== NULL && $planning_value !== NULL ? $value + $planning_value : NULL;
+      }
+    }
     return [
       'status' => $needs_review ? 'needs_clarification' : 'assessed',
       'summary' => $summary,
       'brief' => $brief,
       'profile' => ContentPlanningProfile::VERSION,
       'model' => $response->getModel(),
-      'usage' => $response->toArray()['usage'],
+      'usage' => $usage,
+      'usage_by_stage' => ['search_planning' => $search_plan['usage'], 'assessment' => $assessment_usage],
+      'search_plan' => $search_plan,
       'elapsed_ms' => (int) round((microtime(TRUE) - $started) * 1000),
       'site' => $site,
       'recipes' => $recipes,

@@ -17,7 +17,7 @@ not a model evaluation dataset, accuracy calibration or cost comparison.
 
 ## Automated verification
 
-PHPUnit: **18 tests, 122 assertions**, passing against isolated SQLite databases.
+PHPUnit: **27 tests, 197 assertions**, passing against isolated SQLite databases.
 No inference or external catalogue requests are made by the automated tests.
 
 - Standalone installation brings in declared dependencies and optional Workshop
@@ -47,6 +47,13 @@ No inference or external catalogue requests are made by the automated tests.
 - Assessment tests cover access before inspection/inference, independent
   presentation advice, uncertainty, contradictory judgments, unavailable Canvas,
   incomplete answers and malformed probability distributions.
+- Search planning receives actual site evidence and selects a word from the
+  brief. URL/email/numeric tokens are excluded, including when a capability word
+  is followed by punctuation. Invented term options are rejected.
+- Local and uncertain routes never query remote sources. An unused speculative
+  term is ignored on the local path. No suitable term leads to clarification.
+- No remote adapter and an explicit keyword override both skip planning.
+  Access is checked before planning. Total usage includes both Decision stages.
 - Drupal/DrupalPractice coding standards, Composer metadata validation,
   JavaScript syntax and Git whitespace checks pass.
 
@@ -88,8 +95,13 @@ Used the site's actual `/mcp` endpoint over HTTP, not direct PHP plugin invocati
    through MCP Server → Tool Bridge → Tool API → Project Browser.
 5. `tools/call` on assessment used the configured Jev provider and returned the
    current site evidence and judgments over that discovered candidate set.
-6. A DELETE request was sent to terminate the temporary MCP session. Test credentials, cookies and
-   session IDs were not stored in this repository or printed in the results.
+6. After automatic planning was added, a second protocol check supplied **only
+   `brief`**, the sole required input. Jev selected `search` and `workflow`, and
+   assessment returned 12 candidates with per-stage usage. No keyword argument
+   was passed by the client.
+7. Session termination returned **200** for the automatic-planning check. Test
+   credentials, cookies and session IDs were not stored in this repository or
+   printed in the results.
 
 For the editorial-workflow brief, the model classified content modeling and
 presentation as `not_applicable`, found two existing workflows to consider
@@ -98,9 +110,19 @@ summary advised inspecting existing workflow configuration first. The existing
 Article type remained uncertain. These are observed model judgments, not
 confirmed fitness or installation recommendations.
 
-The assessment call reported 11,873 input and 1,110 output tokens, with 7.497 s
-server time including discovery. Repeated UI requests were faster and reported
-the same usage figures. The provider stack may cache responses and their usage;
+The initial explicit-query assessment call reported 11,873 input and 1,110
+output tokens, with 7.497 s server time including discovery. The new brief-only
+MCP call reported these stages:
+
+| Stage | Input | Output | Total |
+| --- | ---: | ---: | ---: |
+| Search planning | 3,081 | 395 | 3,476 |
+| Assessment | 11,873 | 1,110 | 12,983 |
+| Combined | 14,954 | 1,505 | 16,459 |
+
+The browser's full automatic workflow call reported 5.17 s server time.
+Repeated UI requests were faster and reported the same assessment usage figures.
+The provider stack may cache responses and their usage;
 these figures must not be presented as new billed tokens on each request or
 as evidence of savings. Cached-input and billing breakdown are unavailable
 through this response contract.
@@ -111,13 +133,17 @@ pre-existing mappings were preserved. The adviser owns two enabled mappings.
 
 ## Browser verification
 
-- The workflow example populates both the brief and the `workflow` search term.
+- The form now has a single brief field. The workflow example supplies no
+  separate keyword; the result shows Jev's `search` decision and `workflow` term.
 - The form renders live Jev advice, two workflow starting points, local and
   remote candidate availability, review flags and source match counts.
 - Transitions/bundle assignments, source evidence and upstream project links
   are inspectable. Long catalogue text is collapsed into evidence disclosures.
-- Changing the search hides the previous assessment. A subsequent AJAX
+- Changing the brief hides the previous assessment. A subsequent AJAX
   assessment works on the same page.
+- On that subsequent submission, the Workshop brief chose `local`, reported
+  that external sources were not queried, and identified the existing Workshop
+  content type for reuse.
 - One live response was rejected by the assessment contract checks. No partial
   advice was shown. Subsequent calls, including a repeated AJAX submission,
   succeeded. The validation rules were retained; the retry message was clarified.
@@ -125,6 +151,22 @@ pre-existing mappings were preserved. The adviser owns two enabled mappings.
 - Initial phase-one checks also verified anonymous adviser denial, anonymous
   Tool API denial, the real Workshop node form, Workshop reuse/price-field
   extension, Canvas campaign presentation and clarification for vague briefs.
+
+## Live search-planning checks
+
+Three briefs were checked against the actual site snapshot and configured Jev
+provider. These are observed outcomes, not assertions about every future run:
+
+| Brief | Decision | Selected term | Selected-route probability | Confidence |
+| --- | --- | --- | ---: | ---: |
+| Editorial workflow, explicitly compare ecosystem options | Search | `workflow` | 0.93 | 0.89 |
+| Recurring workshops with the existing date/location/capacity/description fields | Local | None | 0.82 | 0.73 |
+| Something better for the website, with no clear requirement | Clarify | None | 0.96 | 0.94 |
+
+Search terms are selected from bounded source words, not generated. This first
+version does not expand synonyms or construct multi-word queries. Generic-word
+selection is a model judgment, not a guarantee of anonymization. Route thresholds
+remain prototype policy; evals and calibration are outside this phase.
 
 ## Remaining boundaries
 

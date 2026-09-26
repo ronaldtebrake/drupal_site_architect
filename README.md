@@ -1,8 +1,8 @@
 # AI Site Advisor
 
 Help an agent decide what to reuse, investigate or build on a Drupal site.
-The adviser reads the current site structure, discovers recipe and module
-candidates, then asks typed AI Decision questions about their suitability.
+The adviser reads the current site structure, decides whether an ecosystem
+search would help, then assesses the site and discovered recipe/module candidates.
 The phase-one demo uses **Jev through the TypeSafe AI provider**.
 
 A site builder can inspect the same advice in a normal Drupal form. Optional
@@ -115,11 +115,34 @@ Use its **API Browser Services** settings to configure other external JSON
 catalogues. The adviser has no dependency on Packagist or a particular source ID.
 Project Browser's installation UI does not need to be enabled for discovery.
 
-Use short keywords such as `workflow` in the adviser's **Search the ecosystem
-for** field. The API Browser Packagist source currently filters titles, so a
-paragraph-length requirement is a poor search query. An agent can try a second
-term when the first search is narrow. An empty search field assesses local
-recipes only; it does not send the full brief to catalogue providers.
+Enter the requirement in the original brief; there is no separate search field.
+When an ecosystem adapter is available, Jev receives the brief and current site
+structure and chooses one of three paths:
+
+- **Search** when comparing existing solutions would help. Jev also selects a
+  short capability term from the brief, such as `workflow`.
+- **Local** when current site/core configuration is a sufficient starting point,
+  or the brief explicitly asks to stay local.
+- **Clarify** when the requirement or search decision is too uncertain.
+
+Only the search path queries external catalogue adapters. Local recipe files
+remain available on every path. The resulting candidates then inform a second
+Decision request assessing fit. Without an ecosystem adapter, the adviser skips
+search planning and assesses the local evidence directly.
+
+The route and term questions share one planning request. The speculative term
+answer is consumed only on the search path. Code supplies up to 128 distinct
+words from the brief, excluding URLs, email addresses and tokens with digits;
+Jev selects an option or `none`. No topic vocabulary or recipe names are
+hardcoded. This is bounded source-word selection, not generated query rewriting
+or a guarantee that every selected word is non-sensitive. The initial approach
+uses a single word and does not expand synonyms; a specific capability in the
+brief helps title-based sources such as API Browser's Packagist catalogue.
+
+The result shows the selected path, its predefined criterion and any search
+term. Uncertain routes and the absence of a suitable term trigger a review flag
+and no ecosystem search. These criteria are static descriptions of the options,
+not generated explanations of the model's reasoning.
 
 Discovery reports source IDs, candidate packages, availability, match counts,
 truncation and failures. Searches assess at most 12 candidates, alternating
@@ -146,7 +169,7 @@ drush en ai_site_advisor_tool -y
 | Tool API plugin | Input | Output |
 | --- | --- | --- |
 | `ai_site_advisor:discover_candidates` | `query`: 1–120 characters | `discovery`: candidates and source reports; no inference call. |
-| `ai_site_advisor:assess_content_brief` | `brief`: 10–4,000 characters; optional `catalog_query`: up to 120 | `assessment`: fresh site evidence, discovery and typed judgments. |
+| `ai_site_advisor:assess_content_brief` | `brief`: 10–4,000 characters; optional advanced `catalog_query` override: up to 120 | `assessment`: search plan, fresh site evidence, discovery and typed judgments. |
 
 The operations are `Read` and `Explain`. Both check `access ai site advisor`
 inside the service, including for callers that skip Tool API's access method.
@@ -175,16 +198,21 @@ verified wire names are:
 - `tool_api__ai_site_advisor_discover`
 - `tool_api__ai_site_advisor_assess`
 
-An agent can first call discovery with `{"query":"workflow"}`, then assess:
+An agent can send the original brief directly to assessment:
 
 ```json
 {
-  "brief": "We need an editorial workflow for our existing news content. Writers save drafts, editors review them, then publish approved articles. Compare the existing configuration with available solutions before proposing custom development.",
-  "catalog_query": "workflow"
+  "brief": "We need an editorial workflow for our existing news content. Writers save drafts, editors review them, then publish approved articles. Compare the existing configuration with available solutions before proposing custom development."
 }
 ```
 
-Assessment repeats discovery and reads the site afresh. It never accepts an
+The service handles search planning for both the form and Tool API/MCP. A caller
+that already knows the desired search can use discovery with
+`{"query":"workflow"}` without an inference call. Supplying the optional
+`catalog_query` to assessment explicitly requests that search and bypasses the
+planning stage; normally omit it.
+
+Assessment reads the site and discovers candidates afresh. It never accepts an
 agent-supplied evidence packet as proof. Candidate IDs are stable; the set may
 change when a source updates. Resolve review flags and inspect candidate details
 before invoking separate installation or build tools.
@@ -198,7 +226,8 @@ flowchart LR
   Form[Drupal form] --> Advisor
   Advisor --> Site[Current fields and workflows]
   Advisor --> Local[Local recipe manifests]
-  Advisor --> PB[Enabled Project Browser sources]
+  Advisor --> Plan[Decide local / search / clarify]
+  Plan -->|search only| PB[Enabled Project Browser sources]
   PB --> Catalogs[Module and recipe catalogues]
   Advisor --> Decision[AI Decision / Jev]
 ```
@@ -212,8 +241,9 @@ permissions remain responsibilities of those interfaces.
 
 1. Open the adviser and expand **Available capabilities and recipe catalog**.
    Show the site's actual fields, moderation states and discovered local files.
-2. Select **Editorial workflow** and click **Assess this brief**. This searches
-   the configured ecosystem for `workflow` as well as reading local manifests.
+2. Select **Editorial workflow** and click **Assess this brief**. Show Jev's
+   search decision and selected term above the results. In the live check it
+   selected `workflow` from the brief and queried the configured sources.
 3. Compare the existing workflows with the discovered recipe/module cards.
    Expand a workflow to inspect its transitions and content-type assignments.
 4. Expand a candidate's **Evidence and adoption checks**. A remote recipe is
@@ -221,9 +251,11 @@ permissions remain responsibilities of those interfaces.
 5. Inspect **Which sources were searched?** and the exact questions and evidence.
    Explain that Jev judges fit from supplied facts; it does not discover Drupal
    projects from memory or decide installation permissions.
-6. In an MCP agent, ask: “Use the adviser to search workflow solutions and assess
-   our existing news workflow. Give me a reuse / adopt / custom-build proposal
-   with the remaining checks. Do not install or change anything yet.”
+6. Try **Recurring workshops**, then **An unclear brief** to demonstrate when
+   an ecosystem search may add nothing or the requirement needs clarification.
+7. In an MCP agent, ask: “Use the adviser to assess our news workflow requirement.
+   Compare what we have with available solutions before proposing custom work.
+   Do not install or change anything yet.” Only the original brief is required.
 
 The site must have a moderation workflow for the reuse part of this example.
 Without one, discovery still works and the result reports no existing workflow.
@@ -237,7 +269,7 @@ Inject `Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface`, or service
 `ai_site_advisor.advisor`:
 
 ```php
-$assessment = $advisor->assess($brief, $account, catalog_query: 'workflow');
+$assessment = $advisor->assess($brief, $account);
 ```
 
 For discovery alone, inject `ai_site_advisor.candidates`:
@@ -254,8 +286,9 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `workflow_candidates` | Existing workflow IDs with a `ready` or `extend` judgment. |
 | `adoption_candidates` | Confidently relevant catalogue candidate IDs, not verified install targets. |
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
+| `search_plan` | Route, selected term, predefined criterion, review flag and planning questions/answers (`ecosystem-search-v1`). |
 | `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v2`). |
-| `model`, `usage`, `elapsed_ms` | Provider-reported model/usage and elapsed server time including discovery. |
+| `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
 | `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |
 
 `recipes` remains an alias of `candidates`, and candidate question IDs retain
@@ -269,15 +302,21 @@ policy. Node content, user records, provider settings and arbitrary config are
 not collected. Role permissions, notifications, ECA models and runtime behavior
 are not inferred from workflow labels.
 
-The brief, selected structural metadata and bounded candidates go to the
-configured Decision provider. Catalogue sources receive the separate search
-keywords, not site evidence or the full brief. Drupal's normal form/session
+The brief and selected structural metadata go to the configured Decision
+provider for search planning; the assessment also includes bounded candidates.
+Catalogue sources receive the selected search term (or explicit override),
+not site evidence or the full brief. Drupal's normal form/session
 handling and host AI logging/cache settings still apply. This module sanitizes
 provider exceptions before they reach Tool API or MCP transport logs.
 
-All independent judgments go in one Decision request. Evidence is collected
-afresh; the adviser does not cache assessments. The provider may cache its own
-responses, including their usage metadata. Reported tokens are **not necessarily
+Independent questions are batched within each stage. With an ecosystem adapter,
+planning precedes discovery and assessment, so there are two Decision requests.
+`usage` sums both; `usage_by_stage` preserves the breakdown. Unknown counts stay
+`null` rather than being treated as zero. An explicit search override skips
+planning, as does a site without a remote adapter.
+
+Evidence is collected afresh; the adviser does not cache assessments. The
+provider may cache its own responses, including their usage metadata. Reported tokens are **not necessarily
 newly billed tokens for this call**, and elapsed time is not a full agent-task
 measurement. Unknown usage remains `null`; cached-input/billing breakdown is not
 available through this response contract.
@@ -291,8 +330,9 @@ individual review flags even when the overall status is `assessed`.
 
 ## Extending and validating
 
-The collector, profile, provider adapter, adviser and UI are separate classes.
-Decorate the collector or replace the adviser through their interfaces. Add a
+The collector, search planner, profile, provider adapter, adviser and UI are
+separate classes. Replace the planner through `SearchPlannerInterface`, decorate
+the collector or replace the adviser through their interfaces. Add a
 catalogue adapter by implementing `CatalogSourceInterface` and tagging its
 service `ai_site_advisor.catalog_source`. No procedural `.module` file is needed.
 Keep rubric changes versioned. New entity types, package compatibility checks,

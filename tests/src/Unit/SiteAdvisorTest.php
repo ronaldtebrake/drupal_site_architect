@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\ai_site_advisor\Unit;
 
 use Drupal\Core\Session\AccountInterface;
+use Drupal\ai\Dto\TokenUsageDto;
 use Drupal\Tests\UnitTestCase;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
@@ -12,6 +13,7 @@ use Drupal\ai_decision\Value\ChoiceAnswer;
 use Drupal\ai_site_advisor\Assessment\ContentPlanningProfile;
 use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisor;
+use Drupal\ai_site_advisor\Assessment\SearchPlannerInterface;
 use Drupal\ai_site_advisor\Context\CandidateCatalog;
 use Drupal\ai_site_advisor\Context\SiteContextCollectorInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -62,7 +64,9 @@ final class SiteAdvisorTest extends UnitTestCase {
     $decision->expects($this->once())->method('decide')->willReturnCallback($respond ?? fn ($input) => $this->response($input));
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->with('access ai site advisor')->willReturn(TRUE);
-    return (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision))->assess('Recurring workshops with date, location and capacity.', $account);
+    $planner = $this->createMock(SearchPlannerInterface::class);
+    $planner->expects($this->never())->method('plan');
+    return (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess('Recurring workshops with date, location and capacity.', $account);
   }
 
   /**
@@ -76,7 +80,9 @@ final class SiteAdvisorTest extends UnitTestCase {
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->willReturn(FALSE);
     $this->expectException(AccessDeniedHttpException::class);
-    (new SiteAdvisor($context, $this->createMock(CandidateCatalog::class), new ContentPlanningProfile(), $decision))->assess('Build workshops', $account);
+    $planner = $this->createMock(SearchPlannerInterface::class);
+    $planner->expects($this->never())->method('plan');
+    (new SiteAdvisor($context, $this->createMock(CandidateCatalog::class), new ContentPlanningProfile(), $decision, $planner))->assess('Build workshops', $account);
   }
 
   /**
@@ -174,6 +180,67 @@ final class SiteAdvisorTest extends UnitTestCase {
   public function testCoreOnlyPresentationOptions(): void {
     $input = (new ContentPlanningProfile())->buildInput('A visual page', $this->site(FALSE), []);
     $this->assertSame(['drupal_display', 'unclear', 'not_applicable'], $input->getQuestions()['presentation']->getOptionKeys());
+  }
+
+  /**
+   * The route controls remote discovery and usage includes both model stages.
+   */
+  #[DataProvider('searchPlans')]
+  public function testConditionalDiscovery(string $action, bool $search, bool $review): void {
+    $brief = 'Reuse workshops and compare workflow options if useful.';
+    $account = $this->createMock(AccountInterface::class);
+    $account->method('hasPermission')->willReturn(TRUE);
+    $context = $this->createMock(SiteContextCollectorInterface::class);
+    $context->method('collect')->willReturn($this->site());
+    $catalog = $this->createMock(CandidateCatalog::class);
+    $catalog->method('hasRemoteSources')->willReturn(TRUE);
+    $catalog->expects($this->once())->method('discover')->with($search ? 'workflow' : $brief, $account, 12, $search)->willReturn(['items' => []]);
+    $planner = $this->createMock(SearchPlannerInterface::class);
+    $planner->expects($this->once())->method('plan')->with($brief, $this->site())->willReturn([
+      'action' => $action,
+      'query' => $search ? 'workflow' : NULL,
+      'reason' => 'Fixture search decision.',
+      'needs_review' => $review,
+      'usage' => ['input' => 5, 'output' => 1, 'total' => 6],
+    ]);
+    $decision = $this->createMock(DecisionClientInterface::class);
+    $decision->method('decide')->willReturnCallback(fn ($input) => new DecisionResponse($this->response($input)->getAnswers(), 'test-model', new TokenUsageDto(20, 3, 23)));
+    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess($brief, $account);
+    $this->assertSame($search, $result['discovery']['searched_ecosystem']);
+    $this->assertSame($action, $result['search_plan']['action']);
+    $this->assertSame($review ? 'needs_clarification' : 'assessed', $result['status']);
+    $this->assertSame(['input' => 25, 'output' => 4, 'total' => 29], $result['usage']);
+    $this->assertSame(20, $result['usage_by_stage']['assessment']['input']);
+  }
+
+  /**
+   * Covers all routing outcomes, including the no-search branches.
+   */
+  public static function searchPlans(): array {
+    return [
+      'search' => ['search', TRUE, FALSE],
+      'reuse' => ['local', FALSE, FALSE],
+      'clarify' => ['clarify', FALSE, TRUE],
+    ];
+  }
+
+  /**
+   * Existing callers can explicitly supply a query without a planning call.
+   */
+  public function testExplicitSearchOverride(): void {
+    $account = $this->createMock(AccountInterface::class);
+    $account->method('hasPermission')->willReturn(TRUE);
+    $context = $this->createMock(SiteContextCollectorInterface::class);
+    $context->method('collect')->willReturn($this->site());
+    $catalog = $this->createMock(CandidateCatalog::class);
+    $catalog->expects($this->once())->method('discover')->with('workflow', $account, 12, TRUE)->willReturn(['items' => []]);
+    $planner = $this->createMock(SearchPlannerInterface::class);
+    $planner->expects($this->never())->method('plan');
+    $decision = $this->createMock(DecisionClientInterface::class);
+    $decision->method('decide')->willReturnCallback(fn ($input) => $this->response($input));
+    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess('An editorial workflow.', $account, 'workflow');
+    $this->assertNull($result['usage_by_stage']['search_planning']);
+    $this->assertSame('workflow', $result['search_plan']['query']);
   }
 
 }

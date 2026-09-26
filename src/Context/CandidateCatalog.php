@@ -27,6 +27,13 @@ class CandidateCatalog {
   }
 
   /**
+   * Whether an ecosystem adapter is available, without querying it.
+   */
+  public function hasRemoteSources(): bool {
+    return (bool) array_filter($this->sources, static fn ($source) => $source->isRemote());
+  }
+
+  /**
    * Searches configured sources. Remote searches require explicit keywords.
    */
   public function discover(string $query, AccountInterface $account, int $limit = 12, bool $include_remote = TRUE): array {
@@ -77,7 +84,7 @@ class CandidateCatalog {
       $warnings[] = 'No ecosystem discovery adapter is installed. Only local recipe files were searched.';
     }
     elseif (!$include_remote) {
-      $warnings[] = 'External sources were not queried. Supply short catalog keywords to include the ecosystem.';
+      $warnings[] = 'External sources were not queried for this assessment.';
     }
     $truncated = count($items) > $limit;
     $selected = [];

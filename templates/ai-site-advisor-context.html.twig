@@ -11,7 +11,7 @@
     <p>{{ 'Active moderation workflows'|t }}: {{ snapshot.workflows|length }}. {{ 'Their states, transitions and content-type assignments are read directly from configuration.'|t }}</p>
     {% for workflow in snapshot.workflows %}<p><strong>{{ workflow.label }}</strong>: {% for state in workflow.states %}{{ state.label }}{{ not loop.last ? ', ' }}{% endfor %}</p>{% endfor %}
     <details><summary>{{ 'Discovered local recipe manifests'|t }} ({{ recipes|length }})</summary>
-      <p>{{ 'These manifests were found in core, Composer recipe packages and configured directories. Presence does not establish application history. Use catalog keywords to include configured ecosystem sources in an assessment.'|t }}</p>
+      <p>{{ 'These manifests were found in core, Composer recipe packages and configured directories. Presence does not establish application history. The adviser decides from your brief whether searching configured ecosystem sources would help.'|t }}</p>
       {% for recipe in recipes %}
         {% if recipe.invalid_manifest %}<p>{{ 'Could not read manifest'|t }}: {{ recipe.invalid_manifest }}</p>
         {% else %}<p><strong>{{ recipe.label }}</strong> — {{ recipe.description }} <code>{{ recipe.source }}</code></p>{% endif %}

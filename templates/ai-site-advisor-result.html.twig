@@ -4,6 +4,11 @@
 <section class="sa-result" aria-live="polite">
   <div class="sa-section-title"><div><span class="sa-eyebrow">{{ 'Assessment complete'|t }}</span><h3>{{ assessment.summary }}</h3></div><span class="sa-badge">{{ assessment.model }}</span></div>
   <p class="sa-note">{{ (assessment.elapsed_ms / 1000)|number_format(2) }} s {{ 'total'|t }} · {{ 'Read-only advice'|t }} · {{ 'Provider usage is available with the evidence below.'|t }}</p>
+  <div class="sa-next">
+    <strong>{{ assessment.search_plan.action == 'search' ? 'Search the ecosystem'|t : (assessment.search_plan.action == 'clarify' ? 'Clarify before searching'|t : 'Start with this site'|t) }}</strong>
+    <p>{{ assessment.search_plan.reason }}</p>
+    {% if assessment.search_plan.query %}<p>{{ 'Searched for'|t }}: <strong>{{ assessment.search_plan.query }}</strong></p>{% endif %}
+  </div>
   <div class="sa-grid">
     <article class="sa-card sa-recommendation"><span class="sa-eyebrow">01 · {{ 'Reuse this site'|t }}</span><h4>{{ 'Start with existing configuration'|t }}</h4><p>{{ assessment.reuse_candidates|length }} {{ 'content types to reuse'|t }} · {{ assessment.workflow_candidates|length }} {{ 'workflow starting points'|t }}</p><p>{{ 'Inspect the actual fields, states and transitions below.'|t }}</p></article>
     <article class="sa-card sa-recommendation"><span class="sa-eyebrow">02 · {{ 'Consider existing solutions'|t }}</span><h4>{{ assessment.adoption_candidates|length }} {{ 'relevant catalog candidates'|t }}</h4><p>{{ 'Compare recipes and modules discovered from configured sources. Relevance does not establish installation compatibility.'|t }}</p></article>
@@ -21,7 +26,7 @@
   {% endif %}
 
   <h4>{{ 'Discovered recipes and modules'|t }}</h4>
-  <p class="sa-note">{{ 'Search'|t }}: “{{ assessment.discovery.query }}” · {{ assessment.discovery.returned }} {{ 'candidates assessed'|t }}{% if assessment.discovery.truncated %} · {{ 'Results limited: refine the search to see other candidates'|t }}{% endif %}</p>
+  <p class="sa-note">{% if assessment.discovery.searched_ecosystem %}{{ 'Search'|t }}: “{{ assessment.discovery.query }}”{% else %}{{ 'Local manifests matched against your brief'|t }}{% endif %} · {{ assessment.discovery.returned }} {{ 'candidates assessed'|t }}{% if assessment.discovery.truncated %} · {{ 'Results limited: refine the brief to explore other candidates'|t }}{% endif %}</p>
   {% for warning in assessment.discovery.warnings %}<p class="sa-note">{{ warning }}</p>{% endfor %}
   <div class="sa-grid sa-grid--two">
     {% for id, candidate in assessment.candidates %}
@@ -43,7 +48,7 @@
           {% if candidate.url %}<a href="{{ candidate.url }}" target="_blank" rel="noopener noreferrer">{{ 'Inspect upstream project'|t }} →</a>{% endif %}
         </details>
       </article>
-    {% else %}<p>{{ 'No candidates were returned within this search. Try different keywords or another source before deciding to build.'|t }}</p>{% endfor %}
+    {% else %}<p>{{ 'No candidates were returned in the inspected scope. This does not establish that custom development is needed.'|t }}</p>{% endfor %}
   </div>
   <details class="sa-details"><summary>{{ 'Which sources were searched?'|t }}</summary><p>{{ assessment.discovery.scope }}</p>{% for source in assessment.discovery.sources %}<p><strong>{{ source.label }}</strong> · {{ source.matches }} {{ 'reported matches'|t }}{% if source.truncated %} · {{ 'first page only'|t }}{% endif %}</p>{% endfor %}</details>
 
@@ -59,6 +64,8 @@
   <details class="sa-details"><summary>{{ 'See exactly what informed this advice'|t }}</summary>
     <p>{{ 'Profile'|t }}: <code>{{ assessment.profile }}</code> · {{ 'Site snapshot'|t }}: <code>{{ assessment.site.fingerprint }}</code></p>
     <p>{{ 'Provider-reported usage'|t }}: {{ assessment.usage.input ?? '—' }} {{ 'input tokens'|t }} · {{ assessment.usage.output ?? '—' }} {{ 'output tokens'|t }}. {{ 'Provider caching may reuse a previous response and its usage figures. These are not a measurement of this call’s billed cost.'|t }}</p>
+    <details><summary>{{ 'Search decision and selected term'|t }}</summary><pre>{{ assessment.search_plan|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
+    <details><summary>{{ 'Usage by stage'|t }}</summary><pre>{{ assessment.usage_by_stage|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
     <p>{{ 'The module defines the questions and possible answers. Jev supplies judgments; displayed criteria are not generated explanations.'|t }}</p>
     {% for id, question in assessment.questions %}<details><summary>{{ id }} → {{ assessment.answers[id].choice }}</summary><p>{{ question.instructions }}</p><pre>{{ question.criteria|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre><pre>{{ assessment.answers[id]|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>{% endfor %}
     <details><summary>{{ 'Exact site evidence'|t }}</summary><pre>{{ assessment.site|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>

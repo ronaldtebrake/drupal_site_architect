@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Tool(
   id: 'ai_site_advisor:assess_content_brief',
   label: new TranslatableMarkup('Assess a Drupal content brief'),
-  description: new TranslatableMarkup("Before building, assess a brief against this site's actual node fields, moderation workflows and discovered recipes or modules. Supply catalog_query to search enabled Project Browser sources as well as local recipe manifests. Returns typed content-model, presentation, reuse, workflow-fit and candidate-relevance judgments with evidence and uncertainty. Uses the configured AI Decision provider. Advice only: no packages are installed and no content or configuration is changed. Resolve uncertainty and verify compatibility with separate tools before building."),
+  description: new TranslatableMarkup("Send the original brief before building. The Decision model inspects the current site, decides whether an ecosystem search would help, and selects a short term for enabled Project Browser sources when needed. Returns that search decision plus typed content-model, presentation, reuse, workflow-fit and candidate-relevance judgments with evidence and uncertainty. No packages are installed and no content or configuration is changed. Resolve uncertainty and verify compatibility with separate tools before building."),
   operation: ToolOperation::Explain,
   input_definitions: [
     'brief' => new InputDefinition(
@@ -33,7 +33,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
       required: TRUE,
       constraints: ['Length' => ['min' => 10, 'max' => 4000]],
     ),
-    'catalog_query' => new InputDefinition(data_type: 'string', label: new TranslatableMarkup('Catalog search keywords'), description: new TranslatableMarkup('Optional short keywords (maximum 120 characters) to search configured ecosystem sources, for example workflow. Without this, only local recipes are considered.'), required: FALSE, constraints: ['Length' => ['max' => 120]]),
+    'catalog_query' => new InputDefinition(data_type: 'string', label: new TranslatableMarkup('Explicit search override'), description: new TranslatableMarkup('Normally omit: the Decision model decides whether and what to search from the brief. Advanced callers can supply up to 120 characters to explicitly request a catalog search and bypass automatic planning.'), required: FALSE, constraints: ['Length' => ['max' => 120]]),
   ],
   output_definitions: [
     'assessment' => new ContextDefinition(data_type: 'map', label: new TranslatableMarkup('Assessment and evidence'), required: TRUE),

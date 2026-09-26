@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Tool(
   id: 'ai_site_advisor:discover_candidates',
   label: new TranslatableMarkup('Discover Drupal recipes and modules'),
-  description: new TranslatableMarkup('Search local recipe manifests and enabled Project Browser sources using short keywords such as workflow. Returns candidate package names, source evidence, local availability and unverified compatibility claims. No model call, package installation or recipe application occurs. Results are bounded: inspect warnings and try other search terms before concluding a custom build is needed. Pass the same query as catalog_query to assess_content_brief for Jev judgments against the current site.'),
+  description: new TranslatableMarkup('Search local recipe manifests and enabled Project Browser sources using short keywords such as workflow. Returns candidate package names, source evidence, local availability and unverified compatibility claims. No model call, package installation or recipe application occurs. Results are bounded: inspect warnings and try other search terms before concluding a custom build is needed. For advice from an original brief, call assess_content_brief directly; it decides whether to search. To assess this specific search instead, pass the query as its optional catalog_query override.'),
   operation: ToolOperation::Read,
   input_definitions: [
     'query' => new InputDefinition(
