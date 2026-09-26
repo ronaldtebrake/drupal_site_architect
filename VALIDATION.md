@@ -3,6 +3,22 @@
 Verified on 26 September 2026. Software checks and live smoke observations,
 not a model evaluation dataset, accuracy calibration or cost comparison.
 
+## Architecture animation (26 September 2026)
+
+The standalone explainer in `docs/architecture` was checked against the current
+service, discovery adapters and Tool API plugins. Its eight stages use illustrative
+content; no live inference, package search or site mutation is performed.
+
+- All eight chapter layouts inspected; no detected clipping or content/footer
+  overlap at the 1280 × 900 export size.
+- Play, Pause, Restart and scrub handlers verified, including reduced-motion
+  autoplay suppression. Browser UI controls and console checked in the DDEV page.
+- No page JavaScript errors or externally loaded resources in the renderer.
+- Silent H.264 export: 43 seconds, 1280 × 900, 24 fps; single video stream.
+- GIF export: 960 × 675, 12 fps, infinite loop.
+- Reproducible renderer, source hash and per-stage receipts in the sandbox's
+  `artifacts/ai-site-advisor-architecture` output directory.
+
 ## Environment
 
 - Drupal 11.4.6, PHP 8.3.19, Drupal AI 1.5.0-rc4.

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>From a brief to a Drupal plan · AI Site Advisor</title>
+<style>
+:root{--ink:#20362f;--muted:#65726b;--green:#14694e;--green-soft:#e7f1e9;--violet:#7350bf;--violet-soft:#eee8fa;--line:#d9e1d8;--paper:#f7f8f2;--amber:#886222;--amber-soft:#fbf2dc}
+*{box-sizing:border-box}
+body{margin:0;background:#e9ede6;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+button,input{font:inherit}button{cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:4px}
+#viewport{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 64px);padding:20px}
+#frame{position:relative;flex:none}
+#board{position:absolute;left:0;top:0;width:1280px;height:900px;transform-origin:top left;overflow:hidden;border:1px solid #d1dacf;border-radius:26px;background:var(--paper);box-shadow:0 20px 65px #243e2e0a}
+#board::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(#36574212 .65px,transparent .65px);background-size:5px 5px;opacity:.45}
+.masthead{position:absolute;left:42px;top:32px;right:42px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:11px;font-size:19px;font-weight:700;letter-spacing:-.7px}
+.brand-mark{width:24px;height:27px;background:var(--green);border-radius:65% 65% 60% 12%;transform:rotate(-40deg);position:relative}
+.brand-mark::after{content:"";width:7px;height:7px;position:absolute;right:5px;bottom:5px;border-radius:50%;background:var(--paper)}
+.eyebrow{font-size:12px;letter-spacing:2px;font-weight:700;color:var(--muted);text-transform:uppercase}
+h1{position:absolute;top:78px;left:0;right:0;margin:0;text-align:center;font-size:51px;line-height:1.1;font-weight:750;letter-spacing:-2.5px}
+h1 span{color:var(--green)}
+.subtitle{position:absolute;top:140px;left:0;right:0;margin:0;text-align:center;color:var(--muted);font-size:20px}
+.brief{position:absolute;left:42px;top:189px;width:1196px;height:104px;display:grid;grid-template-columns:142px 1fr 240px;gap:22px;align-items:center;border:1px solid var(--line);border-radius:15px;background:#ffffffd9;padding:18px 24px}
+.brief-label{display:flex;flex-direction:column;gap:8px}.brief-label strong{font-size:15px}.brief-label span{font-size:12px;color:var(--muted)}
+.brief p{font-size:18px;line-height:1.5;margin:0;letter-spacing:-.2px}
+.brief .via{border-left:1px solid var(--line);padding-left:23px;color:var(--muted);font-size:13px;line-height:1.7}
+.via b{color:var(--ink);font-size:14px}.via small{display:block;font-size:12px}
+.pipeline{position:absolute;left:42px;top:321px;width:253px;height:447px;margin:0;padding:0;list-style:none}
+.pipeline::before{content:"";position:absolute;left:18px;top:20px;bottom:29px;width:2px;background:var(--line)}
+.step{position:relative;height:55px;display:flex;align-items:center;gap:14px;padding:0 8px 0 0}
+.step::after{content:"";position:absolute;inset:3px -2px 3px -10px;border-radius:12px;background:var(--green-soft);opacity:0;z-index:0}
+.step.active::after{opacity:1}.step.jevmode.active::after{background:var(--violet-soft)}
+.stepnum{position:relative;z-index:1;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--paper);border:1px solid var(--line);color:#768078;font-size:14px;font-weight:700;flex:none}
+.step.active .stepnum{background:var(--green);color:white;border-color:var(--green)}
+.step.jevmode.active .stepnum{background:var(--violet);border-color:var(--violet)}
+.step.complete .stepnum{color:var(--green);border-color:#abcbba;background:#eaf3eb}
+.steptext{position:relative;z-index:1;display:flex;flex-direction:column;gap:4px}
+.steptext b{font-size:16px;font-weight:600;color:#6b776f}.step.active .steptext b,.step.complete .steptext b{color:var(--ink)}
+.steptext small{font-size:11px;color:var(--muted)}
+.detail{position:absolute;left:322px;top:321px;width:916px;height:447px;background:#ffffffc9;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.detail-head{padding:25px 28px 0;display:flex;align-items:center;justify-content:space-between}
+.phase-name{color:var(--green);font-size:12px;font-weight:700;letter-spacing:1.7px;text-transform:uppercase}.phase-name.jev{color:var(--violet)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:.4px;white-space:nowrap;background:var(--green-soft);color:var(--green)}
+.pill.jev{color:var(--violet);background:var(--violet-soft)}.pill.review{color:var(--amber);background:var(--amber-soft)}
+.detail h2{margin:15px 28px 8px;font-size:31px;font-weight:700;line-height:1.15;letter-spacing:-1px}
+.detail-intro{margin:0 28px;color:var(--muted);font-size:16px;line-height:1.5}
+#scene{position:absolute;left:28px;right:28px;top:142px;height:233px}
+.detail-note{position:absolute;left:28px;right:28px;bottom:24px;margin:0;padding-top:14px;border-top:1px solid #e2e7df;color:var(--muted);font-size:13px;line-height:1.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;height:100%}
+.box{border:1px solid var(--line);background:#fbfcf8;border-radius:12px;padding:17px 18px}
+.box h3{font-size:17px;margin:0 0 12px;letter-spacing:-.3px}
+.box p{margin:8px 0;font-size:15px;color:var(--muted);line-height:1.5}
+.box.violet{background:#f7f4fc;border-color:#ddd1ee}.box.green{background:#eef5ee;border-color:#c8decf}
+.box .eyebrow{font-size:10px;letter-spacing:1.1px;margin-bottom:12px}
+.flow-line{height:48px;padding:10px 12px;margin:8px 0;border:1px solid var(--line);border-radius:7px;background:white;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:15px}
+.flow-line .arrow{font-size:20px;color:var(--green)}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px}
+.tag{display:inline-flex;align-items:center;padding:9px 13px;background:#eef2ea;border-radius:7px;font-size:16px;line-height:1.25}
+.tag.selected{background:var(--violet-soft);color:#593c99;box-shadow:inset 0 0 0 1px #bba5df}.tag.dim{color:#828980;background:#f0f2ed}
+.chips{display:flex;gap:9px;flex-wrap:wrap}.small-chips{margin-top:12px}.small-chips .tag{padding:6px 9px;font-size:13px}
+.source-row{border-bottom:1px solid #e1e6dc;padding:7px 0;display:flex;align-items:center;gap:12px;font-size:15px;line-height:1.4}
+.source-row:first-child{padding-top:0}.source-row:last-child{border-bottom:0}.source-row strong{color:var(--ink)}.source-row small{color:var(--muted);font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;flex:none}.dot.purple{background:var(--violet)}
+.swatch-icon{display:grid;place-items:center;width:33px;height:33px;border-radius:8px;background:var(--green-soft);font-size:15px;font-weight:700;color:var(--green);flex:none}
+.section-card{background:white;border:1px solid var(--line);padding:12px 14px;border-radius:8px;margin-bottom:10px;font-size:15px;line-height:1.5}.section-card b{color:var(--green)}
+.muted{color:var(--muted)}.tiny{font-size:12px;line-height:1.5}.source-small,.box .source-small{font-size:13px;line-height:1.5}
+.choice-row{display:flex;gap:8px;align-items:center;padding:6px 0;font-size:14px}.choice-row .label{flex:1}
+.choice{width:15px;height:15px;border:1px solid #bec9be;border-radius:50%;display:inline-grid;place-items:center}.choice.active{border-color:var(--violet)}.choice.active::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--violet)}
+.big-arrow{display:grid;place-items:center;color:var(--green);font-size:26px}.normalize{display:grid;grid-template-columns:1fr 38px 1fr;align-items:center;margin:15px 0}.normalize .tag{justify-content:center}
+.compact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.compact-grid .box{padding:16px 14px}.compact-grid h3{font-size:16px;margin:0 0 12px}.compact-grid p{font-size:13px}
+.parts{display:grid;grid-template-columns:1fr 1.3fr;gap:10px}.part{display:contents}
+.part>div{padding:12px 14px;border:1px solid var(--line);border-radius:7px;font-size:15px;background:#fbfcf9;display:flex;align-items:center;justify-content:space-between;gap:9px}.part>div:first-child{background:#f1eee9}.part .pill{font-size:9px;padding:5px 7px}
+.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.75;margin:9px 0 0;white-space:pre-wrap;color:#53615a}.code em{color:var(--violet);font-style:normal}
+.plan-line{padding:8px 0;display:flex;gap:10px;font-size:14px;line-height:1.4}.plan-line b{display:inline-flex;justify-content:center;align-items:center;width:20px;height:20px;border-radius:50%;background:var(--green-soft);color:var(--green);flex:none;font-size:11px}
+.provider{position:absolute;left:42px;top:791px;width:1196px;height:42px;display:flex;align-items:center;justify-content:center;gap:12px;border:1px solid #dfd8e9;border-radius:9px;background:#f2eef8;color:#6c5c84;font-size:12px}
+.provider strong{color:#6542aa;font-size:13px}.provider .sep{color:#a593bf;font-size:17px}.provider .provider-label{margin-right:16px;font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.footer{position:absolute;left:42px;right:42px;bottom:24px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:11px}
+.footer .truth{display:flex;align-items:center;gap:7px}.footer .truth .dot{width:5px;height:5px}
+.progress-track{position:absolute;left:0;bottom:0;width:100%;height:4px;background:#e4e9de}#progress{width:0;height:100%;background:var(--green)}
+#controls{height:64px;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 20px 16px;color:var(--muted);font-size:12px}
+#controls button,#controls a{text-decoration:none;color:var(--ink);background:#f8faf5;border:1px solid #cad5c9;border-radius:7px;padding:8px 12px;white-space:nowrap}
+#controls button:hover,#controls a:hover{border-color:var(--green)}
+#seek{width:min(27vw,300px);accent-color:var(--green)}#clock{font-variant-numeric:tabular-nums;min-width:75px}
+.recording #viewport{min-height:100vh;padding:0}.recording #controls{display:none}.recording #board{border-radius:0;border:0;box-shadow:none}.recording{background:var(--paper)}
+@media(max-width:700px){#controls{gap:6px;flex-wrap:wrap;height:auto;min-height:64px;padding:8px}#controls button,#controls a{padding:8px}#seek{width:26vw}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<main id="viewport" aria-label="Animated explanation of the AI Site Advisor architecture">
+<div id="frame">
+<article id="board">
+<div class="masthead"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>AI Site Advisor</div><span class="eyebrow">Drupal evidence · Jev decisions</span></div>
+<h1>From a brief. <span>To a Drupal plan.</span></h1>
+<p class="subtitle">Understand the requirements. Find the building blocks. Keep the gaps visible.</p>
+<div class="brief">
+<div class="brief-label"><strong>Your brief</strong><span>Example excerpt</span></div>
+<p>“We want a community website for local clubs.<br><b>Topics:</b> discussion posts with replies. <b>Notifications:</b> email updates.”</p>
+<div class="via"><b>Drupal UI or an agent</b><small>Agent → MCP Server → Tool API</small><small>Both use the same adviser service.</small></div>
+</div>
+<ol class="pipeline" aria-label="Planning stages">
+<li class="step" data-step="0"><span class="stepnum">1</span><span class="steptext"><b>Receive the brief</b><small>One shared service</small></span></li>
+<li class="step" data-step="1"><span class="stepnum">2</span><span class="steptext"><b>Read the site</b><small>Drupal APIs</small></span></li>
+<li class="step" data-step="2"><span class="stepnum">3</span><span class="steptext"><b>Divide into sections</b><small>Code · source phrases</small></span></li>
+<li class="step jevmode" data-step="3"><span class="stepnum">4</span><span class="steptext"><b>Select useful labels</b><small>Jev · then normalise in code</small></span></li>
+<li class="step" data-step="4"><span class="stepnum">5</span><span class="steptext"><b>Discover options</b><small>Local sources + Project Browser</small></span></li>
+<li class="step jevmode" data-step="5"><span class="stepnum">6</span><span class="steptext"><b>Assess the fit</b><small>Jev · typed judgments</small></span></li>
+<li class="step jevmode" data-step="6"><span class="stepnum">7</span><span class="steptext"><b>Match the parts</b><small>Jev checks each proposed match</small></span></li>
+<li class="step" data-step="7"><span class="stepnum">8</span><span class="steptext"><b>Return a draft plan</b><small>For site builders and agents</small></span></li>
+</ol>
+<section class="detail" aria-label="Current stage">
+<div class="detail-head"><span class="phase-name" id="phase"></span><span class="pill" id="owner"></span></div>
+<h2 id="heading"></h2><p class="detail-intro" id="intro"></p><div id="scene"></div><p class="detail-note" id="note"></p>
+</section>
+<div class="provider"><span class="provider-label">Every Jev judgment follows this path</span><span>Adviser</span><span class="sep">→</span><span>Drupal AI · Decision operation</span><span class="sep">→</span><span>TypeSafe AI provider</span><span class="sep">→</span><strong>Jev</strong></div>
+<div class="footer"><span class="truth"><span class="dot"></span>Read-only advice · nothing installed or changed</span><span>Architecture walkthrough · illustrative content, not a live assessment</span><span id="chapter-count">01 / 08</span></div>
+<div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
+</article>
+</div>
+</main>
+<nav id="controls" aria-label="Animation playback">
+<button id="play" type="button">Pause</button><button id="restart" type="button">Restart</button>
+<input id="seek" type="range" min="0" max="43" step="0.05" value="0" aria-label="Animation position in seconds">
+<span id="clock">0:00 / 0:43</span><a href="?record=1" id="record-link" target="_blank" rel="noopener">Clean recording view ↗</a>
+</nav>
+<script>
+(() => {
+'use strict';
+const scenes = [
+{
+duration:4, phase:'01 / Input', owner:'SHARED SERVICE', title:'One brief. Two ways in.',
+intro:'The same assessment is available to a person in Drupal and an agent through MCP.',
+content:'<div class="grid2"><div class="box"><div class="eyebrow">A site builder</div><h3>Drupal adviser form</h3><p>Describe the build in your own words.</p><div class="flow-line"><span>Drupal UI</span><span class="arrow">→</span><strong>AI Site Advisor</strong></div><p class="source-small">The form calls the shared assessment service.</p></div><div class="box green"><div class="eyebrow">An agent</div><h3>A reusable Tool API operation</h3><div class="flow-line"><span>MCP Server</span><span class="arrow">→</span><span>Tool API</span></div><div class="mono">ai_site_advisor:assess_content_brief</div><p class="source-small">The tool calls that same service.</p></div></div>',
+note:'Tool API is an optional interface to the service. The Drupal form can call it directly.'
+},
+{
+duration:5, phase:'02 / Site evidence', owner:'DRUPAL APIS', title:'Start with what is actually there.',
+intro:'The adviser reads structural metadata before asking Jev to make planning decisions.',
+content:'<div class="grid2"><div class="box"><h3>Inspect current configuration</h3><div class="source-row"><span class="swatch-icon">N</span><span><strong>Content types and fields</strong><br><small>Types, required fields and references</small></span></div><div class="source-row"><span class="swatch-icon">C</span><span><strong>Configuration evidence</strong><br><small>Workflows, Views, media and more</small></span></div><div class="source-row"><span class="swatch-icon">M</span><span><strong>Available modules</strong><br><small>Core and contributed · enabled or available</small></span></div></div><div class="box green"><div class="eyebrow">Evidence passed into decisions</div><h3>What can this site already do?</h3><div class="chips small-chips"><span class="tag">Actual field definitions</span><span class="tag">Existing configuration</span><span class="tag">Module descriptions</span><span class="tag">Local availability</span></div><p>Check what exists before proposing another content type or package.</p></div></div>',
+note:'SiteContextCollector + ConfigurationInspector + ModuleInventory · metadata is evidence, not proof of complete coverage.'
+},
+{
+duration:5, phase:'03 / Source text', owner:'CODE', title:'Turn the brief into source phrases.',
+intro:'Keep named sections together. Generate possible labels from the words the user wrote.',
+content:'<div class="grid2"><div class="box"><div class="eyebrow">Sections from the brief</div><div class="section-card"><b>Topics:</b> discussion posts with replies.</div><div class="section-card"><b>Notifications:</b> email updates.</div><p class="source-small">Unheaded prose is split using punctuation and conjunctions.</p></div><div class="box"><div class="eyebrow">Possible labels · before Jev selects</div><div class="chips"><span class="tag">topics</span><span class="tag">discussion posts</span><span class="tag">replies</span><span class="tag">notifications</span><span class="tag">email updates</span><span class="tag dim">none</span></div><p class="source-small">Single words and adjacent word pairs.<br>No fixed list of Drupal feature names.</p></div></div>',
+note:'BriefCapabilities · original source text stays attached so the constraints are available to later decisions.'
+},
+{
+duration:5, phase:'04 / Search planning', owner:'JEV + CODE', jev:true, title:'Choose the subject. Keep its context.',
+intro:'Jev selects source phrases in context and decides whether ecosystem discovery would help.',
+content:'<div class="grid2"><div class="box violet"><div class="eyebrow">Jev · a typed Choice</div><h3>Which phrase names this feature?</h3><div class="choice-row"><span class="choice active"></span><span class="label">topics</span><span class="pill jev">ILLUSTRATIVE CHOICE</span></div><div class="choice-row"><span class="choice"></span><span>discussion posts</span></div><div class="choice-row"><span class="choice"></span><span>replies / none</span></div><p class="source-small">Full brief + site evidence inform the choice.</p></div><div class="box"><div class="eyebrow">Code · normalise search terms</div><div class="normalize"><span class="tag selected">topics</span><span class="big-arrow">→</span><span class="tag">topic</span></div><div class="normalize"><span class="tag selected">notifications</span><span class="big-arrow">→</span><span class="tag">notification</span></div><p class="source-small">Singularise the final word.<br>Merge identical search terms.</p></div></div>',
+note:'SearchPlanner · separate search / local / clarify decision. These are candidate work areas, not a complete architecture.'
+},
+{
+duration:6, phase:'05 / Discovery', owner:'CATALOG SOURCES', title:'Bring existing options into the comparison.',
+intro:'Combine inspected site evidence with local candidates and, when useful, ecosystem results.',
+content:'<div class="compact-grid"><div class="box green"><div class="eyebrow">Already on the site</div><h3>Core + local modules</h3><p>Discover relevant capabilities from the module inventory.</p><div class="chips small-chips"><span class="tag">Node</span><span class="tag">Comment</span><span class="tag">Views</span></div><p class="tiny">Jev helps select relevant local modules.</p></div><div class="box"><div class="eyebrow">Local files</div><h3>Recipe manifests</h3><p>Read recipe.yml files and supported configuration evidence.</p><div class="chips small-chips"><span class="tag">Core recipes</span><span class="tag">Composer recipes</span></div><p class="tiny">No fixed recipe catalogue.</p></div><div class="box"><div class="eyebrow">Optional integration</div><h3>Project Browser</h3><p>Search enabled catalogue sources with selected keywords.</p><div class="chips small-chips"><span class="tag">Modules</span><span class="tag">Recipes</span></div><p class="tiny">Descriptions + availability + source links.</p></div></div>',
+note:'CandidateCatalog + LocalModuleCandidates · Tool API also exposes discovery separately as discover_candidates.'
+},
+{
+duration:6, phase:'06 / Assessment', owner:'JEV', jev:true, title:'Score the fit against the actual need.',
+intro:'Ask specific questions about each candidate and existing configuration, using supplied evidence.',
+content:'<div class="grid2"><div class="box violet"><div class="eyebrow">Questions with defined answers</div><div class="source-row"><span class="dot purple"></span><span>Can an existing content type be reused or extended?</span></div><div class="source-row"><span class="dot purple"></span><span>Is a discovered option relevant to this requirement?</span></div><div class="source-row"><span class="dot purple"></span><span>Is it a foundation, a supporting option, or unrelated?</span></div></div><div class="box"><div class="eyebrow">Typed result → checked by code</div><h3>A choice, probabilities and confidence</h3><div class="flow-line"><span>Jev response</span><span class="arrow">→</span><span>Validate</span><span class="arrow">→</span><span>Retain</span></div><p>Keep the judgments for ranking and requirement checks.</p><p><span class="pill review">UNCERTAINTY STAYS VISIBLE</span></p></div></div>',
+note:'ContentPlanningProfile + ChoiceValidator · confidence is not proof of correctness or compatibility.'
+},
+{
+duration:6, phase:'07 / Composition', owner:'JEV + CODE', jev:true, title:'One requirement can need several parts.',
+intro:'Split source passages into sentences or list items. Propose a match, then check its support.',
+content:'<div class="parts"><div class="part"><div>Opening discussion post <span>→</span></div><div>Inspect an existing content type <span class="pill review">CHECK FIELDS</span></div></div><div class="part"><div>Replies to a discussion <span>→</span></div><div>Comment as a candidate <span class="pill review">CHECK FIT</span></div></div><div class="part"><div>Email updates <span>→</span></div><div>Compare notification options <span class="pill review">GAP TO RESOLVE</span></div></div><div class="part"><div>Club membership &amp; access <span>→</span></div><div>Review relationships and permissions <span class="pill review">DESIGN CHECK</span></div></div></div>',
+note:'RequirementPlanner · each match can be supported, partial or open. Combining these parts still needs validation.'
+},
+{
+duration:6, phase:'08 / Handoff', owner:'DRAFT PLAN', title:'A plan you can inspect and continue.',
+intro:'Code ranks the checked options and assembles the evidence, links and unresolved work into a handoff.',
+content:'<div class="grid2"><div class="box green"><div class="eyebrow">For a site builder · Drupal UI</div><h3>Clear next steps, with evidence</h3><div class="plan-line"><b>1</b><span>Inspect or extend existing configuration.</span></div><div class="plan-line"><b>2</b><span>Compare up to three highlighted options.</span></div><div class="plan-line"><b>3</b><span>Resolve missing pieces and integration checks.</span></div><p class="source-small">All inspected options remain available below.</p></div><div class="box"><div class="eyebrow">For an agent · Tool API → MCP Server</div><h3>A compact structured plan</h3><pre class="code">work areas + requirement parts\nconfiguration links + package pointers\nconditional Composer steps\nopen decisions + assembly checks\n<em>integration_verified: false</em></pre></div></div>',
+note:'Same assessment, different presentations. A site builder or agent chooses the next build action; this service only advises.'
+}
+];
+const query = new URLSearchParams(location.search);
+const recording = query.get('record') === '1';
+document.body.classList.toggle('recording', recording);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const duration = scenes.reduce((sum, scene) => sum + scene.duration, 0);
+const board = document.getElementById('board'), frame = document.getElementById('frame');
+const sceneElement = document.getElementById('scene'), play = document.getElementById('play'), seek = document.getElementById('seek');
+let current = -1, time = 0, playing = !reduced && query.get('paused') !== '1', lastFrame = performance.now();
+seek.max = duration;
+function resize() {
+  const pad = recording ? 0 : 40, footer = recording ? 0 : 64;
+  const scale = Math.max(0.15, Math.min((innerWidth - pad) / 1280, (innerHeight - footer - pad) / 900, recording ? 10 : 1));
+  frame.style.width = (1280 * scale) + 'px'; frame.style.height = (900 * scale) + 'px'; board.style.transform = 'scale(' + scale + ')';
+}
+function render(seconds) {
+  time = Math.max(0, Math.min(seconds, duration));
+  let index = 0, local = time;
+  while (index < scenes.length - 1 && local >= scenes[index].duration) { local -= scenes[index].duration; index++; }
+  const scene = scenes[index];
+  if (current !== index) {
+    current = index;
+    document.getElementById('phase').textContent = scene.phase;
+    document.getElementById('phase').classList.toggle('jev', !!scene.jev);
+    document.getElementById('owner').textContent = scene.owner;
+    document.getElementById('owner').classList.toggle('jev', !!scene.jev);
+    document.getElementById('heading').textContent = scene.title;
+    document.getElementById('intro').textContent = scene.intro;
+    sceneElement.innerHTML = scene.content;
+    document.getElementById('note').textContent = scene.note;
+    document.getElementById('chapter-count').textContent = String(index + 1).padStart(2, '0') + ' / 08';
+    document.querySelectorAll('.step').forEach((step, i) => {
+      step.classList.toggle('active', i === index); step.classList.toggle('complete', i < index);
+      step.querySelector('.stepnum').textContent = i < index ? '✓' : i + 1;
+      if (i === index) step.setAttribute('aria-current', 'step'); else step.removeAttribute('aria-current');
+    });
+  }
+  const enter = reduced ? 1 : Math.min(1, (local + 0.05) / 0.4), ease = 1 - Math.pow(1 - enter, 3);
+  sceneElement.style.opacity = String(0.3 + 0.7 * ease);
+  sceneElement.style.transform = 'translateY(' + ((1 - ease) * 9) + 'px)';
+  sceneElement.querySelectorAll('.source-row, .section-card, .part, .plan-line, .chips .tag, .normalize').forEach((item, i) => {
+    const target = item.classList.contains('part') ? item.children : [item];
+    const stagger = index === 6 ? 0.65 : 0.16;
+    const reveal = reduced ? 1 : Math.max(0.18, Math.min(1, (local - i * stagger + 0.1) / 0.38));
+    for (const node of target) node.style.opacity = String(reveal);
+  });
+  document.getElementById('progress').style.width = (time / duration * 100) + '%';
+  seek.value = time;
+  document.getElementById('clock').textContent = '0:' + String(Math.floor(time)).padStart(2, '0') + ' / 0:' + duration;
+}
+function setPlaying(value) { playing = value; play.textContent = playing ? 'Pause' : 'Play'; lastFrame = performance.now(); }
+play.addEventListener('click', () => setPlaying(!playing));
+document.getElementById('restart').addEventListener('click', () => { render(0); setPlaying(true); });
+seek.addEventListener('input', () => { setPlaying(false); render(Number(seek.value)); });
+window.addEventListener('resize', resize);
+document.addEventListener('visibilitychange', () => { lastFrame = performance.now(); });
+function tick(now) {
+  if (playing && !document.hidden) render((time + Math.min((now - lastFrame) / 1000, 0.15)) % duration);
+  lastFrame = now; requestAnimationFrame(tick);
+}
+// Deterministic timeline for reproducible exports. This page makes no network or model calls.
+window.AdvisorAnimation = Object.freeze({
+  duration,
+  seek(seconds) { setPlaying(false); render(seconds); },
+  play() { setPlaying(true); }, pause() { setPlaying(false); },
+  state() { return { time, stage:current, playing, duration }; },
+  chapters:scenes.map((scene, index) => ({ title:scene.title, index, duration:scene.duration, start:scenes.slice(0, index).reduce((sum, prior) => sum + prior.duration, 0) }))
+});
+resize(); render(Number(query.get('t')) || 0); setPlaying(playing); requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

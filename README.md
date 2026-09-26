@@ -22,6 +22,15 @@ permission to install. No recipe is applied, package installed, content created
 or configuration changed by either adviser tool. Phase one includes software
 tests and live checks; model evals and cost comparisons remain later work.
 
+## Architecture walkthrough
+
+For a visual explanation of the brief-to-plan pipeline, open the standalone
+[architecture animation](docs/architecture/index.html). It walks through site
+inspection, source-phrase selection, discovery, typed Jev judgments and the
+human/agent handoff. [Recording and export instructions](docs/architecture/README.md)
+include a reproducible silent MP4 and GIF renderer. The animation is illustrative;
+it does not call a provider or change the site.
+
 ## Requirements and standalone installation
 
 - PHP 8.3+, Drupal 11.2+ within Drupal 11, and core Node.
