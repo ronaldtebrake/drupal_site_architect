@@ -6,13 +6,14 @@ namespace Drupal\ai_site_advisor\Assessment;
 
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\Value\ChoiceQuestion;
+use Drupal\ai_site_advisor\Context\ModuleInventory;
 
 /**
  * Jev decides whether discovery helps and selects a keyword from the brief.
  */
 final class SearchPlanner implements SearchPlannerInterface {
 
-  public const VERSION = 'ecosystem-search-v3';
+  public const VERSION = 'ecosystem-search-v4';
 
   /**
    * Constructs the planner using the same Decision provider as the adviser.
@@ -23,6 +24,10 @@ final class SearchPlanner implements SearchPlannerInterface {
    * {@inheritdoc}
    */
   public function plan(string $brief, array $site): array {
+    if (isset($site['available_modules'])) {
+      $site['available_modules'] = ModuleInventory::descriptions($site['available_modules']);
+      unset($site['enabled_modules']);
+    }
     $clauses = BriefCapabilities::clauses($brief);
     if (mb_strlen($brief) > BriefCapabilities::MAX_BRIEF_LENGTH || count($clauses) > BriefCapabilities::MAX_SEGMENTS) {
       throw new \LengthException('This synchronous planner accepts up to 20,000 characters and 200 text segments. No requirements were truncated and no provider call was made. Divide larger documents into planning stages.');

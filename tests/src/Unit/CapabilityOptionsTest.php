@@ -101,7 +101,7 @@ final class CapabilityOptionsTest extends UnitTestCase {
     $this->assertNotContains('Recurring Events', $area['assembly']['complements']);
     $this->assertContains('Recurrence field fixture', $area['assembly']['complements']);
     $this->assertNotContains('Programming events fixture', $area['assembly']['complements']);
-    $this->assertStringContainsString('Catalog candidates were inspected', $area['gap']);
+    $this->assertStringContainsString('Local capabilities and discovered candidates', $area['gap']);
     $this->assertStringNotContainsString('No suitable package', $area['gap']);
     $this->assertStringNotContainsString('topics', $area['check']);
   }

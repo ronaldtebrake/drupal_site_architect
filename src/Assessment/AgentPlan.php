@@ -90,6 +90,8 @@ final class AgentPlan {
         'truncated' => $assessment['discovery']['truncated'] ?? FALSE,
         'warnings' => $assessment['discovery']['warnings'] ?? [],
         'coverage' => $assessment['search_plan']['coverage'] ?? NULL,
+        'local_modules_screened' => count($assessment['local_discovery']['answers'] ?? []),
+        'local_modules_retained' => count($assessment['local_discovery']['items'] ?? []),
       ],
       'details' => 'Repeat this tool with the same brief and detail="full" for all candidates, fields, scores and diagnostics. That performs a fresh assessment; results can change.',
     ];
@@ -140,6 +142,12 @@ final class AgentPlan {
           : ($availability === 'enabled_module' ? 'Inspect and configure the enabled module.' : 'Enable the required module/submodules after checking their dependencies, then configure and integrate.'),
       ],
     ];
+    if (isset($option['module_name'])) {
+      $candidate['module_name'] = $option['module_name'];
+      $candidate['core'] = $option['core'] ?? FALSE;
+      $candidate['configure'] = $option['links'] ?? [];
+      $candidate['dependencies'] = $option['dependencies'] ?? [];
+    }
     if ($recipe && $availability === 'local_code') {
       $candidate['manifest_reference'] = $option['source'] ?? NULL;
       $configuration = $option['configuration'] ?? [];

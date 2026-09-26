@@ -38,6 +38,8 @@
           <summary>{{ resource.label }} <span class="sa-note">· {{ resource.kind }}</span> <span class="sa-resource-role">{% if resource.selected %}{{ highlight.state == 'recommended' ? 'Recommended starting point'|t : 'Provisional recommendation'|t }}{% elseif resource.role == 'foundation' %}{{ highlight.primary ? 'Alternative foundation'|t : 'Possible foundation'|t }}{% else %}{{ 'Supporting option'|t }}{% endif %}{% if resource.needs_review and not resource.selected %} · {{ 'Uncertain fit'|t }}{% endif %}</span></summary>
           <p class="sa-note">{{ 'Contribution score'|t }}: {{ (resource.role_probability * 100)|number_format(0) }}% {{ resource.role == 'foundation' ? 'as a foundation'|t : 'as a supporting option'|t }} · {{ 'confidence'|t }} {{ (resource.role_confidence * 100)|number_format(0) }}%</p>
           <p>{{ resource.instruction }}</p>
+          {% if resource.module_name %}<p class="sa-note">{{ 'Module'|t }}: <code>{{ resource.module_name }}</code> · {{ resource.availability == 'enabled_module' ? 'Already enabled'|t : 'Code available; not enabled'|t }}</p>{% endif %}
+          {% if resource.links %}<div class="sa-action-links">{% for link in resource.links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>{% endif %}
           <p class="sa-note">{{ 'Supplied by'|t }} <code>{{ resource.package }}</code>{% if resource.configuration %} · {{ 'Configuration inspected locally'|t }}{% endif %}</p>
           {% if resource.description %}<p>{{ resource.description|length > 360 ? resource.description|slice(0, 360) ~ '…' : resource.description }}</p>{% endif %}
           {% if resource.configuration %}

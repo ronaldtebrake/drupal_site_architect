@@ -28,6 +28,7 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
     private readonly ConfigFactoryInterface $config,
     private readonly ModuleExtensionList $extensions,
     private readonly ConfigurationInspector $configuration,
+    private readonly ModuleInventory $moduleInventory,
   ) {}
 
   /**
@@ -133,16 +134,18 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
         ];
       }
     }
+    $areas = $this->configuration->collect($account, $included);
     $snapshot = [
-      'schema_version' => '3',
+      'schema_version' => '4',
       'drupal_version' => \Drupal::VERSION,
       'scope' => $included ? 'Selected content types only' : 'All node content types',
       'bundles' => $bundles,
       'enabled_features' => $features,
       'enabled_modules' => $enabled_modules,
+      'available_modules' => $this->moduleInventory->collect($account, $areas),
       'supporting_configuration' => $supporting,
       'workflows' => $workflows,
-      'configuration_areas' => $this->configuration->collect($account, $included),
+      'configuration_areas' => $areas,
       'site_policy' => (string) $settings->get('site_policy'),
       'limitations' => [
         'Views and templates are listed by identity only. Moderation workflow structure is inspected, but role access and automation behavior are not verified.',

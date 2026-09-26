@@ -54,6 +54,7 @@ final class CapabilityOptions {
         $keys = [
           'id', 'kind', 'label', 'package', 'description', 'url', 'availability',
           'source', 'configuration', 'installs', 'includes_recipes',
+          'module_name', 'core', 'links', 'dependencies',
         ];
         $options[$id] = array_intersect_key($candidate, array_flip($keys)) + [
           'id' => $id,

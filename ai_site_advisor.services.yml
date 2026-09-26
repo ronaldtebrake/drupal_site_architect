@@ -1,7 +1,10 @@
 services:
   ai_site_advisor.context:
     class: Drupal\ai_site_advisor\Context\SiteContextCollector
-    arguments: ['@entity_type.manager', '@entity_field.manager', '@module_handler', '@config.factory', '@extension.list.module', '@ai_site_advisor.configuration']
+    arguments: ['@entity_type.manager', '@entity_field.manager', '@module_handler', '@config.factory', '@extension.list.module', '@ai_site_advisor.configuration', '@ai_site_advisor.module_inventory']
+  ai_site_advisor.module_inventory:
+    class: Drupal\ai_site_advisor\Context\ModuleInventory
+    arguments: ['@extension.list.module', '@module_handler']
   ai_site_advisor.configuration:
     class: Drupal\ai_site_advisor\Context\ConfigurationInspector
     arguments: ['@entity_type.manager', '@entity_field.manager', '@extension.list.module']

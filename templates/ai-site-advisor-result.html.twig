@@ -36,8 +36,10 @@
                     <th scope="row">
                       <strong>{{ option.label }}</strong>{% if option.selected %}<span class="sa-option-selected">{{ 'Preferred in this comparison'|t }}</span>{% endif %}
                       {% if option.package %}<code>{{ option.package }}</code>{% elseif option.bundle_id %}<span class="sa-note">{{ 'Existing content type'|t }}</span>{% endif %}
+                      {% if option.module_name %}<p class="sa-note">{{ option.core ? 'Core module'|t : 'Local module'|t }} · <code>{{ option.module_name }}</code> · {{ availability[option.availability] }}</p>{% endif %}
                       <details><summary>{{ 'Source evidence'|t }}</summary><p>{{ option.description }}</p>{% if option.fields %}<p>{{ 'Current fields'|t }}: {{ option.fields|join(' · ') }}</p>{% endif %}{% if option.source %}<p class="sa-note">{{ option.source }}</p>{% endif %}</details>
                       {% if option.url %}<a href="{{ option.url }}" target="_blank" rel="noopener noreferrer">{{ 'Inspect project'|t }} →</a>{% endif %}
+                      {% for link in option.links %}<div><a href="{{ link.url }}">{{ link.label }} →</a></div>{% endfor %}
                       {% if option.bundle_id %}<a href="{{ path('entity.node_type.edit_form', {'node_type': option.bundle_id}) }}">{{ 'Inspect content type'|t }} →</a>{% endif %}
                     </th>
                     <td>
@@ -61,9 +63,16 @@
   <div class="sa-next"><h4>02 · {{ 'Validate the combination'|t }}</h4><p>{{ assessment.plan.validation }}</p><h4>03 · {{ 'Prepare the build tasks'|t }}</h4><p>{{ assessment.plan.handoff }}</p></div>
   <details class="sa-details"><summary>{{ 'Assessment details and alternative candidates'|t }}</summary>
   <p>{{ assessment.summary }}</p>
+  {% if assessment.local_discovery.answers %}
+    <details class="sa-details"><summary>{{ 'Local capability screening'|t }} · {{ assessment.local_discovery.answers|length }}</summary>
+      <p>{{ assessment.local_discovery.scope }}</p>
+      <p>{{ 'Retained @count local modules for per-work-area scoring. Others were judged confidently unrelated to the complete brief; inspect those judgments here if an expected capability is missing.'|t({'@count': assessment.local_discovery.items|length}) }}</p>
+      <ul>{% for id, answer in assessment.local_discovery.answers %}<li><strong>{{ assessment.site.available_modules[id].label }}</strong> · {{ answer.retained ? 'Included in comparison'|t : 'Excluded as unrelated'|t }} · {{ labels[answer.choice] }} · {{ (answer.probabilities[answer.choice] * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (answer.confidence * 100)|number_format(0) }}%<p>{{ assessment.site.available_modules[id].description }}</p></li>{% endfor %}</ul>
+    </details>
+  {% endif %}
   <div class="sa-grid">
     <article class="sa-card sa-recommendation"><span class="sa-eyebrow">01 · {{ 'Reuse this site'|t }}</span><h4>{{ 'Start with existing configuration'|t }}</h4><p>{{ assessment.reuse_candidates|length }} {{ 'content types to reuse'|t }} · {{ assessment.workflow_candidates|length }} {{ 'workflow starting points'|t }}</p><p>{{ 'Inspect the actual fields, states and transitions below.'|t }}</p></article>
-    <article class="sa-card sa-recommendation"><span class="sa-eyebrow">02 · {{ 'Consider existing solutions'|t }}</span><h4>{{ assessment.adoption_candidates|length }} {{ 'relevant catalog candidates'|t }}</h4><p>{{ 'Compare recipes and modules discovered from configured sources. Relevance does not establish installation compatibility.'|t }}</p></article>
+    <article class="sa-card sa-recommendation"><span class="sa-eyebrow">02 · {{ 'Consider existing solutions'|t }}</span><h4>{{ assessment.adoption_candidates|length }} {{ 'relevant capabilities'|t }}</h4><p>{{ 'Compare local modules with recipes and modules discovered from configured sources. Relevance does not establish installation compatibility.'|t }}</p></article>
     <article class="sa-card"><span class="sa-eyebrow">03 · {{ 'Build the remaining gap'|t }}</span><h4>{{ 'Keep custom work informed'|t }}</h4><p>{{ assessment.build_guidance }}</p></article>
   </div>
 
@@ -77,7 +86,7 @@
     </div>
   {% endif %}
 
-  <h4>{{ 'Discovered recipes and modules'|t }}</h4>
+  <h4>{{ 'Local capabilities and discovered recipes and modules'|t }}</h4>
   <p class="sa-note">{% if assessment.discovery.searched_ecosystem %}{{ 'Search'|t }}: “{{ assessment.discovery.query }}”{% else %}{{ 'Local manifests matched against your brief'|t }}{% endif %} · {{ assessment.discovery.returned }} {{ 'candidates assessed'|t }}{% if assessment.discovery.truncated %} · {{ 'Results limited: refine the brief to explore other candidates'|t }}{% endif %}</p>
   {% for warning in assessment.discovery.warnings %}<p class="sa-note">{{ warning }}</p>{% endfor %}
   <div class="sa-grid sa-grid--two">

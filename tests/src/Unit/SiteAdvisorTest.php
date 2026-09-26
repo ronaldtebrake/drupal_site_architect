@@ -243,4 +243,60 @@ final class SiteAdvisorTest extends UnitTestCase {
     $this->assertSame('workflow', $result['search_plan']['query']);
   }
 
+  /**
+   * Local screening feeds assessment and counts usage without remote discovery.
+   */
+  public function testLocalModuleAssessmentAndUsage(): void {
+    $account = $this->createMock(AccountInterface::class);
+    $account->method('hasPermission')->willReturn(TRUE);
+    $site = $this->site();
+    $site['available_modules']['module__fixture'] = [
+      'id' => 'module__fixture',
+      'machine_name' => 'fixture',
+      'module_name' => 'fixture',
+      'label' => 'Existing capability',
+      'description' => 'A capability provided locally.',
+      'kind' => 'module',
+      'package' => 'drupal/core',
+      'core' => TRUE,
+      'availability' => 'local_code',
+    ];
+    $context = $this->createMock(SiteContextCollectorInterface::class);
+    $context->method('collect')->willReturn($site);
+    $catalog = $this->createMock(CandidateCatalog::class);
+    $catalog->method('discover')->willReturn(['items' => []]);
+    $planner = $this->createMock(SearchPlannerInterface::class);
+    $planner->expects($this->never())->method('plan');
+    $decision = $this->createMock(DecisionClientInterface::class);
+    $calls = 0;
+    $decision->method('decide')->willReturnCallback(function (DecisionInput $input) use (&$calls): DecisionResponse {
+      $calls++;
+      $answers = [];
+      foreach ($input->getQuestions() as $id => $question) {
+        $choice = match (TRUE) {
+          str_starts_with($id, 'local__'), str_starts_with($id, 'recipe__') => 'relevant',
+          str_starts_with($id, 'plan__') => 'module__fixture',
+          str_starts_with($id, 'role__') => 'foundation',
+          str_starts_with($id, 'bundle__') => 'unrelated',
+          str_starts_with($id, 'check__') => 'integration',
+          $id === 'content_model' => 'not_applicable',
+          default => 'drupal_display',
+        };
+        $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
+        $distribution[$choice] = 1.0;
+        $answers[$id] = new ChoiceAnswer($choice, $distribution, 1.0);
+      }
+      return new DecisionResponse($answers, 'fixture', new TokenUsageDto(10, 2, 12));
+    });
+    $result = (new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, $planner))->assess('Use a suitable existing capability.', $account);
+    $this->assertSame(2, $calls);
+    $this->assertSame(['input' => 20, 'output' => 4, 'total' => 24], $result['usage']);
+    $this->assertSame(10, $result['usage_by_stage']['local_discovery']['input']);
+    $this->assertCount(1, $result['requests_by_stage']['local_discovery']);
+    $this->assertSame('module__fixture', $result['plan']['areas']['brief']['selection']['id']);
+    $this->assertSame('Core module', $result['plan']['areas']['brief']['handoff']['resources'][0]['kind']);
+    $this->assertStringContainsString('No Composer download', $result['plan']['areas']['brief']['handoff']['resources'][0]['instruction']);
+    $this->assertFalse($result['discovery']['searched_ecosystem']);
+  }
+
 }

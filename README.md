@@ -96,6 +96,42 @@ Local availability means **code is present**. It does not prove that a recipe
 was applied, that its configuration remains in use, or that applying it would
 be compatible. The site collector separately reads current configuration.
 
+## Core and existing module capabilities
+
+The adviser reads visible module metadata from Drupal's extension list. Every
+module shipped with core is considered even when disabled; enabled contributed
+and custom modules are also included. Hidden and test modules are excluded.
+Names and descriptions come from the modules themselves. There is no list mapping
+planning keywords to specific projects.
+
+An independent semantic screening stage compares each module with the complete
+brief. Only a confidently unrelated result (at least 75% probability and 70%
+confidence) excludes it from detailed comparison. Useful and uncertain modules
+remain named candidates, with starting-point and contribution judgments for each
+work area. The full screening results, including exclusions, are inspectable in
+**Local capability screening**. These prototype thresholds are not calibrated
+coverage guarantees.
+
+This lets core capabilities such as Content Translation and Views participate
+alongside recipes and external projects. The starting-point question distinguishes
+creating records from adding behavior to those records. For example, an event
+content type is not automatically the best choice for translating existing events
+or building an overview of them.
+
+Local modules carry their machine name, core/contributed identity, enabled state,
+declared dependencies and accessible configuration links. Links come from module
+configure routes and registered configuration entities. A disabled core module
+needs enabling and configuration, **not Composer acquisition**. For extensions
+without a declared Drupal project, `local/<module>` is a local identity, not an
+installable Composer recommendation. Available code does not establish configured
+languages, translatable fields, listing filters or operational access behavior.
+
+The inventory is collected fresh and included in the site fingerprint. Scoring
+packets retain module descriptions and dependencies but omit duplicate inventories
+and output-only routes/source paths. The complete result keeps that evidence.
+Screening adds provider work, reported separately under `local_discovery`; the
+normal three-option UI and compact MCP handoff still apply.
+
 ## Discovering the ecosystem through Project Browser
 
 Enable the optional adapter:
@@ -465,18 +501,22 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `answers` | Choices, full distributions, confidence, individual review flags and static criteria. |
 | `reuse_candidates`, `extension_candidates` | Confidently matched node content-type IDs. |
 | `workflow_candidates` | Existing workflow IDs with a `ready` or `extend` judgment. |
-| `adoption_candidates` | Confidently relevant catalogue candidate IDs, not verified install targets. |
+| `adoption_candidates` | Confidently relevant local-module and catalogue candidate IDs, not verified install targets. |
+| `local_discovery` | Semantic screening of shipped core and enabled local modules: retained candidates, every screening judgment, questions and usage. |
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
 | `plan` | Draft work areas, visible preferred selections, every assessed option with separate contribution/selection/brief-relevance judgments, foundation/addition investigation paths, checks and handoff boundaries. |
-| `search_plan` | Route, capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v3`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
-| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v6`). |
+| `search_plan` | Route, capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v4`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
+| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v7`). |
 | `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
 | `requests_by_stage` | Model, question IDs, evidence IDs, compact bytes and reported usage for every provider request. |
 | `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |
 
 `recipes` remains an alias of `candidates`, and candidate question IDs retain
 the `recipe__` prefix for compatibility with the initial prototype. These now
-include module candidates; inspect each candidate's `kind`.
+include module candidates; inspect each candidate's `kind`. Local module IDs
+use `module__<machine_name>`, so core modules remain separate choices despite
+sharing `drupal/core`. A discovered project representing the same local module
+is coalesced in the comparison; the raw catalogue result remains in `discovery`.
 
 Collected evidence is allowlisted: node-type labels/descriptions, title and
 configurable field definitions, reference targets, selected enabled features,
@@ -502,6 +542,8 @@ plan would exceed the per-request limit, without dropping questions or candidate
 Independent `role__<work-area>__<option>` questions assess potential contributions
 within that work area. They run in the assessment stage and increase reported
 usage; the starting-point distribution is not reused as a relevance score.
+Local module screening precedes detailed assessment, including when no ecosystem
+adapter is installed. Its usage and requests are recorded as `local_discovery`.
 `usage` sums all requests; `usage_by_stage` preserves the breakdown. Unknown counts stay
 `null` rather than being treated as zero. An explicit search override skips
 planning, as does a site without a remote adapter.

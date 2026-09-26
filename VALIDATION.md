@@ -468,6 +468,60 @@ retry succeeded without relaxing validation. The final rendered plan again had
 ten areas with at most three highlights and 17 comparison rows each. Opening
 Groups' comparison exposed Organic Groups, which was not in its main shortlist.
 
+## Core and local capabilities participate in scoring
+
+Site evidence schema 4 includes visible core modules shipped with Drupal,
+including disabled modules, plus enabled contributed/custom modules. Module
+metadata supplies descriptions, dependencies and availability. Configuration
+links come from accessible declared configure routes and registered config
+entities. No keyword-to-project mapping or fixed core shortlist was added.
+Hidden and test modules are excluded.
+
+Profile `content-planning-v7` screens each local module against the full brief,
+then retains all except confidently unrelated modules as named candidates for
+per-work-area selection and contribution scoring. The excluded screening
+judgments remain inspectable. The starting-point question distinguishes creating
+records from adding behavior to existing records. Search planning v4 also sees
+disabled core capabilities. Local module IDs stay distinct even when they share
+`drupal/core`. Enabled and available-but-disabled states are not conflated with
+configuration completeness, and neither requires Composer acquisition.
+
+Automated checks passed **56 tests / 2,024 assertions**, Drupal/DrupalPractice
+PHPCS and Git whitespace checks. Kernel tests inspect actual disabled translation
+and Views modules, enable Views UI and Content Translation on an isolated site,
+check real routes and permission denial, and verify changing fingerprints.
+Unit tests cover semantic retention without keyword overlap, uncertain/excluded
+screening results, contribution questions for all retained modules, compact
+handoff identities and no Composer acquisition for core. Orchestration includes
+local screening in summed usage. An 80-module fixture retains every choice and
+160 per-area contribution questions while each scoring packet stays below 100 KB.
+
+The initial full-brief run exposed repeated inventory and output-pointer data
+exceeding a request budget. Scoring packets now exclude redundant inventories,
+routes and source paths while retaining descriptions, identities, availability
+and dependencies. Full output preserves the complete evidence. The request limit
+and response validation were not relaxed. A later inconsistent provider response
+was rejected; the retry completed.
+
+The live site inventory contained **114 local capabilities**. The full community
+brief, including an Overviews section, produced **77 scored options per area**
+while retaining at most three UI highlights. Translation recommended Content
+Translation (97% selection probability, 96% confidence in the observed run).
+Views was selected provisionally for overviews and the activity stream, with its
+actual `/admin/structure/views` destination. These are observations of a single
+run, not calibrated quality claims. Content Translation was correctly shown as
+shipped core code that is not enabled; no site modules were enabled by the adviser.
+
+An authenticated HTTPS MCP call with a focused translation/overview brief returned
+HTTP 200, compact format and both `module__content_translation` and `module__views`
+as starting points, preserving review flags. Its 17,600-byte response included
+machine names, dependencies and `code_available` acquisition instructions; Views
+had its live administration link. The call took 4.176 seconds, a smoke observation
+only. Exact request/response artifacts were saved outside the public document
+root and module repository. Session cleanup returned HTTP 200; no credentials,
+cookies or session IDs were exported. Local screening adds inference work; its
+usage and request records are reported separately.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's

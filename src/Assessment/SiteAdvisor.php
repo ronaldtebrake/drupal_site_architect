@@ -75,7 +75,18 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       ? $this->catalog->discoverMany($queries, $account)
       : $this->catalog->discover($search ? $queries[0] : $brief, $account, 12, $search);
     $discovery['searched_ecosystem'] = $search;
+    $local = LocalModuleCandidates::discover($brief, $site['available_modules'] ?? [], $this->decision);
     $recipes = $discovery['items'];
+    // Prefer inspected local module identity over a duplicate catalog listing.
+    // Recipes remain separate even when they configure one of these modules.
+    foreach ($local['items'] as $module) {
+      foreach ($recipes as $id => $candidate) {
+        if (($candidate['kind'] ?? '') === 'module' && ($candidate['machine_name'] ?? NULL) === $module['module_name']) {
+          unset($recipes[$id]);
+        }
+      }
+    }
+    $recipes = $local['items'] + $recipes;
     $batch = DecisionBatch::run($this->decision, $this->profile->buildInputs($brief, $site, $recipes, $capabilities));
     $response = $batch['response'];
     $answers = [];
@@ -157,9 +168,12 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     }
     $assessment_usage = $response->toArray()['usage'];
     $usage = $assessment_usage;
-    if ($search_plan['usage'] !== NULL) {
+    foreach ([$search_plan['usage'], $local['usage']] as $stage_usage) {
+      if ($stage_usage === NULL) {
+        continue;
+      }
       foreach ($usage as $key => $value) {
-        $planning_value = $search_plan['usage'][$key] ?? NULL;
+        $planning_value = $stage_usage[$key] ?? NULL;
         $usage[$key] = $value !== NULL && $planning_value !== NULL ? $value + $planning_value : NULL;
       }
     }
@@ -170,7 +184,12 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       'profile' => ContentPlanningProfile::VERSION,
       'model' => $response->getModel(),
       'usage' => $usage,
-      'usage_by_stage' => ['search_planning' => $search_plan['usage'], 'assessment' => $assessment_usage],
+      'usage_by_stage' => [
+        'search_planning' => $search_plan['usage'],
+        'local_discovery' => $local['usage'],
+        'assessment' => $assessment_usage,
+      ],
+      'local_discovery' => $local,
       'search_plan' => $search_plan,
       'plan' => $plan,
       'elapsed_ms' => (int) round((microtime(TRUE) - $started) * 1000),
@@ -180,7 +199,11 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       'discovery' => $discovery,
       'answers' => $answers,
       'questions' => array_map(static fn ($question) => $question->toArray(), $batch['questions']),
-      'requests_by_stage' => ['search_planning' => $search_plan['requests'] ?? [], 'assessment' => $batch['requests']],
+      'requests_by_stage' => [
+        'search_planning' => $search_plan['requests'] ?? [],
+        'local_discovery' => $local['requests'],
+        'assessment' => $batch['requests'],
+      ],
       'reuse_candidates' => $ready,
       'extension_candidates' => $extend,
       'workflow_candidates' => $workflow_candidates,
