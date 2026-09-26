@@ -31,6 +31,11 @@ human/agent handoff. [Recording and export instructions](docs/architecture/READM
 include a reproducible silent MP4 and GIF renderer. The animation is illustrative;
 it does not call a provider or change the site.
 
+A separate [25-second visual version](docs/architecture/visual.html) animates
+source phrases, candidate matches and building blocks assembling into a plan.
+It retains the original walkthrough. [Visual export instructions](docs/architecture/VISUAL.md)
+describe its separate MP4/GIF renderer.
+
 ## Requirements and standalone installation
 
 - PHP 8.3+, Drupal 11.2+ within Drupal 11, and core Node.

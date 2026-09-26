@@ -19,6 +19,17 @@ content; no live inference, package search or site mutation is performed.
 - Reproducible renderer, source hash and per-stage receipts in the sandbox's
   `artifacts/ai-site-advisor-architecture` output directory.
 
+### Visual architecture variant
+
+The separate `docs/architecture/visual.html` version preserves the original
+walkthrough. Six animated chapters cover 25 seconds. Verification checked all
+chapter bounds, resource-card text bounds, repeated seeking of the same frame,
+playback controls, reduced-motion behavior and absence of JavaScript errors or
+external page resources. The source is a static illustrative explanation; no
+provider calls or site changes are made. Export settings are 1280 × 900 at 30 fps
+for the silent MP4, and 960 × 675 at 15 fps for the looping GIF. Receipts and
+chapter screenshots are in `artifacts/ai-site-advisor-visual` in the sandbox.
+
 ## Environment
 
 - Drupal 11.4.6, PHP 8.3.19, Drupal AI 1.5.0-rc4.

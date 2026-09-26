@@ -1,5 +1,9 @@
 # AI Site Advisor architecture animation
 
+There is also a [25-second visual version](visual.html) with moving phrases,
+candidate connections and assembling plan cards. See [its export instructions](VISUAL.md).
+The original walkthrough below remains available unchanged.
+
 A self-contained, silent 43-second walkthrough of the current adviser. Open
 [index.html](index.html) directly in a browser; it needs no Drupal runtime,
 provider credentials, network requests, fonts or JavaScript packages.
