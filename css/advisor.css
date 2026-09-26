@@ -38,4 +38,20 @@
 .sa-plan-area h4 { text-transform: none; }
 .sa-plan-check { border-left: 3px solid #aacac2; padding-left: 14px; }
 .sa-plan-option { border-top: 1px solid var(--sa-line); padding: 12px 0; }
+.sa-selection { background: #edf4f2; padding: 12px 16px; border-radius: 8px; }
+.sa-options > summary { font-weight: 700; cursor: pointer; }
+.sa-assembly { border-left: 3px solid var(--sa-teal); padding: 12px 16px; margin: 16px 0; background: #f0f6f3; }
+.sa-table-scroll { overflow-x: auto; margin-top: 20px; }
+.sa-table-scroll:focus-visible { outline: 2px solid var(--sa-teal); outline-offset: 3px; }
+.sa-options-table { width: 100%; min-width: 650px; border-collapse: collapse; background: #fff; font-size: 13px; }
+.sa-options-table caption { text-align: left; padding: 10px 0; font-weight: 600; }
+.sa-options-table th, .sa-options-table td { padding: 14px 12px; border-bottom: 1px solid var(--sa-line); vertical-align: top; text-align: left; }
+.sa-options-table thead th { background: #e7f0ed; color: var(--sa-ink); }
+.sa-options-table tbody th { width: 35%; font-weight: 400; }
+.sa-options-table code, .sa-options-table .sa-option-selected { display: block; margin: 6px 0; }
+.sa-option-selected { color: #176359; font-size: 11px; font-weight: 600; }
+.sa-options-table details { margin-top: 10px; }
+.sa-options-table summary { cursor: pointer; font-size: 12px; }
+.sa-options-table dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; }
+.sa-options-table dd { margin: 0; }
 @media (max-width: 650px) { .sa-grid--two { grid-template-columns: 1fr; } .sa-section-title { align-items: start; flex-direction: column; } .site-advisor .sa-hero, .sa-result { padding: 22px; } }

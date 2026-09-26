@@ -79,6 +79,7 @@ final class LongPlanTest extends UnitTestCase {
           $id === 'presentation' => 'drupal_display',
           str_starts_with($id, 'recipe__') => 'relevant',
           str_starts_with($id, 'check__') => 'integration',
+          str_starts_with($id, 'role__') => 'foundation',
           str_starts_with($id, 'plan__') => array_keys($input->getState()['recipes'])[0],
           default => 'none',
         };

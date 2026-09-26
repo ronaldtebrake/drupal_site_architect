@@ -17,7 +17,7 @@ not a model evaluation dataset, accuracy calibration or cost comparison.
 
 ## Automated verification
 
-PHPUnit: **41 tests, 544 assertions**, passing against isolated SQLite databases.
+PHPUnit: **44 tests, 769 assertions**, passing against isolated SQLite databases.
 No inference or external catalogue requests are made by the automated tests.
 
 - Standalone installation brings in declared dependencies and optional Workshop
@@ -289,6 +289,59 @@ temporary test script was removed.
 
 This verifies the authenticated HTTP tool execution path. A persistent desktop
 client connection is separate and still needs its chosen authentication setup.
+
+## Visible candidate contributions and Events regression
+
+The reported empty Events comparison was a presentation/selection bug. The
+existing result gave Recurring Events 0.94 whole-brief relevance, but only 0.06
+in the competing starting-point choice. Workshop received 0.73 and configuration
+0.19. The old comparison displayed only catalogue candidates with at least 0.10
+starting-point probability, up to three results. It omitted both useful packages
+and the preferred local option, then incorrectly suggested no suitable package
+had been established.
+
+`content-planning-v5` retains every assessed option, including local content
+types, configuration, low-ranked candidates and unrelated results. Independent
+per-work-area judgments classify each option as a possible foundation, possible
+addition, unrelated or unknown. These are separate from the competing selection
+and whole-brief relevance. The full distributions, confidence, source evidence
+and review flags are inspectable. The summary distinguishes foundations and
+additions, marks uncertain roles, and requires verification before combining
+packages. No threshold was lowered and no project-specific rule was added.
+The generic content-design check no longer asks about topics in unrelated areas.
+
+Regression tests cover the exact low-selection/high-relevance failure, retained
+local and zero-probability options, contribution questions scoped to their work
+area, foundations versus additions, and contradictory role/selection judgments.
+The integrated long-plan test still retains all questions and evidence across
+bounded requests. PHPUnit passed **44 tests / 769 assertions**; Drupal and
+DrupalPractice PHPCS and Git whitespace checks passed.
+
+The browser submitted the complete committed community brief again and retained
+14 text segments, 10 work areas and 118 distinct candidates. Events displayed
+17 assessed options: 12 catalogue packages, three content types, configuration
+and the unresolved choice. In the final observed run, Recurring Events had 0.91
+foundation probability (0.88 confidence), 0.06 starting-point probability and
+0.95 whole-brief relevance. The calendar recipe appeared as a possible addition;
+programming event dispatchers remained inspectable as unrelated matches. The
+score table and expandable role distribution were visually checked. One browser
+response was rejected as incomplete/inconsistent; the subsequent submission
+succeeded. Validation was not relaxed, and no partial advice was displayed.
+
+A fresh authenticated HTTPS MCP `tools/call` sent the same full brief to
+`tool_api__ai_site_advisor_assess`. It returned profile `content-planning-v5`,
+all 17 Events options and their separate judgments. Recurring Events had 0.91
+foundation probability (0.87 confidence), 0.06 starting-point probability and
+0.90 whole-brief relevance. Workshop remained a preferred option needing review
+at 0.70 selection probability and 0.68 confidence. Session cleanup returned
+HTTP 200. This confirms the full evidence survives the Tool API/MCP transport;
+these observed model scores are not calibrated quality or coverage measures.
+
+The final browser run reported 8.69 seconds and the MCP run 11.756 seconds.
+Independent role questions add provider work; these cached, single-run
+observations are not cost or speed benchmarks. No package was installed and
+no event model or package combination was configured or verified. Temporary
+diagnostic scripts were removed, and no keys, cookies or session IDs were stored.
 
 ## Remaining boundaries
 

@@ -275,16 +275,40 @@ events and topics in groups, an activity stream and notifications. Show the
 separate queries, the existing Workshop type as a possible event starting point,
 and `drupal/group` as a discovered candidate. Activity-stream and notification
 options remain reviewable; a package's description does not prove the combination
-works. Topics may mean discussions or taxonomy, so the plan asks to resolve that
-distinction. No project name is embedded in the example or retrieval logic.
+works. The brief should distinguish discussions from taxonomy when asking for
+topics. No project name is embedded in the example or retrieval logic.
 
 The plan has three parts: work areas with evidence and open decisions, validation
 of the chosen combination, and preparation of build tasks. Work areas follow the
 brief; they are not a verified dependency graph. Candidate descriptions come
 from sources. Actions and checks are predefined text composed from typed choices,
 not an LLM-generated implementation narrative. Uncertain winners are shown as
-open decisions rather than endorsed selections; up to three plausible options
-are visible for comparison. The same structured `plan` is returned to MCP.
+open decisions rather than endorsed selections. Every assessed option remains
+available in **Options, scores and remaining gap**, including existing content
+types, Drupal configuration, uncertain packages and unrelated matches. There is
+no starting-point probability cutoff or top-three display filter.
+
+The plan now separates three different judgments:
+
+- **Starting point**: one competing Choice across the inspected options. Its
+  probability can be low for a useful module when an existing content type is
+  preferred. The preferred option stays visible even when it needs review.
+- **Contribution here**: an independent Choice for each option in each work area:
+  possible foundation, possible addition, unrelated or insufficient evidence.
+  Several building blocks can be useful. The role's distribution, confidence,
+  criterion and review flag are available beside its source evidence.
+- **Whole-brief relevance**: the earlier independent package relevance question,
+  explicitly labelled as applying to the complete brief. A package can be useful
+  elsewhere without contributing to this particular work area.
+
+Foundation and addition summaries suggest investigation paths. They do not assert
+that the packages integrate. For example, a module that supplies its own event
+entities may be an alternative foundation to a Workshop node type, while a
+field-oriented recurrence module may extend an existing model. The adviser uses
+retrieved descriptions to judge this distinction; it does not contain package
+rules or automatically install combinations. Roles needing review are identified
+in the summary and table. Missing evidence and runtime compatibility remain open.
+The same structured `plan`, full option list and judgments are returned to MCP.
 
 For the earlier workflow example:
 
@@ -340,9 +364,9 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `workflow_candidates` | Existing workflow IDs with a `ready` or `extend` judgment. |
 | `adoption_candidates` | Confidently relevant catalogue candidate IDs, not verified install targets. |
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
-| `plan` | Draft work areas, evidence-backed selections or open decisions, candidate options, checks and handoff boundaries. |
+| `plan` | Draft work areas, visible preferred selections, every assessed option with separate contribution/selection/brief-relevance judgments, foundation/addition investigation paths, checks and handoff boundaries. |
 | `search_plan` | Route, capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v3`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
-| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v4`). |
+| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v5`). |
 | `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
 | `requests_by_stage` | Model, question IDs, evidence IDs, compact bytes and reported usage for every provider request. |
 | `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |
@@ -372,6 +396,9 @@ requests. Global content-model and presentation questions are answered once.
 Candidate relevance needs its source description; a work-area choice sees the
 matching candidates and the complete brief. Evidence is repacked when a full
 plan would exceed the per-request limit, without dropping questions or candidates.
+Independent `role__<work-area>__<option>` questions assess potential contributions
+within that work area. They run in the assessment stage and increase reported
+usage; the starting-point distribution is not reused as a relevance score.
 `usage` sums all requests; `usage_by_stage` preserves the breakdown. Unknown counts stay
 `null` rather than being treated as zero. An explicit search override skips
 planning, as does a site without a remote adapter.
