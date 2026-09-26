@@ -436,6 +436,38 @@ responses were saved as local review artifacts outside this module and the
 public document root. Credentials, cookies and session IDs were not exported.
 No packages were installed and no content or configuration was changed.
 
+## Recommended choices and three-option UI
+
+The human-facing plan now leads with Jev's selected starting point, selection
+probability and confidence. The presentation distinguishes recommended,
+provisional, conflicting and unresolved choices. It does not infer a new winner
+from whole-brief relevance or promote a generic configuration choice to a package
+recommendation. Remaining resources are ordered by independent contribution
+review status, probability and confidence. The main view keeps at most three
+distinct options, including a selected existing content type. All assessed
+options remain in the expandable comparison.
+
+Automated checks passed **52 tests / 876 assertions**, Drupal/DrupalPractice
+PHPCS and Git whitespace checks. New tests cover selected options with lower
+contribution scores than alternatives, useful additions with low starting-point
+probability, the three-option limit for packages and existing content types,
+provisional/conflicting/missing choices and preservation of full service evidence
+through the theme preprocessor. No inference rubric, service or MCP schema changed.
+
+The browser submitted the full community brief. All ten work areas displayed
+at most three distinct highlighted options, while every expanded comparison
+retained 17 assessed options. Groups clearly recommended Group; Events recommended
+the existing Workshop type and kept Recurring Events as an alternative foundation
+and a calendar recipe as a supporting option. Media recommended the Image recipe
+as a reference for existing configuration. Uncertain choices were labelled
+provisional, and generic configuration selections remained open. The recommendation
+banner and option hierarchy were visually checked in the browser. Live scores
+can vary; this verifies presentation and preserved evidence, not model quality.
+One subsequent provider response was rejected as incomplete/inconsistent; a
+retry succeeded without relaxing validation. The final rendered plan again had
+ten areas with at most three highlights and 17 comparison rows each. Opening
+Groups' comparison exposed Organic Groups, which was not in its main shortlist.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's

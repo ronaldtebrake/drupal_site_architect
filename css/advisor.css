@@ -37,6 +37,13 @@
 .sa-plan { list-style: none; padding: 0; display: grid; gap: 16px; }
 .sa-plan-area h4 { text-transform: none; }
 .sa-handoff-intro { max-width: 850px; font-size: 16px !important; }
+.sa-choice { border-left: 4px solid var(--sa-teal); background: #edf7f2; padding: 18px 22px; margin: 18px 0; border-radius: 0 8px 8px 0; }
+.sa-choice--provisional, .sa-choice--conflicting, .sa-choice--open { border-color: #b48519; background: #fff5d9; }
+.sa-choice h5 { margin: 8px 0; font-size: 23px; color: var(--sa-ink); }
+.sa-choice p:last-child { margin-bottom: 0; }
+.sa-choice-scores { color: #37595a; font-variant-numeric: tabular-nums; }
+.sa-resource--selected { border-left: 4px solid var(--sa-teal); }
+.sa-resource-role { display: block; margin: 6px 0 0 18px; color: #37595a; font-size: 12px; }
 .sa-builder-steps { padding-left: 26px; margin: 24px 0; }
 .sa-builder-steps > li { padding: 0 0 22px 12px; }
 .sa-builder-steps > li::marker { color: var(--sa-teal); font-weight: 700; }

@@ -342,11 +342,22 @@ The plan has three parts: work areas with evidence and open decisions, validatio
 of the chosen combination, and preparation of build tasks. Work areas follow the
 brief; they are not a verified dependency graph. Candidate descriptions come
 from sources. Actions and checks are predefined text composed from typed choices,
-not an LLM-generated implementation narrative. Uncertain winners are shown as
-open decisions rather than endorsed selections. Every assessed option remains
-available in **Options, scores and remaining gap**, including existing content
-types, Drupal configuration, uncertain packages and unrelated matches. There is
-no starting-point probability cutoff or top-three display filter.
+not an LLM-generated implementation narrative. Each work area leads with Jev's
+**Recommended starting point**, its selection score and confidence. Uncertain
+choices are **Provisional recommendations**. Conflicting judgments require
+clarification; a generic configuration or unresolved choice is shown as
+**No recommendation yet**, not promoted into an invented package recommendation.
+
+The main view highlights at most **three distinct options**, including any
+recommended existing content type. The selected package leads; other resources
+are ordered by contribution review status, contribution probability and
+confidence, with a stable ID tie-break. They are labelled as alternative
+foundations or supporting options. Their separate starting-point probability
+does not exclude an independently useful addition. Every assessed option remains
+available in **Options, scores and remaining gaps**, including existing content
+types, Drupal configuration, uncertain packages and unrelated matches.
+This limit affects the UI highlights only. Full evidence and the compact agent
+handoff keep their existing contracts; no model questions or scores are changed.
 
 The plan now separates three different judgments:
 

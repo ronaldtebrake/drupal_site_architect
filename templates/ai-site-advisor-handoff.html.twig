@@ -1,4 +1,13 @@
-<p class="sa-handoff-intro">{{ area.handoff.intro }}</p>
+{% set highlight = area.highlights %}
+<div class="sa-choice sa-choice--{{ highlight.state }}"{% if highlight.primary %} data-option-id="{{ highlight.primary.id }}"{% endif %}>
+  <span class="sa-eyebrow">{% if highlight.state == 'recommended' %}{{ 'Recommended starting point'|t }}{% elseif highlight.state == 'provisional' %}{{ 'Provisional recommendation'|t }}{% elseif highlight.state == 'conflicting' %}{{ 'Recommendation needs clarification'|t }}{% else %}{{ 'No recommendation yet'|t }}{% endif %}</span>
+  {% if highlight.primary %}
+    <h5>{{ highlight.primary.label }}</h5>
+    <p class="sa-choice-scores">{{ 'Jev’s starting-point score'|t }}: {{ (area.selection.probability * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (area.selection.confidence * 100)|number_format(0) }}%</p>
+    {% if highlight.state == 'conflicting' %}<p>{{ 'Jev selected this starting point, but its separate contribution judgment does not support that choice. Review the conflicting evidence before choosing.'|t }}</p>{% endif %}
+  {% endif %}
+  {% if highlight.state != 'conflicting' %}<p class="sa-handoff-intro">{{ area.handoff.intro }}</p>{% endif %}
+</div>
 <ol class="sa-builder-steps">
   {% set destination = area.handoff.configuration_area %}
   {% if destination %}
@@ -20,13 +29,14 @@
       {% endif %}
     </li>
   {% endif %}
-  {% if area.handoff.resources %}
+  {% if highlight.resources %}
     <li>
-      <h5>{{ 'Review what you can reuse'|t }}</h5>
-      <p>{{ 'These resources may supply part of the configuration or add a supporting capability. Choose which to use after comparing their changes with this site.'|t }}</p>
-      {% for resource in area.handoff.resources %}
-        <details class="sa-resource"{{ loop.first ? ' open' : '' }}>
-          <summary>{{ resource.label }} <span class="sa-note">· {{ resource.kind }}{% if resource.needs_review %} · {{ 'Fit needs review'|t }}{% endif %}</span></summary>
+      <h5>{{ 'Options to focus on'|t }}</h5>
+      <p>{{ 'Up to three options are highlighted, including the starting point above. Compare alternative foundations; consider supporting options for the remaining needs.'|t }}</p>
+      {% for resource in highlight.resources %}
+        <details class="sa-resource{{ resource.selected ? ' sa-resource--selected' : '' }}" data-option-id="{{ resource.option_id }}"{{ resource.selected ? ' open' : '' }}>
+          <summary>{{ resource.label }} <span class="sa-note">· {{ resource.kind }}</span> <span class="sa-resource-role">{% if resource.selected %}{{ highlight.state == 'recommended' ? 'Recommended starting point'|t : 'Provisional recommendation'|t }}{% elseif resource.role == 'foundation' %}{{ highlight.primary ? 'Alternative foundation'|t : 'Possible foundation'|t }}{% else %}{{ 'Supporting option'|t }}{% endif %}{% if resource.needs_review and not resource.selected %} · {{ 'Uncertain fit'|t }}{% endif %}</span></summary>
+          <p class="sa-note">{{ 'Contribution score'|t }}: {{ (resource.role_probability * 100)|number_format(0) }}% {{ resource.role == 'foundation' ? 'as a foundation'|t : 'as a supporting option'|t }} · {{ 'confidence'|t }} {{ (resource.role_confidence * 100)|number_format(0) }}%</p>
           <p>{{ resource.instruction }}</p>
           <p class="sa-note">{{ 'Supplied by'|t }} <code>{{ resource.package }}</code>{% if resource.configuration %} · {{ 'Configuration inspected locally'|t }}{% endif %}</p>
           {% if resource.description %}<p>{{ resource.description|length > 360 ? resource.description|slice(0, 360) ~ '…' : resource.description }}</p>{% endif %}
@@ -54,6 +64,7 @@
           {% if resource.source %}<details><summary>{{ 'Evidence source'|t }}</summary><code>{{ resource.source }}</code></details>{% endif %}
         </details>
       {% endfor %}
+      {% if highlight.more_resources %}<p class="sa-note">{{ '@count more resources are included below in “Options, scores and remaining gaps”.'|t({'@count': highlight.more_resources}) }}</p>{% endif %}
     </li>
   {% endif %}
   <li>
