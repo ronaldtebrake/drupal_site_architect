@@ -18,7 +18,9 @@ final class ChoiceValidator {
   public static function validate(ChoiceAnswer $answer, ChoiceQuestion $question): void {
     $probabilities = $answer->getProbabilities();
     $expected = $question->getOptionKeys();
-    if (array_diff(array_keys($probabilities), $expected) || array_diff($expected, array_keys($probabilities)) || abs(array_sum($probabilities) - 1.0) > 0.01 || $answer->getProbability($answer->getChoice()) < max($probabilities)) {
+    // Preserve the 1% rounding tolerance at its floating-point boundary.
+    $sum_error = round(abs(array_sum($probabilities) - 1.0), 8);
+    if (array_diff(array_keys($probabilities), $expected) || array_diff($expected, array_keys($probabilities)) || $sum_error > 0.01 || $answer->getProbability($answer->getChoice()) < max($probabilities)) {
       throw new \UnexpectedValueException('The Decision provider returned an invalid assessment distribution.');
     }
   }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\ai_site_advisor\Unit;
 
 use Drupal\Tests\UnitTestCase;
+use Drupal\ai\Dto\TokenUsageDto;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
@@ -53,6 +54,75 @@ final class SearchPlannerTest extends UnitTestCase {
     $this->assertCount(5, $result['capabilities']);
     $this->assertSame('search', $result['action']);
     $this->assertFalse($result['terms_truncated']);
+  }
+
+  /**
+   * Every segment, including late requirements, survives multiple requests.
+   */
+  public function testLongBriefCoverageAndUsage(): void {
+    $features = [
+      'events', 'topics', 'groups', 'notifications', 'search', 'translation',
+      'media', 'moderation', 'profiles', 'registration', 'calendar', 'surveys',
+      'bookmarks', 'payments',
+    ];
+    $brief = implode('. ', $features) . '. ' . str_repeat('background ', 400) . 'notifications';
+    $client = $this->createMock(DecisionClientInterface::class);
+    $calls = 0;
+    $client->method('decide')->willReturnCallback(function (DecisionInput $input) use ($features, $brief, &$calls): DecisionResponse {
+      $calls++;
+      $this->assertSame($brief, $input->getState()['brief']);
+      $this->assertLessThanOrEqual(12, count($input->getQuestions()));
+      return new DecisionResponse($this->response($input, 'search', $features)->getAnswers(), 'test-model', new TokenUsageDto(10, 2, 12));
+    });
+    $result = (new SearchPlanner($client))->plan($brief, []);
+    $this->assertGreaterThan(4000, mb_strlen($brief));
+    $this->assertGreaterThan(1, $calls);
+    $this->assertCount(14, $result['capabilities']);
+    $this->assertContains('payment', $result['queries']);
+    $this->assertSame($result['coverage']['segments_total'], $result['coverage']['segments_processed']);
+    $this->assertSame($calls * 10, $result['usage']['input']);
+    $this->assertCount($calls, $result['requests']);
+    $this->assertFalse($result['terms_truncated']);
+    $notifications = array_values(array_filter($result['capabilities'], static fn ($capability) => $capability['query'] === 'notification'))[0];
+    $this->assertCount(2, $notifications['source_texts']);
+  }
+
+  /**
+   * Windows retain late words and compound phrases across their boundary.
+   */
+  public function testWordWindowsRetainAllSourcePhrases(): void {
+    $clauses = BriefCapabilities::clauses(str_repeat('context ', 94) . 'activity stream ' . str_repeat('context ', 40) . 'notifications');
+    $terms = array_merge(...array_column($clauses, 'terms'));
+    $this->assertContains('activity stream', $terms);
+    $this->assertContains('notifications', $terms);
+    foreach ($clauses as $clause) {
+      $this->assertLessThan(255, count($clause['terms']));
+      $this->assertFalse($clause['truncated']);
+    }
+  }
+
+  /**
+   * Named work areas retain their details without becoming separate searches.
+   */
+  public function testNamedSectionsPreserveContext(): void {
+    $brief = "Groups: Members need private spaces. Access must follow membership.\n\nNotifications: Send replies by email, with subscription controls.";
+    $clauses = BriefCapabilities::clauses($brief);
+    $this->assertCount(2, $clauses);
+    $this->assertStringContainsString('Access must follow membership.', $clauses[0]['source_text']);
+    $this->assertContains('subscription controls', $clauses[1]['terms']);
+    $this->assertSame('media', BriefCapabilities::query('media'));
+    $this->assertSame('data', BriefCapabilities::query('data'));
+    $this->assertSame('event', BriefCapabilities::query('events'));
+  }
+
+  /**
+   * Very fragmented inputs fail before costs rather than clipping requirements.
+   */
+  public function testOversizedScopeFailsBeforeInference(): void {
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->expects($this->never())->method('decide');
+    $this->expectException(\LengthException::class);
+    (new SearchPlanner($client))->plan(str_repeat('events;', 201), []);
   }
 
   /**

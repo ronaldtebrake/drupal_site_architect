@@ -9,6 +9,7 @@ use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface;
 use Drupal\tool\Attribute\Tool;
 use Drupal\tool\ExecutableResult;
@@ -23,15 +24,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Tool(
   id: 'ai_site_advisor:assess_content_brief',
   label: new TranslatableMarkup('Assess a Drupal content brief'),
-  description: new TranslatableMarkup("Send the original brief before building. The Decision model identifies up to six capabilities, decides whether ecosystem discovery helps, and searches enabled Project Browser sources separately for each capability. Returns a draft plan with existing configuration, candidate projects, open decisions, integration checks, source evidence and usage. Uncertain choices remain unresolved. This is not an executable or verified installation plan. No packages are installed and no content or configuration is changed."),
+  description: new TranslatableMarkup("Send the original brief before building. The Decision model identifies capabilities in batches, decides whether ecosystem discovery helps, and searches enabled Project Browser sources separately for each capability. Returns a draft plan with existing configuration, candidate projects, open decisions, integration checks, source evidence and summed usage across requests. Larger plans take more time and provider usage. Uncertain choices remain unresolved. This is not an executable or verified installation plan. No packages are installed and no content or configuration is changed."),
   operation: ToolOperation::Explain,
   input_definitions: [
     'brief' => new InputDefinition(
       data_type: 'string',
       label: new TranslatableMarkup('Content brief'),
-      description: new TranslatableMarkup('10–4,000 characters describing the requested content or workflow, fields, reuse and presentation.'),
+      description: new TranslatableMarkup('10–20,000 characters describing users, capabilities, content, constraints and presentation. Paragraphs and lists are supported.'),
       required: TRUE,
-      constraints: ['Length' => ['min' => 10, 'max' => 4000]],
+      constraints: ['Length' => ['min' => 10, 'max' => BriefCapabilities::MAX_BRIEF_LENGTH]],
     ),
     'catalog_query' => new InputDefinition(data_type: 'string', label: new TranslatableMarkup('Explicit search override'), description: new TranslatableMarkup('Normally omit: the Decision model decides whether and what to search from the brief. Advanced callers can supply up to 120 characters to explicitly request a catalog search and bypass automatic planning.'), required: FALSE, constraints: ['Length' => ['max' => 120]]),
   ],

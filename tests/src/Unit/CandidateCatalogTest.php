@@ -122,6 +122,34 @@ final class CandidateCatalogTest extends UnitTestCase {
   }
 
   /**
+   * More than six searches no longer compete for twenty-four places.
+   */
+  public function testLargerPlanRetainsEachSearchAllowance(): void {
+    $source = $this->createMock(CatalogSourceInterface::class);
+    $source->method('isRemote')->willReturn(TRUE);
+    $source->expects($this->exactly(14))->method('search')->willReturnCallback(static function ($query): array {
+      $items = [];
+      for ($i = 0; $i < 12; $i++) {
+        $items[] = [
+          'kind' => 'module',
+          'package' => 'fixture/' . $query . '_' . $i,
+          'machine_name' => $query . '_' . $i,
+          'source' => 'fixture',
+        ];
+      }
+      return ['items' => $items, 'sources' => [], 'warnings' => []];
+    });
+    $catalog = new CandidateCatalog();
+    $catalog->addSource($source);
+    $queries = array_map(static fn ($i) => 'feature' . $i, range(1, 14));
+    $result = $catalog->discoverMany($queries, $this->account());
+    $this->assertCount(168, $result['items']);
+    $this->assertCount(14, $result['searches']);
+    $this->assertFalse($result['truncated']);
+    $this->assertSame($queries, $result['queries']);
+  }
+
+  /**
    * An invalid later query must not allow an earlier one to contact a source.
    */
   public function testBatchValidationBeforeSources(): void {

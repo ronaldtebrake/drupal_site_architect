@@ -33,8 +33,8 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       throw new AccessDeniedHttpException();
     }
     $brief = trim($brief);
-    if (mb_strlen($brief) < 10 || mb_strlen($brief) > 4000) {
-      throw new \InvalidArgumentException('Describe the requested content in 10 to 4,000 characters.');
+    if (mb_strlen($brief) < 10 || mb_strlen($brief) > BriefCapabilities::MAX_BRIEF_LENGTH) {
+      throw new \InvalidArgumentException('Describe the requested content in 10 to 20,000 characters.');
     }
     $started = microtime(TRUE);
     $site = $this->context->collect($account);
@@ -74,18 +74,12 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     $discovery = $search && count($queries) > 1
       ? $this->catalog->discoverMany($queries, $account)
       : $this->catalog->discover($search ? $queries[0] : $brief, $account, 12, $search);
-    if ($search_plan['terms_truncated'] ?? FALSE) {
-      $discovery['warnings'][] = 'The brief exceeded the capability extraction budget (12 clauses, 32 words per clause, 6 capabilities). Split it into smaller briefs; some requirements may be missing from this draft.';
-    }
     $discovery['searched_ecosystem'] = $search;
     $recipes = $discovery['items'];
-    $input = $this->profile->buildInput($brief, $site, $recipes, $capabilities);
-    if (strlen(json_encode($input->toArray(), JSON_THROW_ON_ERROR)) > 100000) {
-      throw new \LengthException('The evidence is too large. Narrow the content types in AI Site Advisor settings or describe a more specific capability in the brief.');
-    }
-    $response = $this->decision->decide($input);
+    $batch = DecisionBatch::run($this->decision, $this->profile->buildInputs($brief, $site, $recipes, $capabilities));
+    $response = $batch['response'];
     $answers = [];
-    foreach ($input->getQuestions() as $id => $question) {
+    foreach ($batch['questions'] as $id => $question) {
       // Incomplete, malformed or invented options must never become advice.
       $answer = $response->getChoice($id);
       ChoiceValidator::validate($answer, $question);
@@ -185,7 +179,8 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       'candidates' => $recipes,
       'discovery' => $discovery,
       'answers' => $answers,
-      'questions' => $input->toArray()['questions'],
+      'questions' => array_map(static fn ($question) => $question->toArray(), $batch['questions']),
+      'requests_by_stage' => ['search_planning' => $search_plan['requests'] ?? [], 'assessment' => $batch['requests']],
       'reuse_candidates' => $ready,
       'extension_candidates' => $extend,
       'workflow_candidates' => $workflow_candidates,

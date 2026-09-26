@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\ai_site_advisor\Context;
 
 use Drupal\Core\Session\AccountInterface;
+use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -36,12 +37,12 @@ class CandidateCatalog {
   /**
    * Searches several capabilities and retains evidence from every query.
    */
-  public function discoverMany(array $queries, AccountInterface $account, int $limit = 24): array {
+  public function discoverMany(array $queries, AccountInterface $account, ?int $limit = NULL): array {
     if (!$account->hasPermission('access ai site advisor')) {
       throw new AccessDeniedHttpException();
     }
-    if (!$queries || count($queries) > 6 || $limit < 1 || $limit > 24) {
-      throw new \InvalidArgumentException('Use 1–6 capability searches and a limit of 1–24.');
+    if (!$queries || count($queries) > BriefCapabilities::MAX_SEGMENTS || ($limit !== NULL && ($limit < 1 || $limit > 24))) {
+      throw new \InvalidArgumentException('Use 1–200 capability searches. An optional overall shortlist limit must be 1–24.');
     }
     // Validate the entire batch before contacting any source.
     foreach ($queries as $query) {
@@ -50,6 +51,7 @@ class CandidateCatalog {
       }
     }
     $queries = array_values(array_unique(array_map('trim', $queries)));
+    $limit ??= count($queries) * 12;
     $all = $groups = $sources = $warnings = $searches = [];
     $truncated = FALSE;
     foreach ($queries as $query) {
@@ -88,7 +90,7 @@ class CandidateCatalog {
       'warnings' => array_values(array_unique($warnings)),
       'returned' => count($selected),
       'truncated' => $truncated || count($all) > count($selected),
-      'scope' => 'Up to six capability searches, twelve candidates per search and twenty-four distinct candidates assessed. Queries share the final budget. Missing results do not establish that no solution exists.',
+      'scope' => 'Each capability gets a separate keyword search with up to twelve candidates. All returned candidates are retained unless the caller explicitly supplies an overall shortlist limit. Missing results do not establish that no solution exists.',
       'retrieved_at' => gmdate(DATE_ATOM),
     ];
   }
@@ -101,7 +103,7 @@ class CandidateCatalog {
       throw new AccessDeniedHttpException();
     }
     $query = trim($query);
-    if ($limit < 1 || $limit > 24 || $query === '' || mb_strlen($query) > ($include_remote ? 120 : 4000)) {
+    if ($limit < 1 || $limit > 24 || $query === '' || mb_strlen($query) > ($include_remote ? 120 : BriefCapabilities::MAX_BRIEF_LENGTH)) {
       throw new \InvalidArgumentException('Use a non-empty search (up to 120 characters for external sources) and a limit of 1–24.');
     }
     $items = [];

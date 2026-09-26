@@ -17,7 +17,7 @@ not a model evaluation dataset, accuracy calibration or cost comparison.
 
 ## Automated verification
 
-PHPUnit: **32 tests, 212 assertions**, passing against isolated SQLite databases.
+PHPUnit: **41 tests, 544 assertions**, passing against isolated SQLite databases.
 No inference or external catalogue requests are made by the automated tests.
 
 - Standalone installation brings in declared dependencies and optional Workshop
@@ -216,6 +216,59 @@ still called for clarifying discussions versus taxonomy. The temporary MCP
 session was terminated successfully (HTTP 200).
 No discovered package was installed and no content/configuration was changed by
 the assessment. Evals remain outside this phase.
+
+## Larger planning briefs and request batching
+
+Removed the prototype cutoffs that kept only 12 clauses, the first 32 words of
+a clause and six capabilities. Form, service and Tool API now accept up to
+20,000 characters. Extraction processes every accepted segment in batches;
+named paragraphs retain their constraints together. Long paragraphs use
+overlapping word windows. Above 200 segments, the synchronous planner rejects
+the request before inference rather than returning a truncated plan.
+
+Each search keeps its own allowance of up to 12 candidates. Assessment batches
+retain every question and its required evidence; global judgments are made
+once. Usage is summed across requests, with per-request evidence IDs and sizes
+available in the result. Unknown usage remains unknown.
+
+Automated validation passed: **41 tests / 544 assertions**, Drupal and
+DrupalPractice PHPCS, Composer metadata validation and `git diff --check`.
+The integrated long-plan fixture verifies 14 capabilities and 168 candidates,
+including the final payments requirement, across multiple extraction and
+assessment calls. Tests also cover late malformed responses, missing usage,
+word-window boundaries, named sections, retained source passages and access
+checks. These are contract tests, not model-quality evals.
+
+A live browser submission used the committed
+[5,135-character community brief](docs/community-planning-brief.txt). It
+processed **14/14 text segments**, selected **10 work areas** and assessed
+**118 distinct candidates**. Queries included `group`, `event`, `topic`,
+`activity stream`, `notification`, `search`, `media`, `moderation` and
+`translation`, plus the overall `community website` context. Group and the
+Drupal CMS Events recipe were among the retrieved candidates. The rendered
+plan retained the later media, moderation and translation areas. This verifies
+processing coverage, not complete understanding or candidate compatibility.
+
+That run used two extraction requests and nine assessment requests. Its largest
+compact request was **99,782 bytes**. Provider-reported usage was 243,584 input
+and 23,515 output tokens, and server elapsed time was 14.55 seconds. Larger plans
+clearly do more work; these observations are not a billing estimate or a speed
+benchmark. Provider caching and catalog cache warmth affect repeated runs.
+
+Live testing also exposed a floating-point boundary error in the existing 1%
+probability-sum tolerance: a total of 0.99 could be rejected. The validator now
+rounds the sum error before comparison. Tests accept 0.99 and 1.01 while still
+rejecting 0.98. Mechanical singularization now preserves collective nouns such
+as media and data instead of changing the search to medium or datum.
+
+An authenticated HTTP MCP `tools/list` advertised `brief.minLength = 10` and
+`brief.maxLength = 20000` for `tool_api__ai_site_advisor_assess`. Its temporary
+session was closed successfully (HTTP 200). No extra inference was needed for
+this schema check. The final long brief was exercised through the Drupal form;
+the earlier MCP execution check above remains the transport smoke test.
+
+No package was installed and no content/configuration was changed by these
+assessments. Temporary diagnostic scripts were removed before committing.
 
 ## Remaining boundaries
 

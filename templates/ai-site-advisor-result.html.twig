@@ -11,7 +11,8 @@
     {% if assessment.search_plan.query %}<p>{{ 'Searched for'|t }}: <strong>{{ assessment.search_plan.queries ? assessment.search_plan.queries|join(' · ') : assessment.search_plan.query }}</strong></p>{% endif %}
   </div>
   <h4>01 · {{ 'Plan each capability'|t }}</h4>
-  {% if assessment.search_plan.terms_truncated %}<p class="sa-review">{{ 'This brief exceeded the extraction budget. Some requirements may be missing; split it into smaller briefs before building.'|t }}</p>{% endif %}
+  {% if assessment.search_plan.coverage %}<p class="sa-note">{{ 'Reviewed @processed of @total text segments and identified @areas work areas. Check these against your brief; processing every segment does not guarantee that every requirement was understood.'|t({'@processed': assessment.search_plan.coverage.segments_processed, '@total': assessment.search_plan.coverage.segments_total, '@areas': assessment.search_plan.coverage.capabilities}) }}</p>{% endif %}
+  {% if assessment.search_plan.terms_truncated %}<p class="sa-review">{{ 'The configured extraction service returned an incomplete scope. Review the missing requirements before using this draft.'|t }}</p>{% endif %}
   {% if assessment.search_plan.unmapped_clauses %}<details class="sa-details"><summary>{{ 'Parts without a separate work area'|t }}</summary><p>{{ 'Check that these are context or details covered elsewhere in the plan.'|t }}</p><ul>{% for clause in assessment.search_plan.unmapped_clauses %}<li>{{ clause }}</li>{% endfor %}</ul></details>{% endif %}
   <ol class="sa-plan">
     {% for area in assessment.plan.areas %}
@@ -92,6 +93,7 @@
     <p>{{ 'Provider-reported usage'|t }}: {{ assessment.usage.input ?? '—' }} {{ 'input tokens'|t }} · {{ assessment.usage.output ?? '—' }} {{ 'output tokens'|t }}. {{ 'Provider caching may reuse a previous response and its usage figures. These are not a measurement of this call’s billed cost.'|t }}</p>
     <details><summary>{{ 'Search decision and selected term'|t }}</summary><pre>{{ assessment.search_plan|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
     <details><summary>{{ 'Usage by stage'|t }}</summary><pre>{{ assessment.usage_by_stage|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
+    <details><summary>{{ 'Requests and usage within each stage'|t }}</summary><pre>{{ assessment.requests_by_stage|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
     <p>{{ 'The module defines the questions and possible answers. Jev supplies judgments; displayed criteria are not generated explanations.'|t }}</p>
     {% for id, question in assessment.questions %}<details><summary>{{ id }} → {{ assessment.answers[id].choice }}</summary><p>{{ question.instructions }}</p><pre>{{ question.criteria|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre><pre>{{ assessment.answers[id]|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>{% endfor %}
     <details><summary>{{ 'Exact site evidence'|t }}</summary><pre>{{ assessment.site|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>

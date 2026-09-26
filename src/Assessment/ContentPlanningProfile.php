@@ -12,7 +12,64 @@ use Drupal\ai_decision\Value\ChoiceQuestion;
  */
 final class ContentPlanningProfile {
 
-  public const VERSION = 'content-planning-v3';
+  public const VERSION = 'content-planning-v4';
+
+  /**
+   * Batches larger plans by evidence, retaining every question exactly once.
+   */
+  public function buildInputs(string $brief, array $site, array $recipes, array $capabilities = []): array {
+    $full = $this->buildInput($brief, $site, $recipes, $capabilities);
+    if (DecisionBatch::bytes($full) <= DecisionBatch::MAX_REQUEST_BYTES) {
+      return DecisionBatch::split($full);
+    }
+    $atoms = [$this->buildInput($brief, $site, [])];
+    // Candidate relevance needs its description and the full brief, not every
+    // other catalog result. A plan choice needs all its matching alternatives.
+    foreach ($recipes as $id => $recipe) {
+      $input = $this->buildInput($brief, $site, [$id => $recipe]);
+      $input->setQuestions(['recipe__' . $id => $input->getQuestions()['recipe__' . $id]]);
+      $atoms[] = $input;
+    }
+    foreach ($capabilities as $id => $capability) {
+      $matching = array_filter($recipes, static fn ($candidate) => !isset($candidate['matched_queries']) || in_array($capability['query'], $candidate['matched_queries'], TRUE));
+      $input = new DecisionInput(
+        ['brief' => $brief, 'site' => $site, 'recipes' => $matching, 'requirements' => [$id => $capability]],
+        CapabilityPlan::questions($site, $matching, [$id => $capability]),
+      );
+      $atoms[] = $input;
+    }
+    // Pack related evidence together without repeating global judgments or
+    // forcing all catalog descriptions into every request.
+    $inputs = $questions = $candidates = $requirements = [];
+    foreach ($atoms as $atom) {
+      $state = $atom->getState();
+      $candidate = new DecisionInput([
+        'brief' => $brief,
+        'site' => $site,
+        'recipes' => $candidates + $state['recipes'],
+        'requirements' => $requirements + $state['requirements'],
+      ], $questions + $atom->getQuestions());
+      if ($questions && (DecisionBatch::bytes($candidate) > DecisionBatch::MAX_REQUEST_BYTES || count($candidate->getQuestions()) > 48)) {
+        $inputs = array_merge($inputs, DecisionBatch::split(new DecisionInput([
+          'brief' => $brief,
+          'site' => $site,
+          'recipes' => $candidates,
+          'requirements' => $requirements,
+        ], $questions)));
+        $questions = $candidates = $requirements = [];
+      }
+      $questions += $atom->getQuestions();
+      $candidates += $state['recipes'];
+      $requirements += $state['requirements'];
+    }
+    $inputs = array_merge($inputs, DecisionBatch::split(new DecisionInput([
+      'brief' => $brief,
+      'site' => $site,
+      'recipes' => $candidates,
+      'requirements' => $requirements,
+    ], $questions)));
+    return $inputs;
+  }
 
   /**
    * Builds independent bounded questions over a shared evidence packet.

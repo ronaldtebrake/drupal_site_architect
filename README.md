@@ -128,23 +128,28 @@ structure and chooses one of three paths:
 - **Clarify** when the requirement or search decision is too uncertain.
 
 Only the search path queries external catalogue adapters. Local recipe files
-remain available on every path. The resulting candidates then inform a second
-Decision request assessing fit. Without an ecosystem adapter, the adviser skips
+remain available on every path. The resulting candidates then inform the
+assessment stage. Without an ecosystem adapter, the adviser skips
 search planning and assesses the local evidence directly.
 
-The route and capability questions share one planning request. Code splits the
-brief at punctuation and common conjunctions, supplying adjacent one- and
-two-word source phrases for up to 12 clauses, 32 words per clause. URLs, email
-addresses and tokens with digits are excluded. Jev selects a phrase or `none`
-for each clause. Up to six distinct capabilities are retained, including compound
-nouns such as `activity stream`; English singularization turns `groups` into
+The form and assessment tool accept **10–20,000 characters**. Named paragraphs
+such as `Groups: ...` retain their requirements together. Other prose is split
+at punctuation and common conjunctions. Long sections or clauses use overlapping
+96-word windows, supplying adjacent one- and two-word source phrases without
+discarding the tail. URLs, email addresses and tokens with digits are excluded.
+The route and extraction questions run in batches of up to 12 questions, each
+with the complete brief and site context. Jev selects a phrase or `none` for
+each segment. Every extracted capability is retained; repeated search phrases
+merge while preserving their source passages. Compound nouns such as
+`activity stream` remain intact; English singularization turns `groups` into
 `group` and `events` into `event`. Only the search route sends these terms to
 external sources. Local plans retain their capability scope without searching.
 
 No topic-to-module mapping or recipe list is hardcoded. This is bounded source
 selection, not arbitrary synonym generation or guaranteed anonymization. The
 English clause splitter can miss implicit requirements and complex prose. The
-UI exposes unmapped clauses and extraction truncation for review. Current module
+UI reports segments processed and exposes unmapped passages for review. Processing
+every segment does not establish that every requirement was understood. Current module
 labels/descriptions enrich the site evidence, but do not prove that their
 configuration or integrations work.
 
@@ -158,8 +163,11 @@ truncation and failures. A direct search returns at most 12 candidates,
 alternating local and Project Browser results and Project Browser sources.
 The adapter fetches up to 24 source results and prefers project-name matches
 over incidental description mentions. Compound assessments search each selected
-capability separately, deduplicate results and share a 24-candidate assessment
-budget across queries. Each candidate retains its matching queries and each
+capability separately and retain up to 12 candidates **per query**, deduplicating
+shared packages. There is no shared 24-candidate cap on a plan. The assessment
+packs questions with their relevant evidence into multiple requests as needed.
+Every work-area choice sees all candidates retained for that query. Each
+candidate retains its matching queries and each
 source report retains its query. These lexical preferences are not semantic
 relevance judgments; Jev assesses the retrieved descriptions afterward.
 Stable IDs are based on kind and package, with separate core component IDs.
@@ -184,7 +192,7 @@ drush en ai_site_advisor_tool -y
 | Tool API plugin | Input | Output |
 | --- | --- | --- |
 | `ai_site_advisor:discover_candidates` | `query`: 1–120 characters | `discovery`: candidates and source reports; no inference call. |
-| `ai_site_advisor:assess_content_brief` | `brief`: 10–4,000 characters; optional advanced `catalog_query` override: up to 120 | `assessment`: draft capability plan, search decisions, fresh evidence and typed judgments. |
+| `ai_site_advisor:assess_content_brief` | `brief`: 10–20,000 characters; optional advanced `catalog_query` override: up to 120 | `assessment`: draft capability plan, search decisions, fresh evidence and typed judgments. |
 
 The operations are `Read` and `Explain`. Both check `access ai site advisor`
 inside the service, including for callers that skip Tool API's access method.
@@ -296,6 +304,11 @@ The Workshop and campaign examples remain available for content-model planning.
 Live judgments vary; the UI shows predefined criteria and review flags rather
 than inventing a generated explanation.
 
+For a longer exercise, paste [the detailed community brief](docs/community-planning-brief.txt).
+It covers groups, events, discussions, an activity stream, notifications, search,
+media, moderation and translation. This is a sample requirement document, not
+a fixed catalogue or a model-quality benchmark.
+
 ## Service contract and evidence
 
 Inject `Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface`, or service
@@ -320,9 +333,10 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `adoption_candidates` | Confidently relevant catalogue candidate IDs, not verified install targets. |
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
 | `plan` | Draft work areas, evidence-backed selections or open decisions, candidate options, checks and handoff boundaries. |
-| `search_plan` | Route, capabilities, queries, unmapped clauses, truncation and planning questions/answers (`ecosystem-search-v2`). `query` remains the first term for compatibility. |
-| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v3`). |
+| `search_plan` | Route, capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v3`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
+| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v4`). |
 | `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
+| `requests_by_stage` | Model, question IDs, evidence IDs, compact bytes and reported usage for every provider request. |
 | `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |
 
 `recipes` remains an alias of `candidates`, and candidate question IDs retain
@@ -345,8 +359,12 @@ handling and host AI logging/cache settings still apply. This module sanitizes
 provider exceptions before they reach Tool API or MCP transport logs.
 
 Independent questions are batched within each stage. With an ecosystem adapter,
-planning precedes discovery and assessment, so there are two Decision requests.
-`usage` sums both; `usage_by_stage` preserves the breakdown. Unknown counts stay
+planning precedes discovery and assessment; each stage may make multiple Decision
+requests. Global content-model and presentation questions are answered once.
+Candidate relevance needs its source description; a work-area choice sees the
+matching candidates and the complete brief. Evidence is repacked when a full
+plan would exceed the per-request limit, without dropping questions or candidates.
+`usage` sums all requests; `usage_by_stage` preserves the breakdown. Unknown counts stay
 `null` rather than being treated as zero. An explicit search override skips
 planning, as does a site without a remote adapter.
 
@@ -356,8 +374,26 @@ newly billed tokens for this call**, and elapsed time is not a full agent-task
 measurement. Unknown usage remains `null`; cached-input/billing breakdown is not
 available through this response contract.
 
-Assessment supports at most 24 selected node types and a 100 KB compact JSON
-request per stage. Display formatting is not included in that size check. Missing
+These are module resource limits, not claims about Jev's context window:
+
+- A brief is at most 20,000 characters; automatic extraction accepts up to 200
+  text segments. An over-limit brief is rejected before inference, never clipped.
+- Extraction batches contain up to 12 questions; assessment batches up to 48.
+  Each compact UTF-8 JSON request is at most 100,000 bytes. Larger plans use
+  additional requests. A single oversized evidence packet fails explicitly.
+- A keyword sent to a catalogue is at most 120 characters. It is a short search
+  phrase selected from the brief, not the planning brief itself.
+- Each query has up to 12 retained candidates from bounded source pages. Search
+  coverage is still limited and is reported separately from extraction coverage.
+- Site inspection supports at most 24 selected node types; narrow the scope in
+  settings for larger sites. This is independent of brief length.
+
+The constants are in `BriefCapabilities` and `DecisionBatch`; batching is an
+implementation detail, not a request for the site builder to split ordinary
+briefs manually. Longer plans increase latency and provider usage. This remains
+a synchronous prototype; very large planning jobs need a resumable background
+workflow rather than unbounded request limits. Display formatting is not included
+in request size checks. Missing
 answers, invalid options/distributions, denied access and failed inference stop
 assessment. Review flags use probability below 0.75, confidence below 0.7,
 unknown/unclear answers or contradictory primary judgments. These are prototype

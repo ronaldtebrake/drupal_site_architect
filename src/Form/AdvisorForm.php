@@ -6,6 +6,7 @@ namespace Drupal\ai_site_advisor\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface;
 use Drupal\ai_site_advisor\Context\RecipeCatalog;
 use Drupal\ai_site_advisor\Context\SiteContextCollectorInterface;
@@ -105,10 +106,10 @@ final class AdvisorForm extends FormBase {
       '#type' => 'textarea',
       '#title' => $this->t('What are you planning?'),
       '#required' => TRUE,
-      '#rows' => 4,
-      '#maxlength' => 4000,
+      '#rows' => 8,
+      '#maxlength' => BriefCapabilities::MAX_BRIEF_LENGTH,
       '#default_value' => $form_state->getValue('brief') ?? $examples['workshops'][1],
-      '#description' => $this->t('Include what editors will maintain, which information must be stored or filtered, and how it should be presented.'),
+      '#description' => $this->t('Include users, capabilities, content, constraints and presentation. You can use paragraphs or lists, up to 20,000 characters. Larger plans take more time and provider usage.'),
       '#attributes' => ['data-advisor-brief' => 'true'],
     ];
     $form['actions'] = ['#type' => 'actions', '#weight' => -20];
@@ -157,8 +158,8 @@ final class AdvisorForm extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $length = mb_strlen(trim((string) $form_state->getValue('brief')));
-    if ($length < 10 || $length > 4000) {
-      $form_state->setErrorByName('brief', $this->t('Use between 10 and 4,000 characters.'));
+    if ($length < 10 || $length > BriefCapabilities::MAX_BRIEF_LENGTH) {
+      $form_state->setErrorByName('brief', $this->t('Use between 10 and 20,000 characters.'));
     }
   }
 
