@@ -12,7 +12,7 @@ use Drupal\ai_decision\Value\ChoiceQuestion;
  */
 final class ContentPlanningProfile {
 
-  public const VERSION = 'content-planning-v5';
+  public const VERSION = 'content-planning-v6';
 
   /**
    * Batches larger plans by evidence, retaining every question exactly once.

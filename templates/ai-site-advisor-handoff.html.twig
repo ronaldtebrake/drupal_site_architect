@@ -1,0 +1,64 @@
+<p class="sa-handoff-intro">{{ area.handoff.intro }}</p>
+<ol class="sa-builder-steps">
+  {% set destination = area.handoff.configuration_area %}
+  {% if destination %}
+    <li>
+      <h5>{{ 'Inspect @area on this site'|t({'@area': destination.label}) }}</h5>
+      <p>{{ 'Check what is already configured before adding or replacing it.'|t }}{% if area.handoff.configuration_needs_review %} {{ 'Confirm that this is the right settings area for your requirement.'|t }}{% endif %}</p>
+      <div class="sa-action-links">{% for link in destination.links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>
+      {% if destination.entity_type %}
+        {% if destination.records %}
+          <details class="sa-current-config"><summary>{{ 'Existing configuration and fields'|t }} · {{ destination.records|length }}</summary>
+            {% for record in destination.records %}
+              <div class="sa-current-record"><strong>{{ record.label }}</strong>
+                {% if record.fields %}<ul>{% for name, field in record.fields %}<li>{{ field.label }} · {{ field.type }}{% if field.required %} · {{ 'required'|t }}{% endif %}{% if field.target_type %} · {{ 'references'|t }} {{ field.target_type }}{% if field.target_bundles %} ({{ field.target_bundles|join(', ') }}){% endif %}{% endif %}</li>{% endfor %}</ul>{% else %}<p>{{ 'No configurable fields were found on this bundle. Base fields may still be provided by its entity type.'|t }}</p>{% endif %}
+                <div class="sa-action-links">{% for link in record.links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>
+              </div>
+            {% endfor %}
+          </details>
+        {% else %}<p>{{ 'No bundles were found in the inspected scope. A definition will need to be created or supplied by a suitable recipe if you choose this model.'|t }}</p>{% endif %}
+      {% endif %}
+    </li>
+  {% endif %}
+  {% if area.handoff.resources %}
+    <li>
+      <h5>{{ 'Review what you can reuse'|t }}</h5>
+      <p>{{ 'These resources may supply part of the configuration or add a supporting capability. Choose which to use after comparing their changes with this site.'|t }}</p>
+      {% for resource in area.handoff.resources %}
+        <details class="sa-resource"{{ loop.first ? ' open' : '' }}>
+          <summary>{{ resource.label }} <span class="sa-note">· {{ resource.kind }}{% if resource.needs_review %} · {{ 'Fit needs review'|t }}{% endif %}</span></summary>
+          <p>{{ resource.instruction }}</p>
+          <p class="sa-note">{{ 'Supplied by'|t }} <code>{{ resource.package }}</code>{% if resource.configuration %} · {{ 'Configuration inspected locally'|t }}{% endif %}</p>
+          {% if resource.description %}<p>{{ resource.description|length > 360 ? resource.description|slice(0, 360) ~ '…' : resource.description }}</p>{% endif %}
+          {% if resource.configuration %}
+            <p>{{ 'Of the explicitly listed configuration items, @existing already exist and @missing were not found on this site.'|t({'@existing': resource.configuration_counts.existing, '@missing': resource.configuration_counts.missing}) }}{% if resource.configuration_counts.unresolved %} {{ '@count targets need further inspection.'|t({'@count': resource.configuration_counts.unresolved}) }}{% endif %}</p>
+            {% for model in resource.existing_models %}
+              <div class="sa-current-record"><strong>{{ 'Already configured: @model'|t({'@model': model.label}) }}</strong>
+                {% if model.fields %}<p>{{ 'Current fields'|t }}: {% for field in model.fields %}{{ field.label }} ({{ field.type }}){{ not loop.last ? ', ' }}{% endfor %}.</p>{% endif %}
+                <div class="sa-action-links">{% for link in model.links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>
+              </div>
+            {% endfor %}
+            <details class="sa-config-changes"><summary>{{ 'Configuration to review'|t }} · {{ resource.configuration|length }}</summary>
+              <ul>{% for config in resource.configuration %}
+                <li><strong>{{ config.label }}</strong>{% if config.type_label %} · {{ config.type_label }}{% endif %}{% if config.field_type %} · {{ config.field_type }} {{ 'field'|t }}{% if config.bundle %} ({{ config.entity_type }} / {{ config.bundle }}){% endif %}{% endif %}
+                  <p>{{ config.instruction }}</p><code>{{ config.name }}</code>
+                  <div class="sa-action-links">{% for link in config.links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>
+                </li>
+              {% endfor %}</ul>
+              <p class="sa-note">{{ 'Existing names do not establish identical settings. Review included recipes, imports and configuration actions before applying anything.'|t }}</p>
+            </details>
+          {% endif %}
+          {% if resource.installs %}<p>{{ 'Modules requested by the recipe'|t }}: {{ resource.installs|join(', ') }}</p>{% endif %}
+          {% if resource.includes_recipes %}<p>{{ 'Included recipes to inspect'|t }}: {{ resource.includes_recipes|join(', ') }}</p>{% endif %}
+          {% if resource.url %}<a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer">{{ 'Read the project details'|t }} →</a>{% endif %}
+          {% if resource.source %}<details><summary>{{ 'Evidence source'|t }}</summary><code>{{ resource.source }}</code></details>{% endif %}
+        </details>
+      {% endfor %}
+    </li>
+  {% endif %}
+  <li>
+    <h5>{{ 'Decide the remaining changes'|t }}</h5>
+    <p>{{ area.check }}{% if area.check_needs_review %} {{ 'Confirm this priority with the site builder.'|t }}{% endif %}</p>
+    <details class="sa-requirement"><summary>{{ 'Check against your requirement'|t }}</summary><p>{{ area.source_text }}</p></details>
+  </li>
+</ol>

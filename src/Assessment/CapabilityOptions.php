@@ -26,9 +26,9 @@ final class CapabilityOptions {
       'configure' => [
         'id' => 'configure',
         'kind' => 'configuration',
-        'label' => 'Configure Drupal for this requirement',
-        'description' => 'Design new or extended configuration using the core and enabled capabilities in site. A new content type or entity model may be needed; no such model has been designed or verified yet.',
-        'criterion' => 'Start with Drupal core or enabled capabilities listed in site; configuration or new content types are still needed. Do not claim the requirement already works.',
+        'label' => 'Configuration approach still to be specified',
+        'description' => 'No specific inspected model or package has been selected. Determine which existing configuration to change or which new configuration to create. This is an unresolved approach, not a separate Drupal component.',
+        'criterion' => 'None of the named inspected options establishes a suitable starting point yet, but a configuration approach using enabled Drupal capabilities is plausible. Prefer a suitable named option, including a local recipe, over this generic fallback. A recipe can provide the configuration; these are not opposing approaches.',
       ],
       'unresolved' => [
         'id' => 'unresolved',
@@ -51,7 +51,10 @@ final class CapabilityOptions {
     }
     foreach ($candidates as $id => $candidate) {
       if (!isset($candidate['matched_queries']) || in_array($capability['query'], $candidate['matched_queries'], TRUE)) {
-        $keys = ['id', 'kind', 'label', 'package', 'description', 'url', 'availability', 'source'];
+        $keys = [
+          'id', 'kind', 'label', 'package', 'description', 'url', 'availability',
+          'source', 'configuration', 'installs', 'includes_recipes',
+        ];
         $options[$id] = array_intersect_key($candidate, array_flip($keys)) + [
           'id' => $id,
           'kind' => 'candidate',
@@ -68,7 +71,7 @@ final class CapabilityOptions {
   public static function questions(string $id, array $options): array {
     $questions = [];
     foreach ($options as $option_id => $option) {
-      if ($option_id === 'unresolved') {
+      if (in_array($option_id, ['configure', 'unresolved'], TRUE)) {
         continue;
       }
       $evidence = isset($option['package']) ? 'recipes.' . $option_id : (isset($option['bundle_id']) ? 'site.bundles.' . $option['bundle_id'] : 'the proposed approach of configuring Drupal using the core and enabled capabilities in site');
@@ -86,7 +89,7 @@ final class CapabilityOptions {
   public static function build(string $id, array $sources, array $selection, array $answers): array {
     $options = [];
     foreach ($sources as $option_id => $source) {
-      $role = $answers['role__' . $id . '__' . $option_id] ?? NULL;
+      $role = in_array($option_id, ['configure', 'unresolved'], TRUE) ? NULL : ($answers['role__' . $id . '__' . $option_id] ?? NULL);
       $options[] = $source + [
         'selection_probability' => $selection['probabilities'][$option_id] ?? NULL,
         'selected' => $selection['choice'] === $option_id,

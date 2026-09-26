@@ -12,7 +12,7 @@ use Drupal\ai_decision\Value\ChoiceQuestion;
 final class CapabilityPlan {
 
   public const CHECKS = [
-    'access' => 'Define who can join, view, create and moderate content. Verify access across listings, feeds and notifications with accounts from different groups.',
+    'access' => 'Define who can view, create and manage the affected records. Test the required access boundaries across every relevant interface with representative accounts.',
     'content' => 'Compare the required record types, fields and relationships with the inspected models. Decide which model to reuse or create, then identify missing fields and integration work.',
     'delivery' => 'Choose notification triggers, recipients, channels and subscription preferences. Verify that delivery respects content access and avoids duplicates.',
     'integration' => 'Check how this capability connects to the other requirements. Verify supported entity types, extension points and access filtering in a small prototype.',
@@ -32,6 +32,7 @@ final class CapabilityPlan {
       $questions['plan__' . $id] = new ChoiceQuestion($guard . 'For requirements.' . $id . ' in the context of the complete brief, select the most useful implementation starting point from the inspected evidence. Read descriptions, current fields and enabled module evidence. A community calendar is not a programming event dispatcher; access-controlled groups are not visual field groups. Prefer existing suitable configuration. Choose a content type only for the same subject. A package selection means investigate: compatibility and integration are unverified. A partial building block is acceptable if it supports this requirement, but never imply it solves the whole site.', $choices);
       $questions['check__' . $id] = new ChoiceQuestion($guard . 'For requirements.' . $id . ' in the complete brief, which design or integration check should the site builder resolve first? Select independently of any candidate-selection answer.', self::CHECKS);
       $questions += CapabilityOptions::questions($id, $options);
+      $questions += BuilderHandoff::questions($id, $site);
     }
     return $questions;
   }
@@ -48,6 +49,8 @@ final class CapabilityPlan {
       $bundle_id = str_starts_with($choice, 'bundle__') ? substr($choice, 8) : NULL;
       $bundle = $site['bundles'][$bundle_id] ?? NULL;
       $review = $answer['needs_review'] || $choice === 'unresolved';
+      // A generic configuration approach is not a concrete implementation.
+      $review = $review || $choice === 'configure';
       $sources = CapabilityOptions::sources($site, $candidates, $capability);
       $alternatives = CapabilityOptions::build($id, $sources, $answer, $answers);
       $selected_role = $answers['role__' . $id . '__' . $choice] ?? NULL;
@@ -76,6 +79,7 @@ final class CapabilityPlan {
           'confidence' => $answer['confidence'] ?? NULL,
           'needs_review' => $review,
         ],
+        'handoff' => BuilderHandoff::build($site, $alternatives, ['needs_review' => $review], $answers['settings__' . $id] ?? NULL),
         'assembly' => [
           'foundations' => array_column($foundations, 'label'),
           'complements' => array_column($complements, 'label'),

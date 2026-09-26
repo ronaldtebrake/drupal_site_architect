@@ -9,6 +9,7 @@
   <details class="sa-details"><summary>{{ 'Available capabilities and recipe catalog'|t }}</summary>
     <div class="sa-chips">{% for module, enabled in snapshot.enabled_features %}<span class="{{ enabled ? 'sa-enabled' : '' }}">{{ module }} · {{ enabled ? 'enabled'|t : 'not enabled'|t }}</span>{% endfor %}</div>
     <p>{{ 'Active moderation workflows'|t }}: {{ snapshot.workflows|length }}. {{ 'Their states, transitions and content-type assignments are read directly from configuration.'|t }}</p>
+    <p>{{ 'Registered configuration areas'|t }}: {{ snapshot.configuration_areas|length }}. {{ 'Bundle fields and available administration links are discovered from Drupal entity definitions. Other configuration areas provide destinations only; their arbitrary settings are not collected.'|t }}</p>
     {% for workflow in snapshot.workflows %}<p><strong>{{ workflow.label }}</strong>: {% for state in workflow.states %}{{ state.label }}{{ not loop.last ? ', ' }}{% endfor %}</p>{% endfor %}
     <details><summary>{{ 'Discovered local recipe manifests'|t }} ({{ recipes|length }})</summary>
       <p>{{ 'These manifests were found in core, Composer recipe packages and configured directories. Presence does not establish application history. The adviser decides from your brief whether searching configured ecosystem sources would help.'|t }}</p>

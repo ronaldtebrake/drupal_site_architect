@@ -17,7 +17,7 @@ not a model evaluation dataset, accuracy calibration or cost comparison.
 
 ## Automated verification
 
-PHPUnit: **44 tests, 769 assertions**, passing against isolated SQLite databases.
+PHPUnit: **47 tests, 795 assertions**, passing against isolated SQLite databases.
 No inference or external catalogue requests are made by the automated tests.
 
 - Standalone installation brings in declared dependencies and optional Workshop
@@ -342,6 +342,57 @@ Independent role questions add provider work; these cached, single-run
 observations are not cost or speed benchmarks. No package was installed and
 no event model or package combination was configured or verified. Temporary
 diagnostic scripts were removed, and no keys, cookies or session IDs were stored.
+
+## Configuration-aware site-builder handoff
+
+Profile `content-planning-v6` separates a generic, unspecified configuration
+approach from concrete inspected options. The fallback always needs review and
+is no longer independently scored as a foundation. A local recipe can supply
+configuration; it is not an alternative to the idea of configuring Drupal.
+
+The default UI now leads with readable next steps, actual administration links,
+existing bundle fields and recipe configuration to review. The complete scored
+comparison remains available in a disclosure. Jev selects a configuration area
+from registered Drupal definitions; routes and link access come from Drupal,
+not model-generated paths or a scenario-specific lookup. Site evidence schema
+version 3 includes these areas and configurable fields on registered bundle
+types, while preserving the selected node-type scope. Arbitrary configuration
+values, content records, defaults and credentials remain excluded.
+
+Local recipe evidence now includes safe structural metadata from supplied YAML,
+explicitly named imports and action targets, plus whether each named item
+exists in active configuration. Matching active bundle definitions have direct
+edit, fields and display links where permitted. Existence is not equality or
+proof of recipe application. Included recipes, wildcard imports, action effects,
+dependency compatibility and exact per-requirement field changes still require
+inspection; no complete recipe simulation is claimed.
+
+Automated checks passed **47 tests / 795 assertions**, Drupal/DrupalPractice
+PHPCS and `git diff --check`. New tests exercise a newly created taxonomy bundle
+and field through generic metadata, real permission-checked routes, denial of
+links to an unprivileged account, current versus absent recipe configuration,
+exclusion of synthetic credential/default values, and guidance when evidence is
+missing. The large-plan fixture retains all 14 configuration-area judgments
+across request batches and exposes the final work area's handoff. Standalone
+installation still works without optional modules.
+
+In the full community-brief browser check, Media selected the Image media type
+recipe and the Media types configuration area. The handoff detected the existing
+Image definition and **21 explicitly listed configuration names already present,
+zero missing**. It now leads with the existing Image configuration and describes
+the recipe as a reference. The builder can open Image's edit, fields, form
+display and display pages. The Manage fields link was followed and verified
+against Drupal's real page, which lists the required `field_media_image` field.
+Events separately retained Workshop as a content-model starting point and
+Recurring Events among the projects to investigate. The UI and recipe-change
+disclosure were visually inspected. No configuration was changed by these checks.
+
+An authenticated HTTPS MCP assessment of the same full brief returned all ten
+work areas, profile v6 and the same structured Media handoff, existing Image
+record, configuration counts and `/admin/structure/media` link. The final call
+reported 14.825 seconds; this is a smoke observation, not a speed or cost
+benchmark. Session termination returned HTTP 200. Temporary test scripts were
+removed; credentials, cookies and session identifiers were not persisted.
 
 ## Remaining boundaries
 

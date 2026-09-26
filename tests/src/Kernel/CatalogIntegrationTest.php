@@ -41,7 +41,7 @@ final class CatalogIntegrationTest extends KernelTestBase {
    */
   private function account(): AccountInterface {
     $account = $this->createMock(AccountInterface::class);
-    $account->method('hasPermission')->with('access ai site advisor')->willReturn(TRUE);
+    $account->method('hasPermission')->willReturnCallback(static fn ($permission) => $permission === 'access ai site advisor');
     return $account;
   }
 
@@ -55,6 +55,8 @@ final class CatalogIntegrationTest extends KernelTestBase {
     $manifest = $directory . '/new-recipe/recipe.yml';
     file_put_contents($manifest, "name: ECA approval starter\ndescription: Review workflow\ninstall: [workflows]\n");
     file_put_contents($directory . '/new-recipe/composer.json', '{"name":"example/approval","type":"drupal-recipe"}');
+    mkdir($directory . '/new-recipe/config');
+    file_put_contents($directory . '/new-recipe/config/fixture.settings.yml', "label: Review settings\napi_key: fixture-secret-not-for-export\ndefault_value: do-not-export\n");
     $this->config('ai_site_advisor.settings')->set('recipe_directories', [realpath($directory)])->save();
     $catalog = $this->container->get('ai_site_advisor.catalog');
     $first = $catalog->search('ECA', 12);
@@ -64,6 +66,13 @@ final class CatalogIntegrationTest extends KernelTestBase {
     $this->assertSame('local_code', $item['availability']);
     $this->assertSame('unknown', $item['application_state']);
     $this->assertFalse($item['compatibility_verified']);
+    $this->assertSame('Review settings', $item['configuration'][0]['label']);
+    $this->assertFalse($item['configuration'][0]['active_exists']);
+    $this->assertStringNotContainsString('fixture-secret', json_encode($item));
+    $this->assertStringNotContainsString('do-not-export', json_encode($item));
+    $this->container->get('config.storage')->write('fixture.settings', ['label' => 'Existing settings']);
+    $this->container->get('config.factory')->reset('fixture.settings');
+    $this->assertTrue($catalog->search('ECA', 12)['items'][0]['configuration'][0]['active_exists']);
     file_put_contents($manifest, "name: ECA approval starter\ndescription: Changed workflow requirements\ninstall: [workflows, content_moderation]\n");
     $changed = $catalog->search('ECA', 12)['items'][0];
     $this->assertNotSame($item['source_hash'], $changed['source_hash']);

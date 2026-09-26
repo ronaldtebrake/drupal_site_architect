@@ -122,6 +122,7 @@ final class CapabilityOptionsTest extends UnitTestCase {
     $this->assertSame(['foundation', 'complement', 'unrelated', 'unknown'], $role->getOptionKeys());
     $this->assertArrayNotHasKey('role__events__other_option', $questions);
     $this->assertArrayNotHasKey('role__events__unresolved', $questions);
+    $this->assertArrayNotHasKey('role__events__configure', $questions);
   }
 
   /**

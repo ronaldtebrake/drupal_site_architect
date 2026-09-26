@@ -53,6 +53,8 @@ class RecipeCatalog implements CatalogSourceInterface {
           'installs' => $data['install'] ?? [],
           'includes_recipes' => $data['recipes'] ?? [],
           'config_action_targets' => array_keys($data['config']['actions'] ?? []),
+          'config_imports' => $data['config']['import'] ?? [],
+          'configuration' => $this->configuration($directory, $data),
           'source' => $source,
           'source_hash' => hash_file('sha256', $path),
           'availability' => 'local_code',
@@ -67,6 +69,56 @@ class RecipeCatalog implements CatalogSourceInterface {
       }
     }
     return $recipes;
+  }
+
+  /**
+   * Reads declared config identities and structural metadata, never values.
+   */
+  private function configuration(string $directory, array $manifest): array {
+    $items = [];
+    foreach (glob($directory . '/config/*.yml') ?: [] as $path) {
+      $name = basename($path, '.yml');
+      $data = Yaml::parseFile($path);
+      if (!is_array($data)) {
+        continue;
+      }
+      // Exclude defaults, credentials, provider settings and action arguments,
+      // or arbitrary config. These keys describe structure in supplied files.
+      $metadata = array_intersect_key($data, array_flip([
+        'label', 'entity_type', 'bundle', 'field_name', 'field_type', 'required',
+      ]));
+      $metadata = array_filter($metadata, static fn ($value) => is_scalar($value));
+      $items[$name] = $metadata + [
+        'name' => $name,
+        'operation' => 'provided',
+        'source_hash' => hash_file('sha256', $path),
+        'active_exists' => !$this->config->get($name)->isNew(),
+      ];
+    }
+    foreach ($manifest['config']['import'] ?? [] as $module => $names) {
+      if (!is_array($names)) {
+        continue;
+      }
+      foreach ($names as $name) {
+        if (is_string($name)) {
+          $items[$name] ??= [
+            'name' => $name,
+            'operation' => 'import',
+            'module' => $module,
+            'active_exists' => !$this->config->get($name)->isNew(),
+          ];
+        }
+      }
+    }
+    foreach (array_keys($manifest['config']['actions'] ?? []) as $name) {
+      $items[$name] ??= [
+        'name' => $name,
+        'operation' => 'action',
+        'active_exists' => str_contains($name, '*') ? NULL : !$this->config->get($name)->isNew(),
+      ];
+    }
+    ksort($items);
+    return array_values($items);
   }
 
   /**

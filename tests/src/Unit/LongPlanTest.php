@@ -39,7 +39,17 @@ final class LongPlanTest extends UnitTestCase {
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->willReturn(TRUE);
     $context = $this->createMock(SiteContextCollectorInterface::class);
-    $context->method('collect')->willReturn(['bundles' => []]);
+    $context->method('collect')->willReturn([
+      'bundles' => [],
+      'configuration_areas' => [
+        'fixture' => [
+          'label' => 'Fixture settings',
+          'item_label' => 'Fixture',
+          'config_prefix' => 'fixture.type',
+          'records' => [],
+        ],
+      ],
+    ]);
     $source = $this->createMock(CatalogSourceInterface::class);
     $source->method('isRemote')->willReturn(TRUE);
     $searched = [];
@@ -80,6 +90,7 @@ final class LongPlanTest extends UnitTestCase {
           str_starts_with($id, 'recipe__') => 'relevant',
           str_starts_with($id, 'check__') => 'integration',
           str_starts_with($id, 'role__') => 'foundation',
+          str_starts_with($id, 'settings__') => 'fixture',
           str_starts_with($id, 'plan__') => array_keys($input->getState()['recipes'])[0],
           default => 'none',
         };
@@ -109,6 +120,8 @@ final class LongPlanTest extends UnitTestCase {
     $this->assertCount(168, $result['candidates']);
     $this->assertCount(14, $result['plan']['areas']);
     $this->assertSame('payments', end($result['plan']['areas'])['label']);
+    $this->assertSame('Fixture settings', end($result['plan']['areas'])['handoff']['configuration_area']['label']);
+    $this->assertCount(14, array_filter($asked, static fn ($id) => str_starts_with($id, 'settings__')));
     $this->assertSame('fixture/payment_0', end($result['plan']['areas'])['package']);
     $this->assertGreaterThan(1, count($result['requests_by_stage']['assessment']));
     $this->assertSame($calls * 10, $result['usage']['input']);

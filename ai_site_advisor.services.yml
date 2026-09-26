@@ -1,7 +1,10 @@
 services:
   ai_site_advisor.context:
     class: Drupal\ai_site_advisor\Context\SiteContextCollector
-    arguments: ['@entity_type.manager', '@entity_field.manager', '@module_handler', '@config.factory', '@extension.list.module']
+    arguments: ['@entity_type.manager', '@entity_field.manager', '@module_handler', '@config.factory', '@extension.list.module', '@ai_site_advisor.configuration']
+  ai_site_advisor.configuration:
+    class: Drupal\ai_site_advisor\Context\ConfigurationInspector
+    arguments: ['@entity_type.manager', '@entity_field.manager', '@extension.list.module']
   ai_site_advisor.catalog:
     class: Drupal\ai_site_advisor\Context\RecipeCatalog
     arguments: ['%app.root%', '@config.factory']

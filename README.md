@@ -1,6 +1,6 @@
 # AI Site Advisor
 
-Help an agent decide what to reuse, investigate or build on a Drupal site.
+Help site builders and agents decide what to reuse, investigate or build on a Drupal site.
 The adviser reads the current site structure, identifies capabilities in a
 brief, decides whether ecosystem searches would help, and returns a draft plan
 grounded in the site and discovered recipe/module candidates.
@@ -82,6 +82,15 @@ configuration-action targets and a source hash. It also reads a sibling
 `composer.json` for package identity when present. A newly added or edited
 manifest appears on the next discovery call without editing this module.
 Malformed manifests are reported while valid results remain available.
+
+For local recipes it also inspects `config/*.yml` and explicitly named imports
+and action targets. Only structural metadata is retained: configuration names,
+labels, entity/bundle/field identifiers, field types, required flags and file
+hashes. Arbitrary settings, defaults, action arguments and credentials are not
+exported. Each explicit name is checked against active configuration. Existence
+does not establish matching settings or application history. Included recipes,
+wildcard imports and action behavior still require inspection; this is not a
+complete recipe simulation.
 
 Local availability means **code is present**. It does not prove that a recipe
 was applied, that its configuration remains in use, or that applying it would
@@ -310,6 +319,37 @@ rules or automatically install combinations. Roles needing review are identified
 in the summary and table. Missing evidence and runtime compatibility remain open.
 The same structured `plan`, full option list and judgments are returned to MCP.
 
+### A handoff for site builders
+
+The default view presents readable next steps; probabilities remain in the
+expandable evidence table. `plan.areas.*.handoff` contains the same guidance for
+Tool API and MCP callers:
+
+- A concrete starting point and an explanation of what remains undecided.
+- A suggested administration area, selected from Drupal's registered config
+  entity definitions. Its collection/edit/Field UI links are generated from
+  actual routes and checked against the caller's access.
+- Existing bundle definitions and configurable fields, including non-node
+  bundles discovered through entity metadata. The node scope setting is retained.
+- Recipe configuration names already present versus proposed additions, with
+  direct links to matching current bundle definitions. When all explicitly
+  listed names exist, the recipe is presented as a reference to review.
+- Project details for remote candidates and a clear distinction between
+  enabled modules, locally available recipes and catalog-only resources.
+
+The former “Configure Drupal” option is now explicitly an unspecified approach,
+not a competing component or a scored foundation. A named recipe can supply
+the same configuration. This fallback always needs review; it never establishes
+an implementation on its own.
+
+Jev selects configuration areas and judges candidates. Human-authored interface
+copy composes those judgments with current evidence; there is no scenario-to-
+module mapping or generated configuration URL. The prose does not invent field
+names, integrations or installation instructions. Where the evidence cannot
+establish the exact change, the handoff tells the builder what to inspect and
+retains the requirement. Applying recipes, simulating their effects and detailed
+field-by-field implementation design remain separate work.
+
 For the earlier workflow example:
 
 1. Open the adviser and expand **Available capabilities and recipe catalog**.
@@ -366,7 +406,7 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
 | `plan` | Draft work areas, visible preferred selections, every assessed option with separate contribution/selection/brief-relevance judgments, foundation/addition investigation paths, checks and handoff boundaries. |
 | `search_plan` | Route, capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v3`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
-| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v5`). |
+| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v6`). |
 | `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
 | `requests_by_stage` | Model, question IDs, evidence IDs, compact bytes and reported usage for every provider request. |
 | `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |

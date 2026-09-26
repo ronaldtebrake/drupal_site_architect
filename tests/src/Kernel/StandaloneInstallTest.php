@@ -48,7 +48,7 @@ final class StandaloneInstallTest extends KernelTestBase {
       $this->assertFalse($handler->moduleExists($module), $module . ' is not required.');
     }
     $account = $this->createMock(AccountInterface::class);
-    $account->method('hasPermission')->with('access ai site advisor')->willReturn(TRUE);
+    $account->method('hasPermission')->willReturnCallback(static fn ($permission) => $permission === 'access ai site advisor');
     $collector = $this->container->get('ai_site_advisor.context');
     $first = $collector->collect($account);
     $this->assertFalse($first['enabled_features']['canvas']);

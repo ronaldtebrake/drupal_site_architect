@@ -19,19 +19,10 @@
     {% for area in assessment.plan.areas %}
       <li class="sa-card sa-plan-area {{ area.needs_review ? 'sa-review' : 'sa-recommendation' }}">
         <div class="sa-section-title"><h4>{{ area.label|capitalize }}</h4><span class="sa-badge">{{ area.needs_review ? 'Open decision'|t : (area.package ? 'Candidate to investigate'|t : 'Configure and verify'|t) }}</span></div>
-        <p class="sa-note">{{ 'From your brief'|t }}: “{{ area.source_text }}”</p>
-        <p><strong>{{ area.action }}</strong>{% if area.package %} · <code>{{ area.package }}</code>{% endif %}</p>
-        <p>{{ area.evidence|length > 380 ? area.evidence|slice(0, 380) ~ '…' : area.evidence }}</p>
-        <p class="sa-selection"><strong>{{ 'Preferred starting point'|t }}:</strong> {{ area.selection.label }}{% if area.selection.probability is not null %} · {{ (area.selection.probability * 100)|number_format(0) }}%{% endif %}{% if area.selection.confidence is not null %} · {{ 'confidence'|t }} {{ (area.selection.confidence * 100)|number_format(0) }}%{% endif %}{% if area.selection.needs_review %} · {{ 'Review needed'|t }}{% endif %}</p>
-        <p class="sa-plan-check"><strong>{{ 'Resolve before building'|t }}:</strong> {{ area.check }}{% if area.check_needs_review %} <em>{{ 'Confirm this check with the site builder.'|t }}</em>{% endif %}</p>
-        <div class="sa-assembly">
-            <strong>{{ 'Building blocks to investigate'|t }}</strong>
-            {% if area.assembly.foundations %}<p>{{ 'Foundations to compare'|t }}: {{ area.assembly.foundations|join(' · ') }}</p>{% endif %}
-            {% if area.assembly.complements %}<p>{{ 'Possible additions'|t }}: {{ area.assembly.complements|join(' · ') }}</p>{% endif %}
-            {% if area.assembly.roles_needing_review %}<p class="sa-note">{{ 'Uncertain roles to review'|t }}: {{ area.assembly.roles_needing_review|join(' · ') }}</p>{% endif %}
-            <p>{{ area.assembly.guidance }}</p>
-        </div>
+        {% include '@ai_site_advisor/ai-site-advisor-handoff.html.twig' %}
         <details class="sa-options"><summary>{{ 'Options, scores and remaining gap'|t }} · {{ area.options|length }}</summary>
+          <p class="sa-selection"><strong>{{ 'Preferred starting point'|t }}:</strong> {{ area.selection.label }}{% if area.selection.probability is not null %} · {{ (area.selection.probability * 100)|number_format(0) }}%{% endif %}{% if area.selection.confidence is not null %} · {{ 'confidence'|t }} {{ (area.selection.confidence * 100)|number_format(0) }}%{% endif %}{% if area.selection.needs_review %} · {{ 'Review needed'|t }}{% endif %}</p>
+          {% if area.handoff.configuration_area %}<p>{{ 'Suggested settings area'|t }}: {{ area.handoff.configuration_area.label }}{% if area.handoff.configuration_needs_review %} · {{ 'Review needed'|t }}{% endif %}</p>{% endif %}
           <p>{{ area.gap }}</p>
           <p class="sa-note">{{ 'Starting-point probability compares competing options. Contribution assesses each option independently for this work area. Whole-brief relevance can include other work areas. None of these probabilities establishes complete coverage or a working integration.'|t }}</p>
           <p class="sa-note">{{ 'All assessed options are shown, including low-probability and unrelated results. Our review policy flags choices below 75% probability or 70% confidence, unclear answers and conflicting judgments. These thresholds are not calibrated quality guarantees.'|t }}</p>
@@ -64,8 +55,6 @@
             </table>
           </div>
         </details>
-        {% if area.url %}<a href="{{ area.url }}" target="_blank" rel="noopener noreferrer">{{ 'Inspect the proposed project'|t }} →</a>{% endif %}
-        {% if area.bundle_id %}<a href="{{ path('entity.node_type.edit_form', {'node_type': area.bundle_id}) }}">{{ 'Inspect the existing content type'|t }} →</a>{% endif %}
       </li>
     {% endfor %}
   </ol>

@@ -27,6 +27,7 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
     private readonly ModuleHandlerInterface $modules,
     private readonly ConfigFactoryInterface $config,
     private readonly ModuleExtensionList $extensions,
+    private readonly ConfigurationInspector $configuration,
   ) {}
 
   /**
@@ -133,7 +134,7 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
       }
     }
     $snapshot = [
-      'schema_version' => '2',
+      'schema_version' => '3',
       'drupal_version' => \Drupal::VERSION,
       'scope' => $included ? 'Selected content types only' : 'All node content types',
       'bundles' => $bundles,
@@ -141,11 +142,12 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
       'enabled_modules' => $enabled_modules,
       'supporting_configuration' => $supporting,
       'workflows' => $workflows,
+      'configuration_areas' => $this->configuration->collect($account, $included),
       'site_policy' => (string) $settings->get('site_policy'),
       'limitations' => [
         'Views and templates are listed by identity only. Moderation workflow structure is inspected, but role access and automation behavior are not verified.',
         'No content values, credentials or arbitrary configuration are collected.',
-        'Only node content models are assessed. Other entity types require a separate profile.',
+        'Node content models receive full suitability judgments. Other bundle types supply field metadata and configuration destinations; their runtime behavior is not verified.',
         'Enabled module descriptions indicate available code, not verified configuration, entity access or working integrations.',
       ],
     ];
