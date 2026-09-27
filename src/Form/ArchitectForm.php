@@ -48,6 +48,7 @@ final class ArchitectForm extends FormBase {
     $form['#prefix'] = '<div id="site-architect-form">';
     $form['#suffix'] = '</div>';
     $form['#cache']['max-age'] = 0;
+    $assessment = $form_state->get('assessment');
     $form['intro'] = [
       '#weight' => -50,
       '#type' => 'inline_template',
@@ -105,10 +106,10 @@ final class ArchitectForm extends FormBase {
       '#type' => 'textarea',
       '#title' => $this->t('What are you planning?'),
       '#required' => TRUE,
-      '#rows' => 8,
+      '#rows' => 4,
       '#maxlength' => BriefCapabilities::MAX_BRIEF_LENGTH,
       '#default_value' => $form_state->getValue('brief') ?? $examples['workshops'][1],
-      '#description' => $this->t('Include users, capabilities, content, constraints and presentation. You can use paragraphs or lists, up to 20,000 characters. Larger plans take more time and provider usage.'),
+      '#description' => $this->t('Tell us who it is for, what they need to do and any constraints. Up to 20,000 characters.'),
       '#attributes' => ['data-architect-brief' => 'true'],
     ];
     $form['actions'] = ['#type' => 'actions', '#weight' => -20];
@@ -129,6 +130,18 @@ final class ArchitectForm extends FormBase {
       '#weight' => -10,
       '#markup' => '<p class="sa-note">' . $this->t('Jev uses your brief and site structure to decide whether an ecosystem search would help. Selected search terms go to configured catalogs. The result shows what was searched and why; no site changes are made.') . '</p>',
     ];
+    // Keep input and AJAX button parents stable across every form rebuild.
+    $form['brief_editor'] = [
+      '#type' => $assessment ? 'details' : 'container',
+      '#title' => $this->t('Your brief · edit and reassess'),
+      '#open' => FALSE,
+      '#weight' => -40,
+      '#attributes' => ['class' => [$assessment ? 'sa-brief-editor' : 'sa-brief-input']],
+    ];
+    foreach (['examples', 'brief', 'actions', 'notice'] as $key) {
+      $form['brief_editor'][$key] = $form[$key];
+      unset($form[$key]);
+    }
     if ($error = $form_state->get('architect_error')) {
       $form['error'] = [
         '#type' => 'container',
@@ -136,7 +149,8 @@ final class ArchitectForm extends FormBase {
         'text' => ['#plain_text' => $error],
       ];
     }
-    if ($assessment = $form_state->get('assessment')) {
+    if ($assessment) {
+      $form['intro']['#access'] = FALSE;
       $form['result'] = [
         '#theme' => 'site_architect_result',
         '#assessment' => $assessment,

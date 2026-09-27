@@ -70,7 +70,7 @@ final class StandaloneInstallTest extends KernelTestBase {
     $this->container->get('current_user')->setAccount($account);
     $form = unserialize(serialize(ArchitectForm::create($this->container)), ['allowed_classes' => [ArchitectForm::class]]);
     $rebuilt = $form->buildForm([], new FormState());
-    $this->assertArrayHasKey('brief', $rebuilt);
+    $this->assertArrayHasKey('brief', $rebuilt['brief_editor']);
     $this->assertArrayNotHasKey('context', $rebuilt);
 
     // A malformed model result clears prior advice and offers a safe retry.

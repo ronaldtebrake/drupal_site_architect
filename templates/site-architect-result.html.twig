@@ -3,19 +3,20 @@
 {% set availability = {'local_code': 'Code available locally'|t, 'catalog_only': 'Available in the ecosystem'|t, 'enabled_module': 'Module already enabled'|t} %}
 {% set roles = {'foundation': 'Possible foundation'|t, 'complement': 'Possible addition'|t, 'unrelated': 'Different purpose'|t, 'unknown': 'Insufficient evidence'|t} %}
 <section class="sa-result" aria-live="polite">
-  <div class="sa-section-title"><div><span class="sa-eyebrow">{{ 'Draft · review before building'|t }}</span><h3>{{ assessment.plan.title }}</h3></div><span class="sa-badge">{{ assessment.model }}</span></div>
-  <p>{{ assessment.plan.before_building }}</p>
-  <p class="sa-note">{{ (assessment.elapsed_ms / 1000)|number_format(2) }} s {{ 'total'|t }} · {{ 'Read-only advice'|t }} · {{ 'Provider usage is available with the evidence below.'|t }}</p>
-  {% if agent_handoff %}<div class="sa-agent-handoff" data-architect-handoff>
+  <div class="sa-section-title sa-result-header">
+    <div><span class="sa-eyebrow">{{ 'Draft plan · no site changes'|t }}</span><h3>{{ 'Your plan at a glance'|t }}</h3><p class="sa-note">{{ assessment.plan.areas|length == 1 ? '1 work area. Open it to review the steps and options.'|t : '@count work areas. Open one to review its steps and options.'|t({'@count': assessment.plan.areas|length}) }}</p></div>
+    {% if agent_handoff %}<div class="sa-agent-handoff" data-architect-handoff>
     <button type="button" class="button sa-copy-plan" data-architect-copy>{{ 'Copy plan for an agent'|t }}</button>
     <span class="sa-note" role="status" aria-live="polite" data-architect-copy-status></span>
-    <p class="sa-note">{{ 'Take this brief, scored options, configuration links and open decisions to your agent. Copies the current draft without running another assessment.'|t }}</p>
-    <details data-architect-copy-preview><summary>{{ 'Preview or manually copy the handoff'|t }}</summary>
+    <details data-architect-copy-preview><summary>{{ 'Preview handoff'|t }}</summary>
       <label>{{ 'Agent handoff'|t }}<textarea readonly rows="12" spellcheck="false" data-architect-copy-text>{{ agent_handoff }}</textarea></label>
     </details>
-  </div>{% endif %}
-  <div class="sa-next">
-    <strong>{{ assessment.discovery.searched_ecosystem ? 'Ecosystem search performed'|t : 'Ecosystem search not performed'|t }}</strong>
+    </div>{% endif %}
+  </div>
+  {% set source_failed = false %}
+  {% for source in assessment.discovery.sources %}{% if source.error %}{% set source_failed = true %}{% endif %}{% endfor %}
+  <details class="sa-scope">
+    <summary>{{ assessment.discovery.searched_ecosystem ? 'Compared this site + ecosystem options'|t : 'Compared this site only · no ecosystem search'|t }}{% if source_failed %}<span class="sa-area-status--review"> · {{ 'Some catalog sources failed'|t }}</span>{% elseif assessment.discovery.truncated %}<span class="sa-note"> · {{ 'Results shortlisted'|t }}</span>{% elseif assessment.discovery.warnings %}<span class="sa-note"> · {{ 'See search notes'|t }}</span>{% endif %}</summary>
     <p>{{ assessment.search_plan.reason }}</p>
     {% set search_choice = assessment.search_plan.answers.ecosystem_search %}
     {% if search_choice %}
@@ -38,15 +39,29 @@
         </table></div>
       </details>
     {% endif %}
-  </div>
-  <h4>01 · {{ 'Plan each capability'|t }}</h4>
-  {% if assessment.search_plan.coverage %}<p class="sa-note">{{ 'Reviewed @processed of @total text segments and identified @areas work areas. Check these against your brief; processing every segment does not guarantee that every requirement was understood.'|t({'@processed': assessment.search_plan.coverage.segments_processed, '@total': assessment.search_plan.coverage.segments_total, '@areas': assessment.search_plan.coverage.capabilities}) }}</p>{% endif %}
+  </details>
   {% if assessment.search_plan.terms_truncated %}<p class="sa-review">{{ 'The configured extraction service returned an incomplete scope. Review the missing requirements before using this draft.'|t }}</p>{% endif %}
-  {% if assessment.search_plan.unmapped_clauses %}<details class="sa-details"><summary>{{ 'Parts without a separate work area'|t }}</summary><p>{{ 'Check that these are context or details covered elsewhere in the plan.'|t }}</p><ul>{% for clause in assessment.search_plan.unmapped_clauses %}<li>{{ clause }}</li>{% endfor %}</ul></details>{% endif %}
   <ol class="sa-plan">
     {% for area in assessment.plan.areas %}
-      <li class="sa-card sa-plan-area {{ area.needs_review ? 'sa-review' : 'sa-recommendation' }}">
-        <div class="sa-section-title"><h4>{{ area.label|capitalize }}</h4><span class="sa-badge">{{ area.needs_review ? 'Open decision'|t : (area.package ? 'Candidate to investigate'|t : 'Configure and verify'|t) }}</span></div>
+      {% set highlight = area.highlights %}
+      <li>
+        <details class="sa-plan-area">
+          <summary class="sa-area-summary">
+            <span class="sa-area-number" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>
+            <span class="sa-area-heading"><span class="sa-area-name">{{ area.label|capitalize }}</span><span class="sa-area-status {{ area.needs_review ? 'sa-area-status--review' : '' }}">{{ area.needs_review ? 'Open decision'|t : 'Verify before building'|t }}</span></span>
+            <span class="sa-area-outcome">
+              {% if highlight.primary %}
+                <span class="sa-outcome-label">{{ 'Suggested starting point'|t }}</span><strong>{{ highlight.primary.label }}</strong>
+                {% if highlight.primary.bundle_id %}<span class="sa-note">{{ 'Existing content type'|t }}</span>{% elseif highlight.primary.availability == 'enabled_module' %}<span class="sa-note">{{ 'Already enabled on this site'|t }}</span>{% elseif highlight.primary.availability == 'local_code' %}<span class="sa-note">{{ 'Code available on this site'|t }}</span>{% elseif highlight.primary.availability == 'catalog_only' %}<span class="sa-note">{{ 'From the ecosystem'|t }}</span>{% endif %}
+              {% else %}
+                <span class="sa-outcome-label">{{ area.has_part_matches ? 'Building blocks to combine'|t : 'No clear recommendation yet'|t }}</span>
+                {% if highlight.resources %}<span class="sa-compare-names">{% for resource in highlight.resources %}{{ resource.label }}{{ not loop.last ? ' · ' }}{% endfor %}</span>{% else %}<span>{{ 'Clarify the requirement'|t }}</span>{% endif %}
+              {% endif %}
+            </span>
+            <span class="sa-area-toggle" aria-hidden="true"></span>
+          </summary>
+          <div class="sa-area-body">
+          <h4 class="visually-hidden">{{ area.label|capitalize }}</h4>
         {% include '@site_architect/site-architect-handoff.html.twig' %}
         <details class="sa-options"><summary>{{ 'Options, scores and remaining gaps'|t }} · {{ area.options|length }}</summary>
           <p class="sa-selection"><strong>{{ 'Preferred starting point'|t }}:</strong> {{ area.selection.label }}{% if area.selection.probability is not null %} · {{ (area.selection.probability * 100)|number_format(0) }}%{% endif %}{% if area.selection.confidence is not null %} · {{ 'confidence'|t }} {{ (area.selection.confidence * 100)|number_format(0) }}%{% endif %}{% if area.selection.needs_review %} · {{ 'Review needed'|t }}{% endif %}</p>
@@ -85,11 +100,16 @@
             </table>
           </div>
         </details>
+          </div>
+        </details>
       </li>
     {% endfor %}
   </ol>
-  <div class="sa-next"><h4>02 · {{ 'Validate the combination'|t }}</h4><p>{{ assessment.plan.validation }}</p><h4>03 · {{ 'Prepare the build tasks'|t }}</h4><p>{{ assessment.plan.handoff }}</p></div>
-  <details class="sa-details"><summary>{{ 'Assessment details and alternative candidates'|t }}</summary>
+  <details class="sa-details"><summary>{{ 'Before building'|t }}</summary><p>{{ assessment.plan.before_building }}</p><h4>{{ 'Validate the combination'|t }}</h4><p>{{ assessment.plan.validation }}</p><h4>{{ 'Prepare the build tasks'|t }}</h4><p>{{ assessment.plan.handoff }}</p></details>
+  <details class="sa-details"><summary>{{ 'All evidence and assessment details'|t }}</summary>
+  <p class="sa-note">{{ assessment.model }} · {{ (assessment.elapsed_ms / 1000)|number_format(2) }} s {{ 'total'|t }}</p>
+  {% if assessment.search_plan.coverage %}<p class="sa-note">{{ 'Reviewed @processed of @total text segments and identified @areas work areas. Check these against your brief; processing every segment does not guarantee that every requirement was understood.'|t({'@processed': assessment.search_plan.coverage.segments_processed, '@total': assessment.search_plan.coverage.segments_total, '@areas': assessment.search_plan.coverage.capabilities}) }}</p>{% endif %}
+  {% if assessment.search_plan.unmapped_clauses %}<details class="sa-details"><summary>{{ 'Parts without a separate work area'|t }}</summary><p>{{ 'Check that these are context or details covered elsewhere in the plan.'|t }}</p><ul>{% for clause in assessment.search_plan.unmapped_clauses %}<li>{{ clause }}</li>{% endfor %}</ul></details>{% endif %}
   <p>{{ assessment.summary }}</p>
   {% if assessment.local_discovery.answers %}
     <details class="sa-details"><summary>{{ 'Local capability screening'|t }} · {{ assessment.local_discovery.answers|length }}</summary>

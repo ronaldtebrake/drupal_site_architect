@@ -35,9 +35,9 @@
   {% if highlight.resources %}
     <li>
       <h5>{{ 'Options to focus on'|t }}</h5>
-      <p>{{ 'Up to three options are highlighted. A starting point leads only when both its selection and contribution are sufficiently supported. Checked matches for specific parts come next, then other options ordered by contribution evidence. Foundations and supporting options may serve different requirements.'|t }}</p>
+      <p class="sa-note">{{ 'Compare alternative foundations and supporting options. Full scores are available below.'|t }}</p>
       {% for resource in highlight.resources %}
-        <details class="sa-resource{{ resource.selected ? ' sa-resource--selected' : '' }}" data-option-id="{{ resource.option_id }}"{{ resource.selected ? ' open' : '' }}>
+        <details class="sa-resource{{ resource.selected ? ' sa-resource--selected' : '' }}" data-option-id="{{ resource.option_id }}">
           <summary>{{ resource.label }} <span class="sa-note">· {{ resource.kind }}</span> <span class="sa-resource-role">{% if resource.selected %}{{ highlight.state == 'recommended' ? 'Recommended starting point'|t : 'Provisional recommendation'|t }}{% elseif resource.role == 'foundation' %}{{ highlight.primary ? 'Alternative foundation'|t : 'Possible foundation'|t }}{% else %}{{ 'Supporting option'|t }}{% endif %}{% if resource.needs_review and not resource.selected %} · {{ 'Uncertain fit'|t }}{% endif %}</span></summary>
           <p class="sa-note">{{ 'Contribution score'|t }}: {{ (resource.role_probability * 100)|number_format(0) }}% {{ resource.role == 'foundation' ? 'as a foundation'|t : 'as a supporting option'|t }} · {{ 'confidence'|t }} {{ (resource.role_confidence * 100)|number_format(0) }}%</p>
           {% if resource.parts %}<p>{{ 'Consider for these parts of your brief'|t }}:</p><ul>{% for part in resource.parts %}<li>{{ part.text }}{% if part.status == 'partial' %} · {{ 'Partial match; gaps remain'|t }}{% endif %}</li>{% endfor %}</ul>{% endif %}

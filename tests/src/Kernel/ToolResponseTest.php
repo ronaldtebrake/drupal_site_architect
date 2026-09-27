@@ -154,7 +154,7 @@ final class ToolResponseTest extends KernelTestBase {
       return (string) $this->container->get('renderer')->renderInIsolation($build);
     };
     $html = $render($assessment);
-    $this->assertStringContainsString('Ecosystem search not performed', $html);
+    $this->assertStringContainsString('Compared this site only · no ecosystem search', $html);
     $this->assertStringContainsString('Inspect local site/core configuration', $html);
     $this->assertStringContainsString('79% · confidence 67%', $html);
     $this->assertStringContainsString('No external catalog response was used', $html);
@@ -168,12 +168,13 @@ final class ToolResponseTest extends KernelTestBase {
       ],
     ];
     $html = $render($assessment);
-    $this->assertStringContainsString('Ecosystem search performed', $html);
+    $this->assertStringContainsString('Compared this site + ecosystem options', $html);
+    $this->assertStringContainsString('Some catalog sources failed', $html);
     $this->assertStringContainsString('Results shortlisted', $html);
     $this->assertStringContainsString('No matches returned', $html);
     $this->assertStringContainsString('Source failed', $html);
     $this->assertStringContainsString('<td>Unknown</td>', $html);
-    $this->assertLessThan(strpos($html, 'Plan each capability'), strpos($html, 'One source failed.'));
+    $this->assertLessThan(strpos($html, '<ol class="sa-plan">'), strpos($html, 'One source failed.'));
   }
 
 }
