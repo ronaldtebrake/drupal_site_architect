@@ -6,9 +6,11 @@ namespace Drupal\ai_site_advisor\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
 use Drupal\ai_site_advisor\Assessment\InvalidDecisionResponseException;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface;
+use Drupal\ai_site_advisor\Presentation\AgentHandoff;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -135,7 +137,11 @@ final class AdvisorForm extends FormBase {
       ];
     }
     if ($assessment = $form_state->get('assessment')) {
-      $form['result'] = ['#theme' => 'ai_site_advisor_result', '#assessment' => $assessment];
+      $form['result'] = [
+        '#theme' => 'ai_site_advisor_result',
+        '#assessment' => $assessment,
+        '#agent_handoff' => AgentHandoff::text($assessment, Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString()),
+      ];
     }
     return $form;
   }

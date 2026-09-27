@@ -19,7 +19,7 @@ final class ThemeHooks {
   #[Hook('theme')]
   public function theme(): array {
     return [
-      'ai_site_advisor_result' => ['variables' => ['assessment' => []]],
+      'ai_site_advisor_result' => ['variables' => ['assessment' => [], 'agent_handoff' => NULL]],
     ];
   }
 

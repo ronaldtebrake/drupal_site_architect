@@ -25,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Tool(
   id: 'ai_site_advisor:assess_content_brief',
   label: new TranslatableMarkup('Assess a Drupal content brief'),
-  description: new TranslatableMarkup('Send the original brief before building. Discovers relevant Drupal capabilities and ecosystem projects. By default returns a compact handoff: every work area, existing configuration links, a few candidate building blocks, open decisions and conditional Composer acquisition steps. Choose among alternatives; do not install them all. Inspect dependencies and compatibility before enabling modules, applying recipes or building. Use detail="full" only for complete evidence and scores; it can be very large and performs a fresh assessment. Compact output reduces response size, not internal inference work. No site changes are made.'),
+  description: new TranslatableMarkup('Send the original brief before building or extending a Drupal site. Discovers relevant local capabilities and ecosystem projects. Returns a compact scored plan: work areas, existing configuration and field references, candidate building blocks, selected probabilities and confidence, open decisions and conditional Composer steps. Contribution, selection and coverage are separate judgments; preserve review flags. Choose among alternatives; do not install them all. Inspect dependencies and compatibility before implementing with other tools. Use detail="full" for complete source evidence, score distributions and diagnostics; it can be very large and performs a fresh assessment. Compact output reduces response size, not internal inference work. No site changes are made.'),
   operation: ToolOperation::Explain,
   input_definitions: [
     'brief' => new InputDefinition(
@@ -39,7 +39,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
     'detail' => new InputDefinition(
       data_type: 'string',
       label: new TranslatableMarkup('Response detail'),
-      description: new TranslatableMarkup('compact (default): a small building handoff with pointers and dependency steps. full: the complete assessment and diagnostics.'),
+      description: new TranslatableMarkup('compact (default): a scored building handoff with configuration pointers, open decisions and dependency steps. full: the complete assessment and diagnostics.'),
       required: FALSE,
       default_value: 'compact',
       constraints: ['AllowedValues' => ['choices' => ['compact', 'full']]],

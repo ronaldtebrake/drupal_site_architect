@@ -694,6 +694,39 @@ settings and template field mappings require further inspection. Compound source
 sentences can still need breakdown; uncertain assignments remain visible. No
 configuration, content or packages are changed by the assessment.
 
+## Shared human and agent handoffs (2026-09-27)
+
+The normal form now offers **Copy plan for an agent** and a manually selectable
+preview. It exports the original brief, site URL and `AgentPlan::compact()` from
+the assessment already displayed. It neither invokes a provider nor submits
+anything to an agent. Editing the brief hides the old result and export.
+
+Compact Tool API/MCP responses retain the assessed preference and selected
+contribution, component, coverage, target and field scores. Each keeps probability,
+confidence and review state; full alternative distributions stay in full output.
+Unknown scores remain null. Unassigned source passages are retained as well.
+
+Validation:
+
+- 76 PHP tests pass, including equality of exported/MCP-shaped data, independent
+  score meanings, absent confidence, and a rendered textarea injection test.
+- Three JavaScript tests cover copying the exact displayed text, manual fallback
+  after clipboard rejection/absence, and hiding stale handoffs on brief edits.
+- Drupal/DrupalPractice checks and JavaScript syntax checks pass.
+- The live browser displayed the copy action and preview; its Clipboard API
+  resolved successfully. The automation browser's virtual clipboard cannot read
+  that system clipboard, so a clipboard paste roundtrip was not verified there.
+  The exact write payload and fallback are covered by the JavaScript tests.
+- An authenticated request to `/mcp` called
+  `tool_api__ai_site_advisor_assess` and returned HTTP 200 with success and the
+  compact scored response. It included distinct Views contribution and preference
+  scores, Workshop references, field evidence and review flags. Session cleanup
+  requests were made; credentials and session identifiers were not saved.
+
+The copy is a draft with alternatives, not a record of approved choices or an
+execution request. WebMCP implementation and integration with build agents remain
+future work. Both current entry points use the same read-only assessment service.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's

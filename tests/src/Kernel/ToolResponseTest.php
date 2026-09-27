@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Drupal\Tests\ai_site_advisor\Kernel;
 
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Form\FormState;
+use Drupal\Core\Url;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface;
 use Drupal\ai_site_advisor\Context\CandidateCatalog;
+use Drupal\ai_site_advisor\Presentation\AgentHandoff;
+use Drupal\ai_site_advisor\Form\AdvisorForm;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -79,6 +83,43 @@ final class ToolResponseTest extends KernelTestBase {
         }
       }
     }
+  }
+
+  /**
+   * The rendered copy text remains inert and uses no inference service.
+   */
+  public function testCopyPreviewEscapesSourceText(): void {
+    $this->installEntitySchema('user');
+    $this->installSchema('user', ['users_data']);
+    $this->container->get('module_installer')->install(['ai_site_advisor']);
+    $this->container->get('theme_installer')->install(['stark']);
+    $this->config('system.theme')->set('default', 'stark')->save();
+    $advisor = $this->createMock(SiteAdvisorInterface::class);
+    $advisor->expects($this->never())->method('assess');
+    $this->container->set('ai_site_advisor.advisor', $advisor);
+    $assessment = [
+      'brief' => '</textarea><script id="source-injection">alert(1)</script>',
+      'status' => 'assessed',
+      'plan' => ['areas' => []],
+      'site' => ['fingerprint' => 'same-snapshot'],
+      'answers' => [],
+    ];
+    $state = (new FormState())->set('assessment', $assessment);
+    $form = (new AdvisorForm($advisor))->buildForm([], $state);
+    $build = $form['result'];
+    $html = (string) $this->container->get('renderer')->renderInIsolation($build);
+    $document = new \DOMDocument();
+    @$document->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+    $xpath = new \DOMXPath($document);
+    $this->assertSame(0, $xpath->query('//script[@id="source-injection"]')->length);
+    $texts = $xpath->query('//textarea[@data-advisor-copy-text]');
+    $this->assertSame(1, $texts->length);
+    $text = $texts->item(0)->textContent;
+    $payload = json_decode(substr($text, strpos($text, '{')), TRUE, flags: JSON_THROW_ON_ERROR);
+    $this->assertSame($assessment['brief'], $payload['original_brief']);
+    $this->assertSame(1, $xpath->query('//button[@data-advisor-copy and @type="button"]')->length);
+    $expected = AgentHandoff::text($assessment, Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString());
+    $this->assertSame($expected, $texts->item(0)->textContent);
   }
 
 }

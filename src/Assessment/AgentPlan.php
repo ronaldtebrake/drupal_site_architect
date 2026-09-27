@@ -24,6 +24,7 @@ final class AgentPlan {
         $consider[] = [
           'candidate' => $option['id'],
           'role' => $option['contribution']['choice'] ?? 'unknown',
+          'evidence' => self::judgment($option['contribution'] ?? NULL),
           'needs_review' => ($option['contribution']['needs_review'] ?? TRUE) || ($option['selected'] && $area['selection']['needs_review']),
         ];
       }
@@ -62,11 +63,18 @@ final class AgentPlan {
           continue;
         }
         $item = array_intersect_key($part, array_flip(['id', 'text', 'kind', 'status', 'needs_review']));
+        $item['evidence'] = [
+          'component' => self::judgment($part['selection'] ?? NULL),
+          'coverage' => self::judgment($part['coverage'] ?? NULL),
+        ];
         if (!empty($part['target'])) {
           $item['target'] = $part['target'];
+          $item['target']['evidence'] = self::judgment($part['target_selection'] ?? NULL);
         }
         if (!empty($part['fields'])) {
-          $item['fields'] = array_map(static fn ($field) => array_diff_key($field, ['judgment' => TRUE]), $part['fields']);
+          $item['fields'] = array_map(static fn ($field) => array_diff_key($field, ['judgment' => TRUE]) + [
+            'evidence' => self::judgment($field['judgment'] ?? NULL),
+          ], $part['fields']);
         }
         $option = $options[$part['option_id'] ?? ''] ?? NULL;
         if (isset($option['package'])) {
@@ -85,6 +93,10 @@ final class AgentPlan {
         'label' => $area['label'],
         'status' => $area['status'],
         'starting_point' => $starting,
+        // Keep a weak preference inspectable without recommending it.
+        'assessed_preference' => array_intersect_key($area['selection'], array_flip([
+          'id', 'label', 'probability', 'confidence', 'needs_review',
+        ])),
         'configure' => $destination ? [
           'area' => $destination['label'],
           'links' => $destination['links'],
@@ -106,6 +118,7 @@ final class AgentPlan {
       'status' => 'draft',
       'needs_review' => $assessment['status'] === 'needs_clarification',
       'site_fingerprint' => $assessment['site']['fingerprint'] ?? NULL,
+      'score_policy' => 'Probabilities and confidence use 0–1. Contribution, component selection and coverage are different judgments. Scores are not calibrated correctness or compatibility guarantees; preserve review flags.',
       'handoff' => [
         'Use the original brief with these work areas. Choose the starting points and supporting parts; alternatives are not an install-all list.',
         'For a selected external package, resolve a release compatible with the site and use Composer before enabling modules or applying recipes. Run commands in the project environment. Acquisition instructions are conditional, not authorization to change the site.',
@@ -118,10 +131,26 @@ final class AgentPlan {
         'truncated' => $assessment['discovery']['truncated'] ?? FALSE,
         'warnings' => $assessment['discovery']['warnings'] ?? [],
         'coverage' => $assessment['search_plan']['coverage'] ?? NULL,
+        'unassigned_passages' => $assessment['search_plan']['unmapped_clauses'] ?? [],
         'local_modules_screened' => count($assessment['local_discovery']['answers'] ?? []),
         'local_modules_retained' => count($assessment['local_discovery']['items'] ?? []),
       ],
-      'details' => 'Repeat this tool with the same brief and detail="full" for all candidates, fields, scores and diagnostics. That performs a fresh assessment; results can change.',
+      'details' => 'Repeat this tool with the same brief and detail="full" for all candidates, source descriptions, complete score distributions and diagnostics. That performs a fresh assessment; results can change.',
+    ];
+  }
+
+  /**
+   * Keeps the selected judgment's score without its full option distribution.
+   */
+  private static function judgment(?array $answer): ?array {
+    if (!isset($answer['choice'])) {
+      return NULL;
+    }
+    return [
+      'choice' => $answer['choice'],
+      'probability' => $answer['probabilities'][$answer['choice']] ?? NULL,
+      'confidence' => $answer['confidence'] ?? NULL,
+      'needs_review' => $answer['needs_review'] ?? TRUE,
     ];
   }
 

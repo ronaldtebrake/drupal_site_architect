@@ -33,7 +33,7 @@ final class AgentPlanTest extends UnitTestCase {
     $area = [
       'label' => 'Requested capability',
       'status' => 'open',
-      'selection' => ['id' => 'preferred', 'needs_review' => TRUE],
+      'selection' => ['id' => 'preferred', 'probability' => 0.6, 'confidence' => 0.4, 'needs_review' => TRUE],
       'options' => $options,
       'handoff' => [
         'configuration_area' => ['label' => 'Record models', 'links' => $links],
@@ -65,6 +65,11 @@ final class AgentPlanTest extends UnitTestCase {
     $this->assertSame(['kind' => 'undecided', 'needs_review' => TRUE], $first['starting_point']);
     $this->assertSame('addition', $first['consider'][0]['candidate']);
     $this->assertFalse($first['consider'][0]['needs_review']);
+    $this->assertSame(0.97, $first['consider'][0]['evidence']['probability']);
+    $this->assertNull($first['consider'][0]['evidence']['confidence'], 'Missing confidence is not inferred from probability.');
+    $this->assertSame(0.6, $first['assessed_preference']['probability']);
+    $this->assertTrue($first['assessed_preference']['needs_review']);
+    $this->assertArrayNotHasKey('probabilities', $first['consider'][0]['evidence']);
     $this->assertSame(2, $first['other_package_options']);
     $this->assertEmpty($first['existing_configuration']);
     $this->assertSame($links, $first['configure']['links']);

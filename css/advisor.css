@@ -21,6 +21,10 @@
 .sa-chips .sa-enabled { background: #e1f4e7; color: #145a35; }
 .sa-badge { display: inline-block; border: 1px solid #cededb; padding: 5px 10px; border-radius: 30px; font-size: 12px; background: #f2f7f6; white-space: nowrap; }
 .sa-result { border: 1px solid #adcfc5; border-radius: 16px; padding: 28px; background: #f4faf7; margin: 28px 0; }
+.sa-agent-handoff { padding: 12px 0 18px; }
+.sa-agent-handoff textarea { display: block; box-sizing: border-box; width: 100%; margin-top: 8px; font-family: monospace; font-size: 12px; }
+.sa-agent-handoff [role="status"] { margin-left: 12px; }
+.sa-agent-handoff summary { cursor: pointer; }
 .sa-recommendation { border-top: 4px solid var(--sa-teal); }
 .sa-fit--ready { border-top: 4px solid #1f864b; }
 .sa-fit--extend, .sa-review { border-color: #b48519; background: #fffbef; }

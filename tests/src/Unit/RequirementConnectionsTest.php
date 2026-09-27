@@ -129,6 +129,10 @@ final class RequirementConnectionsTest extends UnitTestCase {
     $this->assertSame('asset', $item['target']['bundle']);
     $this->assertSame('field_serial', $item['fields'][0]['name']);
     $this->assertArrayNotHasKey('judgment', $item['fields'][0]);
+    $this->assertSame(1.0, $item['fields'][0]['evidence']['probability']);
+    $this->assertSame(1.0, $item['target']['evidence']['confidence']);
+    $this->assertSame('direct', $item['evidence']['coverage']['choice']);
+    $this->assertSame('listing', $item['evidence']['component']['choice']);
     $this->assertFalse($compact['work_areas'][0]['integration_verified']);
 
     $parts[1]['kind_judgment']['needs_review'] = TRUE;

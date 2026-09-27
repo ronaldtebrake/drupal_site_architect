@@ -22,6 +22,30 @@ permission to install. No recipe is applied, package installed, content created
 or configuration changed by either adviser tool. Phase one includes software
 tests and live checks; model evals and cost comparisons remain later work.
 
+## Two entry points, one assessment
+
+The adviser serves two equally important workflows:
+
+- **A site builder in Drupal:** review a readable plan, compare options and see
+  how records, fields and supporting capabilities fit together. **Copy plan for
+  an agent** includes the original brief, site URL and the exact scored draft on
+  screen. A preview supports manual copying. Copying does not rerun inference,
+  select every alternative, send data to an agent or change the site.
+- **An agent through MCP:** send the user's brief to `assess_content_brief` before
+  building or extending the site. The compact response identifies existing
+  configuration, ecosystem candidates, scored choices and unresolved gaps. The
+  agent can inspect those references and use its existing implementation tools.
+
+Both use the same assessment service and compact handoff contract. The UI copy
+wraps that contract with the brief and site context; MCP callers already have
+their user's brief and server connection. Neither path depends on the other.
+
+WebMCP-assisted implementation is a future interface for reviewing and acting on
+that plan in the browser. It could connect the editor's current context to
+existing Tool API/build capabilities without routing browser operations through
+MCP Server. Execution, progress and revalidation belong to that next stage;
+this module currently supplies informed planning and discovery.
+
 ## Architecture walkthrough
 
 [![A brief becomes key phrases, matches to the Drupal site and ecosystem, and a draft plan](docs/architecture/ai-site-advisor-visual.gif)](docs/architecture/visual.html)
@@ -282,12 +306,24 @@ The compact assessment (`schema_version: agent-plan-v2`) contains:
   matching existing configuration, candidate references and an unresolved check.
   `parts` maps source requirements to content types or candidate references,
   with `supported`, `partial`, `open` or `check` status and individual review flags.
+  `assessed_preference` retains a weak starting-point choice without promoting it
+  to a recommendation. Shortlisted candidates include contribution `evidence`;
+  parts include separate component-selection and coverage judgments. Target and
+  field references also retain their selected judgment's evidence.
   `integration_verified` is always false; `assembly_check` identifies work still
   needed to connect and verify the chosen components.
 - `candidates`: one entry per retained candidate, with project or manifest
   pointers, availability and conditional acquisition/configuration steps.
-- `discovery`: extraction coverage, search truncation and source warnings.
+- `discovery`: extraction coverage, unassigned source passages, search truncation
+  and source warnings.
 - `needs_review` and individual review flags, plus the site fingerprint.
+
+Compact evidence contains `choice`, its `probability`, `confidence` and
+`needs_review`, rather than the full distribution over alternatives. Missing
+scores remain `null`. These are separate judgments on a 0–1 scale, not an overall
+quality percentage or proof of compatibility. The same numbers are copied from
+the assessment; exporting never runs another model call. Use `detail: "full"`
+for complete source descriptions, all candidates and score distributions.
 
 Each work area keeps up to two candidates for each useful contribution role
 (foundation or complement), deduplicated. Only a starting point supported by both
@@ -481,7 +517,8 @@ template mappings are not declared verified.
 
 The compact Tool API/MCP plan includes each part's optional `target` (entity type,
 bundle and configuration links) and `fields` (name, type and proposed purpose).
-It omits their probability distributions; the full response retains those judgments.
+It retains the selected probabilities and confidence while omitting full option
+distributions; the full response retains every judgment.
 This is an additive extension of `agent-plan-v2`, shared with the normal form.
 
 For example, storing an opening post and adding replies are separate needs.
@@ -722,6 +759,7 @@ SIMPLETEST_DB=sqlite://localhost/:memory: vendor/bin/phpunit \
 vendor/bin/phpcs --standard=Drupal,DrupalPractice --extensions=php \
   web/modules/contrib/ai_site_advisor
 node --check web/modules/contrib/ai_site_advisor/js/advisor.js
+node --test web/modules/contrib/ai_site_advisor/tests/js/advisor.test.cjs
 ```
 
 Adjust `contrib` to `custom` as needed. Tests use an isolated SQLite database,

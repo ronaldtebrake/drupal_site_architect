@@ -6,6 +6,14 @@
   <div class="sa-section-title"><div><span class="sa-eyebrow">{{ 'Draft · review before building'|t }}</span><h3>{{ assessment.plan.title }}</h3></div><span class="sa-badge">{{ assessment.model }}</span></div>
   <p>{{ assessment.plan.before_building }}</p>
   <p class="sa-note">{{ (assessment.elapsed_ms / 1000)|number_format(2) }} s {{ 'total'|t }} · {{ 'Read-only advice'|t }} · {{ 'Provider usage is available with the evidence below.'|t }}</p>
+  {% if agent_handoff %}<div class="sa-agent-handoff" data-advisor-handoff>
+    <button type="button" class="button sa-copy-plan" data-advisor-copy>{{ 'Copy plan for an agent'|t }}</button>
+    <span class="sa-note" role="status" aria-live="polite" data-advisor-copy-status></span>
+    <p class="sa-note">{{ 'Take this brief, scored options, configuration links and open decisions to your agent. Copies the current draft without running another assessment.'|t }}</p>
+    <details data-advisor-copy-preview><summary>{{ 'Preview or manually copy the handoff'|t }}</summary>
+      <label>{{ 'Agent handoff'|t }}<textarea readonly rows="12" spellcheck="false" data-advisor-copy-text>{{ agent_handoff }}</textarea></label>
+    </details>
+  </div>{% endif %}
   <div class="sa-next">
     <strong>{{ assessment.search_plan.action == 'search' ? 'Search the ecosystem'|t : (assessment.search_plan.action == 'clarify' ? 'Clarify before searching'|t : 'Start with this site'|t) }}</strong>
     <p>{{ assessment.search_plan.reason }}</p>
