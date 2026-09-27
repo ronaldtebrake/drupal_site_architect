@@ -1,5 +1,9 @@
 # AI Site Advisor architecture animation
 
+Start with the [22-second story](story.html): a brief becomes phrases, candidates
+from the site and ecosystem, visible Jev scores and a draft plan. Its
+[score provenance and export instructions](STORY.md) explain the recorded judgments.
+
 There is also a [25-second visual version](visual.html) with moving phrases,
 candidate connections and assembling plan cards. See [its export instructions](VISUAL.md).
 The original walkthrough below remains available unchanged.

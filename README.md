@@ -24,6 +24,11 @@ tests and live checks; model evals and cost comparisons remain later work.
 
 ## Architecture walkthrough
 
+The concise [22-second visual story](docs/architecture/story.html) follows a
+brief through phrases, site/ecosystem evidence, recorded Jev scores and a draft
+plan. [Score provenance and export instructions](docs/architecture/STORY.md)
+explain the partial-fit judgments and keep their limitations visible.
+
 For a visual explanation of the brief-to-plan pipeline, open the standalone
 [architecture animation](docs/architecture/index.html). It walks through site
 inspection, source-phrase selection, discovery, typed Jev judgments and the

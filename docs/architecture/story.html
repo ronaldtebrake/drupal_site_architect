@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>From brief to building blocks · AI Site Advisor</title>
+<style>
+:root{--paper:#f7f8f2;--ink:#21372e;--muted:#66776a;--green:#17694e;--line:#d7e0d4;--purple:#7652bd;--light:#eee8fa}
+*{box-sizing:border-box}body{margin:0;background:#e9ede5;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+#viewport{height:calc(100vh - 64px);display:flex;justify-content:center;align-items:center;padding:20px}#frame{position:relative;flex:none}
+#board{position:absolute;left:0;top:0;width:1280px;height:900px;transform-origin:0 0;overflow:hidden;border:1px solid var(--line);border-radius:26px;background:var(--paper);box-shadow:0 18px 65px #243e2f0a}
+#board::before{content:"";position:absolute;inset:0;background-image:radial-gradient(#355c4017 .65px,transparent .65px);background-size:5px 5px;opacity:.35;pointer-events:none}
+header{position:absolute;left:48px;right:48px;top:36px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:19px;font-weight:700;letter-spacing:-.6px}.brand::before{content:"";display:inline-block;width:15px;height:20px;margin-right:11px;vertical-align:middle;background:var(--green);border-radius:60% 60% 50% 12%;transform:rotate(-40deg)}
+.eyebrow{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{position:absolute;top:97px;left:0;right:0;margin:0;text-align:center;font-size:51px;line-height:1.1;font-weight:750;letter-spacing:-2px}h1 span{color:var(--green)}
+#phase{position:absolute;top:167px;left:0;right:0;text-align:center;margin:0;font-size:23px;color:var(--muted)}
+#brief{position:absolute;left:140px;top:257px;width:1000px;height:258px;border:1px solid #cddbcc;border-radius:19px;background:#fffefb}
+#brief .eyebrow{position:absolute;left:37px;top:26px}
+#brief .line{position:absolute;left:36px;font-size:28px;line-height:1.4;white-space:nowrap}
+#line1{top:94px}#line2{top:168px}#brief #line-with{left:466px;top:94px}
+.word{position:absolute;left:0;top:0;padding:12px 16px;height:61px;border-radius:10px;font-size:28px;font-weight:650;line-height:37px;white-space:nowrap;background:#e7f0e7;color:var(--green);z-index:4;transform-origin:left top}
+#word-replies{background:#e7f0e7}
+#words-label{position:absolute;top:250px;left:0;right:0;text-align:center}
+#sources{position:absolute;left:75px;top:402px;width:1090px;height:283px;z-index:0}
+.source{position:absolute;top:0;height:283px;border:1px solid var(--line);border-radius:16px;background:#eef3eacc}
+#site{left:0;width:720px}#ecosystem{left:740px;width:350px;background:#f1edf8;border-color:#ded5ec}
+.source .label{position:absolute;left:25px;top:20px;font-size:12px;font-weight:700;letter-spacing:1.3px;color:var(--green)}
+.source .api{position:absolute;right:25px;top:20px;font-size:12px;color:var(--muted)}
+#ecosystem .label{color:var(--purple)}#ecosystem .api{font-size:11px}
+#connections{position:absolute;inset:0;width:1280px;height:900px;pointer-events:none;z-index:1}
+.connection{stroke:#bba8d6;stroke-width:2;fill:none;stroke-dasharray:4 6}
+#jev{position:absolute;left:448px;top:359px;width:384px;height:32px;display:flex;justify-content:center;align-items:center;gap:9px;font-size:13px;color:var(--purple);background:#f7f8f2;z-index:3}
+#jev b{font-size:15px}
+.card{position:absolute;left:0;top:453px;width:300px;height:207px;background:#fffefc;border:1px solid var(--line);border-radius:12px;padding:22px 23px;z-index:2}
+.card .origin{font-size:10px;letter-spacing:1.2px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.card h2{margin:10px 0 9px;font-size:24px;line-height:1.15;letter-spacing:-.7px}
+#delivery h2{font-size:21px;white-space:nowrap}
+.card .evidence{margin:0;font-size:15px;color:var(--muted);line-height:1.4}
+.card .action{margin:0;font-size:15px;color:var(--green);line-height:1.4}
+.score{position:absolute;left:23px;right:23px;top:121px}
+.score-heading{display:flex;justify-content:space-between;align-items:baseline;color:var(--purple)}
+.score-heading span{font-size:14px}.score-heading strong{font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:-.6px}
+.track{height:5px;background:#eeebf3;border-radius:3px;margin-top:8px;overflow:hidden}.bar{height:100%;background:var(--purple);width:0;border-radius:3px}
+.confidence{font-size:11px;color:var(--muted);margin-top:8px}
+#record{left:100px}#comment{left:470px}#delivery{left:840px}
+#match-note{position:absolute;left:0;right:0;top:710px;text-align:center;font-size:14px;color:var(--muted)}
+#outcome{position:absolute;left:140px;right:140px;top:704px;text-align:center;border-radius:10px;padding:15px;background:#e7f0e5;font-size:18px;color:var(--green)}
+#handoff{position:absolute;top:769px;left:0;right:0;text-align:center;font-size:13px;color:var(--muted)}
+#chapters{position:absolute;left:155px;right:155px;top:808px;display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:18px}
+.chapter{font-size:13px;color:#7e897c;display:flex;align-items:center;gap:9px}.chapter i{display:block;width:7px;height:7px;border-radius:50%;background:#cdd8c8}
+.chapter.active{color:var(--green);font-weight:700}.chapter.active i{background:var(--green)}.chapter.done i{background:#94b89d}
+#disclosure{position:absolute;left:40px;right:40px;bottom:22px;margin:0;text-align:center;font-size:11px;color:#758371}
+#progress-track{height:3px;background:#e2e9dd;position:absolute;bottom:0;left:0;right:0}#progress{height:100%;background:var(--green);width:0}
+#controls{height:64px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:12px;color:var(--muted);padding-bottom:12px}
+#controls button,#controls a{font:inherit;text-decoration:none;color:var(--ink);padding:8px 12px;border-radius:7px;border:1px solid #cbd5c8;background:#f9faf6;cursor:pointer}
+#controls :focus-visible{outline:3px solid #9879c8;outline-offset:3px}#seek{width:min(25vw,260px);accent-color:var(--green)}#clock{min-width:75px;font-variant-numeric:tabular-nums}
+.recording #controls{display:none}.recording #viewport{height:100vh;padding:0}.recording #board{border:0;border-radius:0;box-shadow:none}.recording{background:var(--paper)}
+@media(max-width:700px){#controls{gap:6px;flex-wrap:wrap;height:auto;padding:8px}#controls a{padding:8px}#seek{width:20vw}}
+</style>
+</head>
+<body>
+<main id="viewport" aria-label="Story of a brief becoming a Drupal plan"><div id="frame"><article id="board">
+<header><span class="brand">AI Site Advisor</span><span class="eyebrow">Drupal evidence · Jev decisions</span></header>
+<h1>From a brief. <span>To a Drupal plan.</span></h1>
+<p id="phase"></p>
+<div id="brief"><span class="eyebrow">The brief · shortened for display</span><span class="line" id="line1">Create</span><span class="line" id="line-with">with</span><span class="line" id="line2">and receive</span></div>
+<div id="word-posts" class="word">discussion posts</div><div id="word-replies" class="word">replies</div><div id="word-email" class="word">email updates</div>
+<div id="words-label" class="eyebrow">Key phrases from the brief</div>
+<div id="sources"><div id="site" class="source"><span class="label">On this site</span><span class="api">Inspect with Drupal APIs</span></div><div id="ecosystem" class="source"><span class="label">In the ecosystem</span><span class="api">Project Browser</span></div></div>
+<svg id="connections" viewBox="0 0 1280 900" aria-hidden="true"><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1L9 5L1 9" stroke="#9475c1" fill="none" stroke-width="1.6"/></marker></defs><path id="path-record" class="connection" d="M250 339V453" marker-end="url(#arrow)"/><path id="path-comment" class="connection" d="M620 339V453" marker-end="url(#arrow)"/><path id="path-delivery" class="connection" d="M990 339V453" marker-end="url(#arrow)"/></svg>
+<div id="jev"><b>Jev</b><span>scores each candidate against its requirement</span></div>
+<section class="card" id="record"><span class="origin">Existing content type</span><h2>Article</h2><p class="evidence">Title + Body fields</p><p class="action">Inspect and extend the fields</p><div class="score"><div class="score-heading"><span>Partial fit</span><strong>71%</strong></div><div class="track"><div class="bar"></div></div><div class="confidence">Confidence 61% · review needed</div></div></section>
+<section class="card" id="comment"><span class="origin">Core module · code available</span><h2>Comment</h2><p class="evidence">Replies on content</p><p class="action">Configure and check replies</p><div class="score"><div class="score-heading"><span>Partial fit</span><strong>79%</strong></div><div class="track"><div class="bar"></div></div><div class="confidence">Confidence 72% · review needed</div></div></section>
+<section class="card" id="delivery"><span class="origin">Discovered module</span><h2>Notification System</h2><p class="evidence">Catalogue evidence</p><p class="action">Check delivery + dependencies</p><div class="score"><div class="score-heading"><span>Partial fit</span><strong>85%</strong></div><div class="track"><div class="bar"></div></div><div class="confidence">Confidence 79% · review needed</div></div></section>
+<p id="match-note"></p><div id="outcome">Still to design: club access + subscription rules.</div>
+<div id="handoff">Same assessment → Drupal UI · Tool API / MCP Server</div>
+<div id="chapters" aria-label="Story chapters"></div>
+<p id="disclosure">Recorded Jev judgments · percentages describe “partial fit”, not requirement coverage · integration unverified</p>
+<div id="progress-track" aria-hidden="true"><div id="progress"></div></div>
+</article></div></main>
+<nav id="controls" aria-label="Animation playback"><button id="play" type="button">Pause</button><button id="restart" type="button">Restart</button><input id="seek" type="range" min="0" max="22" step=".05" aria-label="Animation position in seconds"><span id="clock">0:00 / 0:22</span><a id="record-link" href="?record=1" target="_blank" rel="noopener">Clean recording view ↗</a><a href="index.html">Original walkthrough ↗</a></nav>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const clamp=x=>Math.max(0,Math.min(1,x));
+const ease=x=>{x=clamp(x);return x*x*(3-2*x);};
+const ramp=(t,a,b)=>ease((t-a)/(b-a));
+const mix=(a,b,p)=>a+(b-a)*p;
+const show=(el,amount)=>{el.style.opacity=String(amount);el.setAttribute('aria-hidden',String(amount<.01));};
+const duration=22;
+const chapters=[
+{start:0,duration:3,title:'Brief',caption:'Start with what people need to do.'},
+{start:3,duration:3,title:'Words',caption:'Pull out the useful words and phrases.'},
+{start:6,duration:4,title:'Evidence',caption:'Find candidates on the site and in the ecosystem.'},
+{start:10,duration:6,title:'Scores + matches',caption:'Jev scores the fit for each requirement.'},
+{start:16,duration:6,title:'Draft plan',caption:'Turn the matches into a plan. Keep the gaps visible.'}
+].map((c,index)=>({...c,index}));
+for(const [i,c]of chapters.entries()){const el=document.createElement('span');el.className='chapter';el.innerHTML='<i aria-hidden="true"></i>'+c.title;$('chapters').append(el);}
+const words=[
+{id:'word-posts',start:[285,340],end:[100,278]},
+{id:'word-replies',start:[671,340],end:[470,278]},
+{id:'word-email',start:[345,414],end:[840,278]}
+];
+const candidates=[{id:'record',score:.71,start:10.4},{id:'comment',score:.79,start:11.7},{id:'delivery',score:.85,start:13}];
+const query=new URLSearchParams(location.search),recording=query.get('record')==='1';
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.body.classList.toggle('recording',recording);
+let time=0,current=0,playing=!reduced&&query.get('paused')!=='1',lastFrame=performance.now();
+function render(seconds){
+time=Math.max(0,Math.min(duration,seconds));current=chapters.findLastIndex(c=>time>=c.start);
+const t=reduced?chapters[current].start+chapters[current].duration-.05:time;
+const extraction=ramp(t,3,4),evidence=ramp(t,6,6.7),scoring=ramp(t,10,10.5),plan=ramp(t,16,16.7);
+$('phase').textContent=chapters[current].caption;
+show($('brief'),1-extraction);
+for(const word of words){const el=$(word.id);el.style.transform='translate('+mix(word.start[0],word.end[0],extraction)+'px,'+mix(word.start[1],word.end[1],extraction)+'px)';el.style.width=extraction>.99?'300px':'auto';el.style.textAlign=extraction>.99?'center':'left';}
+show($('words-label'),extraction);
+show($('sources'),evidence);
+show($('connections'),scoring);
+show($('jev'),scoring*(1-plan));
+for(const candidate of candidates){
+const card=$(candidate.id),fit=ramp(t,candidate.start,candidate.start+.8);
+show(card,evidence);
+show(card.querySelector('.evidence'),1-plan);card.querySelector('.evidence').style.display=plan>.5?'none':'block';
+show(card.querySelector('.action'),plan);card.querySelector('.action').style.display=plan>.5?'block':'none';
+show(card.querySelector('.score'),fit);
+card.querySelector('.bar').style.width=candidate.score*100*fit+'%';
+card.style.borderColor=fit>.9?'#b9a2d9':'#d7e0d4';
+const line=$('path-'+candidate.id);line.style.strokeDasharray=t>candidate.start+.8?'none':'4 6';line.style.stroke=fit>.9?'#9475c1':'#c8c1d1';
+}
+$('match-note').textContent=t<10?'Site evidence + module and recipe descriptions.': 'Three separate judgments. All three are partial matches.';
+show($('match-note'),evidence*(1-plan));show($('outcome'),plan);show($('handoff'),ramp(t,17,17.5));
+$('disclosure').textContent=t<10?'Brief shortened for display · scores replay a recorded assessment · no site changes':'Recorded Jev judgments · percentages describe “partial fit”, not requirement coverage · integration unverified';
+$('seek').value=time;$('clock').textContent='0:'+String(Math.floor(time)).padStart(2,'0')+' / 0:22';$('progress').style.width=time/duration*100+'%';
+document.querySelectorAll('.chapter').forEach((el,i)=>{el.classList.toggle('active',i===current);el.classList.toggle('done',i<current);if(i===current)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current');});
+}
+function resize(){const pad=recording?0:40,footer=recording?0:64;const scale=Math.max(.15,Math.min((innerWidth-pad)/1280,(innerHeight-pad-footer)/900,recording?10:1));$('frame').style.width=1280*scale+'px';$('frame').style.height=900*scale+'px';$('board').style.transform='scale('+scale+')';}
+function setPlaying(value){playing=value;$('play').textContent=value?'Pause':'Play';lastFrame=performance.now();}
+$('play').addEventListener('click',()=>setPlaying(!playing));$('restart').addEventListener('click',()=>{render(0);setPlaying(true);});$('seek').addEventListener('input',()=>{setPlaying(false);render(Number($('seek').value));});
+addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>lastFrame=performance.now());
+function tick(now){if(playing&&!document.hidden)render((time+Math.min(.15,(now-lastFrame)/1000))%duration);lastFrame=now;requestAnimationFrame(tick);}
+window.AdvisorAnimation=Object.freeze({duration,chapters,seek(seconds){setPlaying(false);render(seconds);},play(){setPlaying(true);},pause(){setPlaying(false);},state(){return{time,stage:current,playing,duration};}});
+resize();render(Number(query.get('t'))||0);setPlaying(playing);requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
