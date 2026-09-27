@@ -15,9 +15,29 @@
     </details>
   </div>{% endif %}
   <div class="sa-next">
-    <strong>{{ assessment.search_plan.action == 'search' ? 'Search the ecosystem'|t : (assessment.search_plan.action == 'clarify' ? 'Clarify before searching'|t : 'Start with this site'|t) }}</strong>
+    <strong>{{ assessment.discovery.searched_ecosystem ? 'Ecosystem search performed'|t : 'Ecosystem search not performed'|t }}</strong>
     <p>{{ assessment.search_plan.reason }}</p>
+    {% set search_choice = assessment.search_plan.answers.ecosystem_search %}
+    {% if search_choice %}
+      {% set search_labels = {'search': 'Search the ecosystem'|t, 'local': 'Inspect local site/core configuration'|t, 'clarify': 'Clarify before searching'|t} %}
+      <p class="sa-note">{{ 'Jev’s search choice'|t }}: {{ search_labels[search_choice.choice] }} · {{ (search_choice.probabilities[search_choice.choice] * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (search_choice.confidence * 100)|number_format(0) }}%{% if assessment.search_plan.needs_review %} · {{ 'Review needed'|t }}{% endif %}</p>
+    {% endif %}
+    {% if not assessment.discovery.searched_ecosystem %}<p>{{ 'This plan compares local evidence only. No external catalog response was used.'|t }}</p>{% endif %}
     {% if assessment.search_plan.query %}<p>{{ 'Searched for'|t }}: <strong>{{ assessment.search_plan.queries ? assessment.search_plan.queries|join(' · ') : assessment.search_plan.query }}</strong></p>{% endif %}
+    {% for warning in assessment.discovery.warnings %}<p class="sa-review">{{ warning }}</p>{% endfor %}
+    {% if assessment.discovery.searched_ecosystem and assessment.discovery.sources %}
+      <details class="sa-details"><summary>{{ 'Discovery source results'|t }}</summary>
+        <p class="sa-note">{{ 'Sources report total matches before shortlisting. A failed source is not evidence that no matching projects exist.'|t }}</p>
+        <div class="sa-table-scroll"><table class="sa-options-table">
+          <thead><tr><th scope="col">{{ 'Source'|t }}</th><th scope="col">{{ 'Search'|t }}</th><th scope="col">{{ 'Matches reported'|t }}</th><th scope="col">{{ 'Status'|t }}</th></tr></thead>
+          <tbody>{% for source in assessment.discovery.sources %}<tr>
+            <th scope="row">{{ source.label }}</th><td>{{ source.query ?? assessment.discovery.query }}</td>
+            <td>{{ source.error ? 'Unknown'|t : (source.matches ?? 'Unknown'|t) }}</td>
+            <td>{{ source.error ? 'Source failed'|t : (source.matches == 0 ? 'No matches returned'|t : (source.truncated ? 'Results shortlisted'|t : 'Results returned'|t)) }}</td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+      </details>
+    {% endif %}
   </div>
   <h4>01 · {{ 'Plan each capability'|t }}</h4>
   {% if assessment.search_plan.coverage %}<p class="sa-note">{{ 'Reviewed @processed of @total text segments and identified @areas work areas. Check these against your brief; processing every segment does not guarantee that every requirement was understood.'|t({'@processed': assessment.search_plan.coverage.segments_processed, '@total': assessment.search_plan.coverage.segments_total, '@areas': assessment.search_plan.coverage.capabilities}) }}</p>{% endif %}
@@ -96,7 +116,6 @@
 
   <h4>{{ 'Local capabilities and discovered recipes and modules'|t }}</h4>
   <p class="sa-note">{% if assessment.discovery.searched_ecosystem %}{{ 'Search'|t }}: “{{ assessment.discovery.query }}”{% else %}{{ 'Local manifests matched against your brief'|t }}{% endif %} · {{ assessment.discovery.returned }} {{ 'candidates assessed'|t }}{% if assessment.discovery.truncated %} · {{ 'Results limited: refine the brief to explore other candidates'|t }}{% endif %}</p>
-  {% for warning in assessment.discovery.warnings %}<p class="sa-note">{{ warning }}</p>{% endfor %}
   <div class="sa-grid sa-grid--two">
     {% for id, candidate in assessment.candidates %}
       {% set answer = assessment.answers['recipe__' ~ id] %}

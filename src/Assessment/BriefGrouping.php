@@ -53,7 +53,8 @@ final class BriefGrouping {
         'grouping_needs_review' => FALSE,
       ];
       $areas[$owner]['source_texts'][] = $clause['source_text'];
-      $areas[$owner]['grouping_needs_review'] = $areas[$owner]['grouping_needs_review'] || (!$certain && $choice !== 'separate');
+      $uncertain = $answer['confidence'] < 0.7 || $answer['probabilities'][$choice] < 0.75;
+      $areas[$owner]['grouping_needs_review'] = $areas[$owner]['grouping_needs_review'] || (!$certain && ($choice !== 'separate' || $uncertain));
     }
     foreach ($areas as &$area) {
       $area['source_texts'] = array_values(array_unique($area['source_texts']));

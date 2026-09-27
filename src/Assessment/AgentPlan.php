@@ -128,6 +128,11 @@ final class AgentPlan {
       'candidates' => $candidates,
       'discovery' => [
         'searched_ecosystem' => $assessment['discovery']['searched_ecosystem'] ?? FALSE,
+        'action' => $assessment['search_plan']['action'] ?? NULL,
+        'reason' => $assessment['search_plan']['reason'] ?? NULL,
+        'search_choice' => isset($assessment['search_plan']['answers']['ecosystem_search'])
+          ? self::judgment($assessment['search_plan']['answers']['ecosystem_search'] + ['needs_review' => $assessment['search_plan']['needs_review'] ?? TRUE])
+          : NULL,
         'truncated' => $assessment['discovery']['truncated'] ?? FALSE,
         'warnings' => $assessment['discovery']['warnings'] ?? [],
         'coverage' => $assessment['search_plan']['coverage'] ?? NULL,

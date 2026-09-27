@@ -155,6 +155,12 @@ final class CatalogIntegrationTest extends KernelTestBase {
     $this->assertNotEmpty($partial['items'], 'Local discovery survives a Project Browser source failure.');
     $this->assertStringNotContainsString('credentials', implode(' ', $partial['warnings']));
     $this->assertStringContainsString('architect_fixture could not be queried', implode(' ', $partial['warnings']));
+    $failed_source = end($partial['sources']);
+    $this->assertSame('architect_fixture', $failed_source['id']);
+    $this->assertNull($failed_source['matches'], 'Unavailable matches are not reported as zero.');
+    $this->assertNotEmpty($failed_source['error']);
+    $this->assertStringNotContainsString('credentials', json_encode($failed_source));
+    $this->assertStringNotContainsString('No additional Project Browser sources', implode(' ', $partial['warnings']));
 
     $this->assertSame('site_architect:discover_candidates', $this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_discover')->get('tool_id'));
     $this->assertTrue($this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_assess')->get('status'));

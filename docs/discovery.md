@@ -116,8 +116,12 @@ each segment, and classifies its scope as a work area, detail or context.
 `BriefGrouping` then assigns details to proposed subjects before discovery. Stored
 attributes, filters and presentation can belong to the same subject instead of
 becoming separate catalogue queries. Each assignment must pass the 75% probability /
-70% confidence policy. Uncertain assignments retain the original independent work
-area or remain visible as unassigned passages; source requirements are not discarded.
+70% confidence policy. If a recognised feature has no confident owner, its source
+label is retained as a provisional work area for discovery, even when the scope
+question initially called it a detail. This prevents relationship subjects from
+disappearing between extraction and grouping. Attributes confidently assigned to
+a parent stay with that parent. Passages without a selected feature label remain
+visible as unassigned; source requirements are not discarded.
 Repeated search phrases merge while preserving their source passages. Compound nouns such as
 `activity stream` remain intact; English singularization turns `groups` into
 `group` and `events` into `event`. Only the search route sends these terms to
@@ -132,9 +136,26 @@ labels/descriptions enrich the site evidence, but do not prove that their
 configuration or integrations work.
 
 The result shows the selected path, its predefined criterion and any search
-term. Uncertain routes and the absence of a suitable term trigger a review flag
-and no ecosystem search. These criteria are static descriptions of the options,
-not generated explanations of the model's reasoning.
+term. A selected **search** route with valid capability terms runs the bounded
+read-only lookup even when the route needs review. Uncertainty remains attached
+to the plan; gathering candidates does not approve an implementation. **Local**
+and **clarify** routes still make no external queries, and a search without a
+selected capability term requests clarification. These criteria are static
+descriptions of the options, not generated explanations of the model's reasoning.
+
+The top of the plan explicitly says whether an ecosystem search was performed,
+and shows Jev's original search choice, probability and confidence separately
+from the action taken. The existing 75% probability / 70% confidence policy flags
+uncertain choices without blocking a selected read-only search. A skipped search
+is not a JSON:API failure or a catalog with no matches. For a local-only result,
+ask in the brief to compare ecosystem
+options if that comparison is wanted. The compact agent response retains this
+decision and reason too.
+
+When discovery runs, **Discovery source results** shows the query and total
+match count reported by each source before shortlisting. Failed sources have an
+unknown count rather than zero. Warnings appear before the work areas so a
+partial catalog search is visible without opening the full evidence section.
 
 Discovery reports source IDs, candidate packages, availability, match counts,
 truncation and failures. A direct search returns at most 12 candidates,

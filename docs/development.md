@@ -25,7 +25,7 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `local_discovery` | Semantic screening of shipped core and enabled local modules: retained candidates, every screening judgment, questions and usage. |
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
 | `plan` | Draft work areas, visible preferred selections, every assessed option with separate contribution/selection/brief-relevance judgments, foundation/addition investigation paths, checks and handoff boundaries. |
-| `search_plan` | Route, grouped capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v5`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
+| `search_plan` | Route, grouped capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v6`). A selected read-only search can gather evidence while retaining a review flag. `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
 | `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v8`). |
 | `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
 | `requests_by_stage` | Model, question IDs, evidence IDs, compact bytes and reported usage for every provider request. |

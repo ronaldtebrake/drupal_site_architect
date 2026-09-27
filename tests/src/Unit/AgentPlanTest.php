@@ -51,7 +51,19 @@ final class AgentPlanTest extends UnitTestCase {
       'site' => ['fingerprint' => 'site-hash', 'fields' => ['full' => 'field evidence']],
       'plan' => ['areas' => ['first' => $area, 'second' => $area]],
       'discovery' => ['searched_ecosystem' => TRUE, 'truncated' => TRUE, 'warnings' => ['Source unavailable.']],
-      'search_plan' => ['coverage' => ['segments_processed' => 14, 'segments_total' => 14]],
+      'search_plan' => [
+        'coverage' => ['segments_processed' => 14, 'segments_total' => 14],
+        'action' => 'search',
+        'reason' => 'Compare available options.',
+        'needs_review' => FALSE,
+        'answers' => [
+          'ecosystem_search' => [
+            'choice' => 'search',
+            'probabilities' => ['search' => 0.9, 'local' => 0.1, 'clarify' => 0.0],
+            'confidence' => 0.85,
+          ],
+        ],
+      ],
       'questions' => ['verbose' => str_repeat('Evidence repeated across questions. ', 1000)],
     ];
     $compact = AgentPlan::compact($assessment);
@@ -79,6 +91,9 @@ final class AgentPlanTest extends UnitTestCase {
     $this->assertTrue($compact['discovery']['truncated']);
     $this->assertSame(['Source unavailable.'], $compact['discovery']['warnings']);
     $this->assertSame($assessment['search_plan']['coverage'], $compact['discovery']['coverage']);
+    $this->assertSame('search', $compact['discovery']['action']);
+    $this->assertSame('Compare available options.', $compact['discovery']['reason']);
+    $this->assertSame(['choice' => 'search', 'probability' => 0.9, 'confidence' => 0.85, 'needs_review' => FALSE], $compact['discovery']['search_choice']);
     $this->assertArrayNotHasKey('site', $compact);
     $this->assertArrayNotHasKey('questions', $compact);
     $this->assertArrayNotHasKey('description', $compact['candidates']['preferred']);

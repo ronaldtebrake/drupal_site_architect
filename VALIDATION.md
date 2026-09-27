@@ -1,5 +1,51 @@
 # Validation record
 
+## Ecosystem routing and discovery diagnostics (27 September 2026)
+
+Reproduced the missing-contrib report with the brief: “We want a Community site,
+with events and topics, placed in groups, with an activity stream and
+notifications.” The provider selected search with probability **0.79** and
+confidence **0.69**. The previous confidence gate changed that route to clarify,
+so no external catalog was queried. Separately, “placed in groups” had a feature
+label but no confident parent; the root-only fallback dropped its discovery term.
+
+- Selected read-only searches now run with valid extracted terms while retaining
+  their uncertainty. Local and clarify routes still do not query external sources.
+  Recognized features without a confident parent retain a provisional work area;
+  confidently assigned fields remain with their parent.
+- Direct live catalog checks returned Group, Recurring Events and Workflow.
+  Drupal.org JSON:API reported **556** group, **1,121** event and **604** workflow
+  matches before shortlisting. No catalog configuration was changed.
+- A full live community assessment completed in **33.2 seconds**, with all six
+  work areas, no unassigned passages and no invalid provider answers. Its
+  candidates included Group, Recurring Events, Message and Notification System.
+  A separate browser submission also completed successfully, showing all six
+  areas and contributed options. That run selected search at **0.77** probability
+  and **0.66** confidence, with review required.
+- Verified the browser's source-results table distinguishes returned matches,
+  shortlisting and successful zero-match queries. The copied agent handoff
+  contains the actual search action, original judgment, review flag and reason.
+  Regression coverage checks that failed sources report an unknown count and a
+  sanitized warning, without claiming the source was disabled or had no matches.
+- The shared demo has no enabled Simple OAuth modules and no installed Agent
+  Access package. The prior OAuth verification used the separate installation
+  described below; authentication was not the cause of this discovery failure.
+- A separate logged failure was `choice_not_highest`: a provider answer selected
+  an option other than its highest probability, including after the targeted
+  retry. The form now explains that conflict specifically. Strict validation and
+  the bounded retry remain unchanged; no scores are repaired or fabricated.
+  A subsequent editorial-workflow assessment completed in **5.9 seconds** with
+  no rejected answers. These successful runs do not establish that the upstream
+  response inconsistency cannot recur.
+- Full PHPUnit suite: **81 tests, 5,306 assertions**. Drupal/DrupalPractice checks
+  for all changed PHP files and Git whitespace checks passed. Tests cover
+  uncertain search/local routing, provisional feature retention, source failures,
+  result rendering and compact handoff metadata.
+
+These are integration checks, not accuracy evals or performance benchmarks.
+Source totals are catalog matches before ranking, not confirmed suitable modules.
+No credentials, raw provider responses or local diagnostic scripts are committed.
+
 ## Agent Access base and shorter documentation (27 September 2026)
 
 Site Architect now requires the upstream Agent Access recipe and extends it with

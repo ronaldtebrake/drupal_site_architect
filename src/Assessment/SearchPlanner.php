@@ -13,7 +13,7 @@ use Drupal\site_architect\Context\ModuleInventory;
  */
 final class SearchPlanner implements SearchPlannerInterface {
 
-  public const VERSION = 'ecosystem-search-v5';
+  public const VERSION = 'ecosystem-search-v6';
 
   /**
    * Constructs the planner using the same Decision provider as the architect.
@@ -84,7 +84,9 @@ final class SearchPlanner implements SearchPlannerInterface {
       $label = $terms[$answer->getChoice()];
       $query = BriefCapabilities::query($label);
       $key = 'r_' . substr(hash('sha256', $query), 0, 12);
-      $originals[$index] = $key;
+      if ($scope->getChoice() !== 'context') {
+        $originals[$index] = $key;
+      }
       // These are possible owners, not recommendations. The separate grouping
       // judgment must still establish each actual assignment confidently.
       if ($scope->getChoice() === 'work_area') {
@@ -108,8 +110,10 @@ final class SearchPlanner implements SearchPlannerInterface {
       $group_input = BriefGrouping::input($brief, $clauses, array_intersect_key($capabilities, $roots));
       $grouping = DecisionBatch::run($this->decision, DecisionBatch::split($group_input, 12));
       $group_answers = $grouping['response']->toArray()['answers'];
-      $fallbacks = array_filter($originals, static fn ($key) => isset($roots[$key]));
-      $grouped = BriefGrouping::build($clauses, $capabilities, $fallbacks, $group_answers);
+      // A recognised feature may have been classified as a detail without an
+      // established owner. Preserve its source label as a provisional work area
+      // instead of discarding it before discovery can gather relevant evidence.
+      $grouped = BriefGrouping::build($clauses, $capabilities, $originals, $group_answers);
       $capabilities = $grouped['capabilities'];
       $unmapped = $grouped['unmapped_clauses'];
       $answers += $group_answers;
@@ -120,10 +124,16 @@ final class SearchPlanner implements SearchPlannerInterface {
       }
     }
     if ($needs_review) {
-      $action = 'clarify';
-      $reason = 'The search decision needs clarification. Only local evidence was considered; describe the capability or gap more precisely.';
+      // Searching gathers evidence; it does not select or install a solution.
+      // Keep the chosen route and its review flag instead of turning any
+      // uncertain judgment into a veto of all ecosystem discovery.
+      $reason = match ($route->getChoice()) {
+        'local' => 'Jev preferred inspecting local site/core configuration, with uncertainty. External catalogs were not queried. Ask to compare ecosystem options if you want them included.',
+        'search' => 'Jev preferred an ecosystem search, with uncertainty. The selected capability terms were searched to gather evidence; review the candidates before choosing an implementation.',
+        default => 'Jev selected clarification before searching. External catalogs were not queried; describe the capability or gap more precisely.',
+      };
     }
-    elseif ($action === 'search' && !$capabilities) {
+    if ($action === 'search' && !$capabilities) {
       $action = 'clarify';
       $needs_review = TRUE;
       $reason = 'An ecosystem search may help, but the brief needs a clearer public capability term before searching.';

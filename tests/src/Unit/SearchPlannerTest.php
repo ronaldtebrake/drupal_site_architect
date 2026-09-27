@@ -198,19 +198,81 @@ final class SearchPlannerTest extends UnitTestCase {
   }
 
   /**
-   * Uncertain routing cannot trigger an external query.
+   * A selected read-only search gathers evidence while retaining uncertainty.
    */
-  public function testUncertainRouteRequiresClarification(): void {
+  public function testUncertainSearchRetainsReviewFlag(): void {
     $client = $this->createMock(DecisionClientInterface::class);
     $client->method('decide')->willReturnCallback(function ($input) {
       $answers = $this->response($input, 'search', ['events'])->getAnswers();
-      $answers['ecosystem_search'] = new ChoiceAnswer('search', ['search' => 0.6, 'local' => 0.4, 'clarify' => 0.0], 0.2);
+      if (isset($answers['ecosystem_search'])) {
+        $answers['ecosystem_search'] = new ChoiceAnswer('search', ['search' => 0.79, 'local' => 0.15, 'clarify' => 0.06], 0.69);
+      }
       return new DecisionResponse($answers);
     });
     $plan = (new SearchPlanner($client))->plan('Maybe events.', []);
-    $this->assertSame('clarify', $plan['action']);
-    $this->assertSame([], $plan['queries']);
+    $this->assertSame('search', $plan['action']);
+    $this->assertSame(['event'], $plan['queries']);
     $this->assertTrue($plan['needs_review']);
+    $this->assertStringContainsString('Jev preferred an ecosystem search', $plan['reason']);
+    $this->assertStringContainsString('searched to gather evidence', $plan['reason']);
+  }
+
+  /**
+   * A review flag must not conceal the model's actual local-route choice.
+   */
+  public function testUncertainLocalRouteExplainsSkippedSearch(): void {
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->method('decide')->willReturnCallback(function ($input) {
+      $answers = $this->response($input, 'local', ['workshops'])->getAnswers();
+      if (isset($answers['ecosystem_search'])) {
+        $answers['ecosystem_search'] = new ChoiceAnswer('local', ['local' => 0.79, 'search' => 0.21, 'clarify' => 0.0], 0.67);
+      }
+      return new DecisionResponse($answers);
+    });
+    $plan = (new SearchPlanner($client))->plan('Reuse our workshops.', []);
+    $this->assertSame('local', $plan['action']);
+    $this->assertSame([], $plan['queries']);
+    $this->assertSame('local', $plan['answers']['ecosystem_search']['choice']);
+    $this->assertStringContainsString('Jev preferred inspecting local site/core configuration', $plan['reason']);
+    $this->assertStringContainsString('External catalogs were not queried', $plan['reason']);
+  }
+
+  /**
+   * Recognised relationship subjects survive uncertain detail ownership.
+   */
+  public function testUnassignedFeatureRetainsProvisionalSearch(): void {
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->method('decide')->willReturnCallback(function ($input) {
+      $answers = $this->response($input, 'search', ['events', 'groups'])->getAnswers();
+      if (isset($answers['scope_1'])) {
+        $answers['scope_1'] = new ChoiceAnswer('detail', ['work_area' => 0.02, 'detail' => 0.98, 'context' => 0.0], 0.98);
+      }
+      if (isset($answers['group_1'])) {
+        $options = $input->getQuestions()['group_1']->getOptionKeys();
+        $this->assertCount(2, $options, 'Only the proposed parent and separate are grouping options.');
+        $answers['group_1'] = new ChoiceAnswer('separate', [$options[0] => 0.4, 'separate' => 0.6], 0.2);
+      }
+      return new DecisionResponse($answers);
+    });
+    $plan = (new SearchPlanner($client))->plan('Manage events, placed in groups.', []);
+    $this->assertSame(['event', 'group'], $plan['queries']);
+    $this->assertSame([], $plan['unmapped_clauses']);
+    $groups = array_values($plan['capabilities'])[1];
+    $this->assertSame('placed in groups', $groups['source_text']);
+    $this->assertTrue($groups['grouping_needs_review']);
+  }
+
+  /**
+   * Clarification and local-only decisions still make no external queries.
+   */
+  public function testClarifyAndLocalRoutesArePreserved(): void {
+    foreach (['clarify', 'local'] as $route) {
+      $client = $this->createMock(DecisionClientInterface::class);
+      $client->method('decide')->willReturnCallback(fn ($input) => $this->response($input, $route, ['events']));
+      $plan = (new SearchPlanner($client))->plan('Plan events using only the current site. Do not search external catalogs.', []);
+      $this->assertSame($route, $plan['action']);
+      $this->assertSame([], $plan['queries']);
+    }
   }
 
   /**

@@ -42,6 +42,7 @@ final class ProjectBrowserCatalogSource implements CatalogSourceInterface {
       if ($id === 'recipes') {
         continue;
       }
+      $report_index = count($reports);
       try {
         $fetch_limit = max(24, $limit);
         $cached = $this->pages->query($source, [
@@ -115,6 +116,12 @@ final class ProjectBrowserCatalogSource implements CatalogSourceInterface {
         }
       }
       catch (\Throwable) {
+        $reports[$report_index] = array_replace($reports[$report_index] ?? [
+          'id' => $id,
+          'label' => (string) ($source->getPluginDefinition()['label'] ?? $id),
+          'matches' => NULL,
+          'truncated' => FALSE,
+        ], ['error' => 'The source could not be queried or its results could not be read.']);
         $warnings[] = 'Project Browser source ' . $id . ' could not be queried. Its absence is not evidence that no solution exists.';
       }
     }

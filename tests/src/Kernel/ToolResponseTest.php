@@ -122,4 +122,56 @@ final class ToolResponseTest extends KernelTestBase {
     $this->assertSame($expected, $texts->item(0)->textContent);
   }
 
+  /**
+   * Skipped searches, empty sources and source failures remain distinct.
+   */
+  public function testDiscoveryStatusIsVisible(): void {
+    $this->installEntitySchema('user');
+    $this->installSchema('user', ['users_data']);
+    $this->container->get('module_installer')->install(['site_architect']);
+    $this->container->get('theme_installer')->install(['stark']);
+    $this->config('system.theme')->set('default', 'stark')->save();
+    $assessment = [
+      'plan' => ['areas' => []],
+      'answers' => [],
+      'discovery' => ['searched_ecosystem' => FALSE],
+      'search_plan' => [
+        'action' => 'clarify',
+        'needs_review' => TRUE,
+        'answers' => [
+          'ecosystem_search' => [
+            'choice' => 'local',
+            'probabilities' => ['local' => 0.79],
+            'confidence' => 0.67,
+          ],
+        ],
+      ],
+    ];
+    $render = function ($assessment): string {
+      $build = ['#theme' => 'site_architect_result', '#assessment' => $assessment];
+      return (string) $this->container->get('renderer')->renderInIsolation($build);
+    };
+    $html = $render($assessment);
+    $this->assertStringContainsString('Ecosystem search not performed', $html);
+    $this->assertStringContainsString('Inspect local site/core configuration', $html);
+    $this->assertStringContainsString('79% · confidence 67%', $html);
+    $this->assertStringContainsString('No external catalog response was used', $html);
+    $assessment['discovery'] = [
+      'searched_ecosystem' => TRUE,
+      'warnings' => ['One source failed.'],
+      'sources' => [
+        ['label' => 'Working source', 'query' => 'workflow', 'matches' => 42, 'truncated' => TRUE],
+        ['label' => 'Empty source', 'query' => 'workflow', 'matches' => 0],
+        ['label' => 'Failed source', 'query' => 'workflow', 'matches' => NULL, 'error' => 'Unavailable.'],
+      ],
+    ];
+    $html = $render($assessment);
+    $this->assertStringContainsString('Ecosystem search performed', $html);
+    $this->assertStringContainsString('Results shortlisted', $html);
+    $this->assertStringContainsString('No matches returned', $html);
+    $this->assertStringContainsString('Source failed', $html);
+    $this->assertStringContainsString('<td>Unknown</td>', $html);
+    $this->assertLessThan(strpos($html, 'Plan each capability'), strpos($html, 'One source failed.'));
+  }
+
 }

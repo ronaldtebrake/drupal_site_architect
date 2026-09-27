@@ -170,6 +170,9 @@ final class ArchitectForm extends FormBase {
     catch (\UnexpectedValueException $e) {
       $form_state->set('architect_error', $this->t('The Decision provider returned an incomplete or inconsistent assessment. Please retry. No partial advice or site changes were produced.'));
       if ($e instanceof InvalidDecisionResponseException) {
+        if (isset($e->violations['choice_not_highest'])) {
+          $form_state->set('architect_error', $this->t('The Decision provider returned conflicting choices and scores, even after a targeted retry. Please retry the assessment. No partial advice or site changes were produced.'));
+        }
         $this->getLogger('site_architect')->warning('Assessment rejected after a targeted retry. Contract violation counts: @violations. No provider response was logged.', ['@violations' => json_encode($e->violations)]);
       }
       else {
