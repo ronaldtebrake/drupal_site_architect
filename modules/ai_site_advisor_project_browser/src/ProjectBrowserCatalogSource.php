@@ -21,6 +21,7 @@ final class ProjectBrowserCatalogSource implements CatalogSourceInterface {
   public function __construct(
     private readonly ProjectBrowserSourceManager $manager,
     private readonly ModuleHandlerInterface $modules,
+    private readonly CatalogPageCache $pages,
   ) {}
 
   /**
@@ -44,14 +45,25 @@ final class ProjectBrowserCatalogSource implements CatalogSourceInterface {
       }
       try {
         $fetch_limit = max(24, $limit);
-        $page = $source->getProjects(['search' => $query, 'page' => 0, 'limit' => $fetch_limit, 'categories' => '']);
+        $cached = $this->pages->query($source, [
+          'search' => $query,
+          'page' => 0,
+          'limit' => $fetch_limit,
+          'categories' => '',
+        ]);
+        $page = $cached['page'];
         $reports[] = [
           'id' => $id,
           'label' => $page->pluginLabel,
           'matches' => $page->totalResults,
           'truncated' => $page->totalResults > min($limit, count($page->list)),
           'error' => $page->error ? 'The source reported an error.' : NULL,
-          'freshness' => 'Source-managed caching; upstream fetch age may be unknown.',
+          'freshness' => 'Catalogue pages are reused for up to five minutes. Upstream sources may also cache results; their fetch age may be unknown. Local installation/enabled state is inspected again.',
+          'cache' => [
+            'hit' => $cached['hit'],
+            'stored_at' => gmdate(DATE_ATOM, $cached['stored_at']),
+            'max_age' => $cached['max_age'],
+          ],
         ];
         if ($page->error) {
           $warnings[] = 'Project Browser source ' . $id . ' reported an error; results may be incomplete.';

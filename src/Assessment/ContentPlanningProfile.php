@@ -12,7 +12,7 @@ use Drupal\ai_decision\Value\ChoiceQuestion;
  */
 final class ContentPlanningProfile {
 
-  public const VERSION = 'content-planning-v7';
+  public const VERSION = 'content-planning-v8';
 
   /**
    * Batches larger plans by evidence, retaining every question exactly once.
@@ -29,8 +29,10 @@ final class ContentPlanningProfile {
       return DecisionBatch::split($full);
     }
     $atoms = [$this->buildInput($brief, $site, [])];
-    // Candidate relevance needs its description and the full brief, not every
-    // other catalog result. A plan choice needs all its matching alternatives.
+    // Relevance needs a candidate's description and the complete brief/site.
+    // Do not repeat every alternative for each independent contribution score.
+    // Keep work areas separate: combining them can contaminate role judgments.
+    $selections = [];
     foreach ($recipes as $id => $recipe) {
       $input = $this->buildInput($brief, $site, [$id => $recipe]);
       $input->setQuestions(['recipe__' . $id => $input->getQuestions()['recipe__' . $id]]);
@@ -38,16 +40,33 @@ final class ContentPlanningProfile {
     }
     foreach ($capabilities as $id => $capability) {
       $matching = array_filter($recipes, static fn ($candidate) => !isset($candidate['matched_queries']) || in_array($capability['query'], $candidate['matched_queries'], TRUE));
-      $input = new DecisionInput(
+      $questions = CapabilityPlan::questions($site, $matching, [$id => $capability]);
+      foreach (CapabilityOptions::sources($site, $matching, $capability) as $option_id => $option) {
+        $key = 'role__' . $id . '__' . $option_id;
+        if (!isset($questions[$key])) {
+          continue;
+        }
+        $atoms[] = new DecisionInput([
+          'brief' => $brief,
+          'site' => $site,
+          'recipes' => isset($matching[$option_id]) ? [$option_id => $matching[$option_id]] : [],
+          'requirements' => [$id => $capability],
+        ], [$key => $questions[$key]]);
+        unset($questions[$key]);
+      }
+      // Competing selections retain all alternatives in their original scope.
+      $selections = array_merge($selections, DecisionBatch::split(new DecisionInput(
         ['brief' => $brief, 'site' => $site, 'recipes' => $matching, 'requirements' => [$id => $capability]],
-        CapabilityPlan::questions($site, $matching, [$id => $capability]),
-      );
-      $atoms[] = $input;
+        $questions,
+      )));
     }
     // Pack related evidence together without repeating global judgments or
     // forcing all catalog descriptions into every request.
     $inputs = $questions = $candidates = $requirements = [];
     foreach ($atoms as $atom) {
+      if (!$atom->getQuestions()) {
+        continue;
+      }
       $state = $atom->getState();
       $candidate = new DecisionInput([
         'brief' => $brief,
@@ -55,7 +74,8 @@ final class ContentPlanningProfile {
         'recipes' => $candidates + $state['recipes'],
         'requirements' => $requirements + $state['requirements'],
       ], $questions + $atom->getQuestions());
-      if ($questions && (DecisionBatch::bytes($candidate) > DecisionBatch::MAX_REQUEST_BYTES || count($candidate->getQuestions()) > 48)) {
+      $scope_changed = array_keys($requirements) !== array_keys($state['requirements']);
+      if ($questions && ($scope_changed || DecisionBatch::bytes($candidate) > DecisionBatch::MAX_REQUEST_BYTES || count($candidate->getQuestions()) > 48)) {
         $inputs = array_merge($inputs, DecisionBatch::split(new DecisionInput([
           'brief' => $brief,
           'site' => $site,
@@ -74,7 +94,7 @@ final class ContentPlanningProfile {
       'recipes' => $candidates,
       'requirements' => $requirements,
     ], $questions)));
-    return $inputs;
+    return array_merge($inputs, $selections);
   }
 
   /**

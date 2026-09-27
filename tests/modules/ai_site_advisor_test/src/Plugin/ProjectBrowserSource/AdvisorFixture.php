@@ -42,6 +42,7 @@ final class AdvisorFixture extends ProjectBrowserSourceBase {
    */
   public function getProjects(array $query = []): ProjectsResultsPage {
     \Drupal::state()->set('advisor_test.query', $query);
+    \Drupal::state()->set('advisor_test.calls', \Drupal::state()->get('advisor_test.calls', 0) + 1);
     if (\Drupal::state()->get('advisor_test.fail')) {
       throw new \RuntimeException('Private source credentials must not leak.');
     }
@@ -64,7 +65,7 @@ final class AdvisorFixture extends ProjectBrowserSourceBase {
         title: 'System',
         packageName: 'drupal/core',
       ),
-    ], 3);
+    ], 3, \Drupal::state()->get('advisor_test.error'));
   }
 
 }

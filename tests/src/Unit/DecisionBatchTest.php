@@ -151,6 +151,8 @@ final class DecisionBatchTest extends UnitTestCase {
     $this->assertSame(['broken' => $reason], $result['requests'][0]['rejected_answers']);
     $this->assertSame([], $result['requests'][1]['rejected_answers']);
     $this->assertSame(2, $result['requests'][1]['attempt']);
+    $this->assertGreaterThanOrEqual(0, $result['requests'][0]['elapsed_ms']);
+    $this->assertGreaterThanOrEqual(0, $result['requests'][1]['elapsed_ms']);
   }
 
   /**

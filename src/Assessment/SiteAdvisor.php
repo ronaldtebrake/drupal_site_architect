@@ -37,8 +37,15 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     if (mb_strlen($brief) < 10 || mb_strlen($brief) > BriefCapabilities::MAX_BRIEF_LENGTH) {
       throw new \InvalidArgumentException('Describe the requested content in 10 to 20,000 characters.');
     }
-    $started = microtime(TRUE);
+    $started = $stage_started = hrtime(TRUE);
+    $timings = [];
+    $mark = static function (string $stage) use (&$timings, &$stage_started): void {
+      $now = hrtime(TRUE);
+      $timings[$stage] = round(($now - $stage_started) / 1e6, 2);
+      $stage_started = $now;
+    };
     $site = $this->context->collect($account);
+    $mark('site_context');
     $search_plan = [
       'action' => 'unavailable',
       'query' => NULL,
@@ -59,6 +66,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
     elseif ($this->catalog->hasRemoteSources()) {
       $search_plan = $this->searchPlanner->plan($brief, $site);
     }
+    $mark('search_planning');
     $search = $search_plan['action'] === 'search';
     $queries = $search_plan['queries'] ?? ($search ? [$search_plan['query']] : []);
     $capabilities = $search_plan['capabilities'] ?? [];
@@ -76,7 +84,9 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       ? $this->catalog->discoverMany($queries, $account)
       : $this->catalog->discover($search ? $queries[0] : $brief, $account, 12, $search);
     $discovery['searched_ecosystem'] = $search;
+    $mark('catalog_discovery');
     $local = LocalModuleCandidates::discover($brief, $site['available_modules'] ?? [], $this->decision);
+    $mark('local_discovery');
     $recipes = $discovery['items'];
     // Prefer inspected local module identity over a duplicate catalog listing.
     // Recipes remain separate even when they configure one of these modules.
@@ -103,7 +113,9 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       $answers[$id]['criterion'] = $question->getCriteria()[$answer->getChoice()];
     }
     $plan = CapabilityPlan::build($site, $recipes, $capabilities, $answers);
+    $mark('assessment');
     $requirements = $this->requirementPlanner->plan($brief, $site, $plan);
+    $mark('requirement_planning');
     foreach ($plan['areas'] as $id => &$area) {
       $area['requirements'] = $requirements['areas'][$id] ?? [];
       $area['options'] = array_values(OptionRanking::forArea($area));
@@ -188,6 +200,7 @@ final class SiteAdvisor implements SiteAdvisorInterface {
         $usage[$key] = $value !== NULL && $planning_value !== NULL ? $value + $planning_value : NULL;
       }
     }
+    $mark('composition');
     return [
       'status' => $needs_review ? 'needs_clarification' : 'assessed',
       'summary' => $summary,
@@ -205,7 +218,8 @@ final class SiteAdvisor implements SiteAdvisorInterface {
       'search_plan' => $search_plan,
       'requirement_plan' => $requirements,
       'plan' => $plan,
-      'elapsed_ms' => (int) round((microtime(TRUE) - $started) * 1000),
+      'elapsed_ms' => (int) round((hrtime(TRUE) - $started) / 1e6),
+      'timings_ms' => $timings,
       'site' => $site,
       'recipes' => $recipes,
       'candidates' => $recipes,

@@ -139,6 +139,13 @@ final class CatalogIntegrationTest extends KernelTestBase {
     $this->assertSame('enabled_module', $items['drupal/core']['availability']);
     $this->assertTrue($result['truncated']);
     $this->assertSame('workflow', $this->container->get('state')->get('advisor_test.query')['search']);
+    $cached = $catalog->discover('workflow', $this->account());
+    $this->assertSame(1, $this->container->get('state')->get('advisor_test.calls'));
+    $this->assertSame($result['items'], $cached['items']);
+    $this->assertFalse(end($result['sources'])['cache']['hit']);
+    $this->assertTrue(end($cached['sources'])['cache']['hit']);
+    // The ordinary Project Browser refresh tag also refreshes our pages.
+    $this->container->get('cache_tags.invalidator')->invalidateTags(['project_browser:advisor_fixture']);
     $this->container->get('state')->set('advisor_test.fail', TRUE);
     $partial = $catalog->discover('workflow', $this->account());
     $this->assertNotEmpty($partial['items'], 'Local discovery survives a Project Browser source failure.');

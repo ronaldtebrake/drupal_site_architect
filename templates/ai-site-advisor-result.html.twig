@@ -127,6 +127,7 @@
     <p>{{ 'Provider-reported usage'|t }}: {{ assessment.usage.input ?? '—' }} {{ 'input tokens'|t }} · {{ assessment.usage.output ?? '—' }} {{ 'output tokens'|t }}. {{ 'Provider caching may reuse a previous response and its usage figures. These are not a measurement of this call’s billed cost.'|t }}</p>
     <details><summary>{{ 'Search decision and selected term'|t }}</summary><pre>{{ assessment.search_plan|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
     <details><summary>{{ 'Usage by stage'|t }}</summary><pre>{{ assessment.usage_by_stage|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
+    <details><summary>{{ 'Time by stage (milliseconds)'|t }}</summary><pre>{{ assessment.timings_ms|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
     <details><summary>{{ 'Requests and usage within each stage'|t }}</summary><pre>{{ assessment.requests_by_stage|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>
     <p>{{ 'The module defines the questions and possible answers. Jev supplies judgments; displayed criteria are not generated explanations.'|t }}</p>
     {% for id, question in assessment.questions %}<details><summary>{{ id }} → {{ assessment.answers[id].choice }}</summary><p>{{ question.instructions }}</p><pre>{{ question.criteria|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre><pre>{{ assessment.answers[id]|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre></details>{% endfor %}

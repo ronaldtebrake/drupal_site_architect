@@ -605,6 +605,10 @@ the assessment.
 Candidate relevance needs its source description; a work-area choice sees the
 matching candidates and the complete brief. Evidence is repacked when a full
 plan would exceed the per-request limit, without dropping questions or candidates.
+Large plans group independent contribution questions with the candidates they
+actually inspect, keeping each work area's complete source text separate. A
+starting-point selection still sees all its alternatives. The full brief, site
+evidence, question wording and validation policy are retained.
 Independent `role__<work-area>__<option>` questions assess potential contributions
 within that work area. They run in the assessment stage and increase reported
 usage; the starting-point distribution is not reused as a relevance score.
@@ -628,11 +632,23 @@ The page presents site reuse within each work area's plan and configuration
 links. There is no separate "What the advisor can see" panel or extra site scan
 when the form rebuilds. Removing that panel does not narrow assessment evidence.
 
-Evidence is collected afresh; the adviser does not cache assessments. The
-provider may cache its own responses, including their usage metadata. Reported tokens are **not necessarily
+Site evidence and local recipe files are inspected afresh; the adviser does not
+cache assessments. The optional Project Browser adapter reuses successful
+catalogue pages for up to five minutes, scoped by source configuration, query,
+account/permissions, language and Composer lockfile. Source refresh tags and
+changes to enabled sources/modules invalidate these entries. Package availability
+is checked again when mapping results. Failures are not cached. Discovery reports
+include cache hit, stored time and lifetime; upstream fetch age may still be unknown.
+The provider may cache its own responses, including their usage metadata. Reported tokens are **not necessarily
 newly billed tokens for this call**, and elapsed time is not a full agent-task
 measurement. Unknown usage remains `null`; cached-input/billing breakdown is not
 available through this response contract.
+
+The full result exposes `timings_ms` for site inspection, search planning,
+catalogue discovery, local screening, scoring, requirement checks and composition.
+Each provider attempt has `elapsed_ms`, including targeted retries. These timings
+also appear under the UI's expandable evidence. See [performance checks and
+measurements](docs/performance.md) for the observed gains and quality limits.
 
 These are module resource limits, not claims about Jev's context window:
 

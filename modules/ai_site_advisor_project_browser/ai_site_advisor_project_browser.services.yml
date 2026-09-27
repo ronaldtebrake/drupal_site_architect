@@ -1,6 +1,9 @@
 services:
   ai_site_advisor.project_browser_source:
     class: Drupal\ai_site_advisor_project_browser\ProjectBrowserCatalogSource
-    arguments: ['@Drupal\project_browser\Plugin\ProjectBrowserSourceManager', '@module_handler']
+    arguments: ['@Drupal\project_browser\Plugin\ProjectBrowserSourceManager', '@module_handler', '@ai_site_advisor.project_browser_pages']
     tags:
       - { name: ai_site_advisor.catalog_source }
+  ai_site_advisor.project_browser_pages:
+    class: Drupal\ai_site_advisor_project_browser\CatalogPageCache
+    arguments: ['@cache.default', '@datetime.time', '@cache_contexts_manager']

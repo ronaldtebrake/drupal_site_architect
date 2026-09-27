@@ -63,7 +63,9 @@ final class DecisionBatch {
       // Keep successful answers. Retry only malformed/missing answers once,
       // with exactly the same evidence and criteria, never invented scores.
       for ($attempt = 1; $attempt <= 2; $attempt++) {
+        $started = hrtime(TRUE);
         $response = $client->decide($input);
+        $elapsed_ms = (hrtime(TRUE) - $started) / 1e6;
         $rejected = [];
         foreach ($input->getQuestions() as $id => $question) {
           try {
@@ -91,6 +93,7 @@ final class DecisionBatch {
           'candidate_ids' => is_array($state) ? array_keys($state['recipes'] ?? []) : [],
           'requirement_ids' => is_array($state) ? array_keys($state['requirements'] ?? []) : [],
           'bytes' => self::bytes($input),
+          'elapsed_ms' => round($elapsed_ms, 2),
           'usage' => $request_usage,
           'attempt' => $attempt,
           'rejected_answers' => $rejected,

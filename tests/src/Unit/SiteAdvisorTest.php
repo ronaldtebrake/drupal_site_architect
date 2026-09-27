@@ -96,6 +96,11 @@ final class SiteAdvisorTest extends UnitTestCase {
     $this->assertSame('Start with existing content: Workshop.', $result['summary']);
     $this->assertNull($result['usage']['input']);
     $this->assertArrayHasKey('bundle__workshop', $result['questions']);
+    $this->assertSame([
+      'site_context', 'search_planning', 'catalog_discovery', 'local_discovery',
+      'assessment', 'requirement_planning', 'composition',
+    ], array_keys($result['timings_ms']));
+    $this->assertEqualsWithDelta($result['elapsed_ms'], array_sum($result['timings_ms']), 2);
   }
 
   /**
