@@ -156,3 +156,9 @@ Adjust `contrib` to `custom` as needed. Tests use an isolated SQLite database,
 real local manifests and a fixture Project Browser source. They make no external
 catalogue or inference requests and require no API key. See
 [VALIDATION.md](../VALIDATION.md) for verified behavior and live MCP/browser checks.
+
+Keep one-off diagnostics outside the module checkout. Put reusable regression
+checks in `tests/` and record live verification results in `VALIDATION.md`.
+The module's `/tmp/` and `/artifacts/` directories are ignored; neither is needed
+to install or test the product. The documented comparison and animation scripts
+under `docs/` are retained to reproduce the published examples.

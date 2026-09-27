@@ -18,10 +18,9 @@ or configuration. Scores guide review; they do not prove compatibility.
 MCP, OAuth and a small starter tool catalog. Site Architect adds two Tool API
 tools: **discover Drupal candidates** and **assess a feature brief**.
 
-Composer downloads that base and the planning dependencies together. Applying
-the recipe configures the connection; enabling Site Architect registers the
-planning tools. Site Architect keeps direct dependencies on the APIs it uses.
-No upstream project is forked or copied.
+Composer downloads the base and planning dependencies together. Apply the recipe,
+enable Site Architect, then finish OAuth setup for external agents. The Drupal UI
+and agent tools use the same planning service. No upstream project is forked.
 
 ## Install
 
@@ -50,6 +49,10 @@ current upstream packaging metadata. Stability settings apply to the whole
 site. [Installation details and existing-site upgrades](docs/installation.md)
 explain these requirements and the recipe path.
 
+On existing installations, also run `vendor/bin/drush updatedb -y` and
+`vendor/bin/drush cr` after updating. This repairs a missing planning scope if
+Agent Access was applied after Site Architect.
+
 ## Configure and use
 
 1. Add the TypeSafe API key through **Key**, select it at
@@ -73,11 +76,17 @@ with your existing tools. Planning policy lives at `/admin/config/ai/site-archit
 
 ## Use it from an agent
 
-Finish [Agent Access's OAuth setup](docs/agent-access.md): generate keys, grant
-the account the required permissions, and connect the agent to
-`https://your-site.example/mcp`. For planning, request the scopes
+Finish [the OAuth setup](docs/agent-access.md): generate keys outside the web root
+and use a dedicated Drupal account with `grant simple_oauth codes`,
+`access mcp server` and `access site architect`. OAuth scopes limit the approved
+connection; the account must also have permission to execute each tool.
+
+Connect an OAuth-capable agent to `https://your-site.example/mcp`, sign in and
+approve the requested access. For planning, request the scopes
 `drupal:mcp:connect` and **`drupal:site-architect:plan`**. Add
 `drupal:content:read` if using Agent Access's starter content tools too.
+Site Architect registers its planning scope automatically. The endpoint must be
+reachable by the agent; a local development hostname only works for local clients.
 
 | MCP tool | Input | Result |
 | --- | --- | --- |

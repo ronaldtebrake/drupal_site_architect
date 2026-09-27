@@ -1,5 +1,24 @@
 # Validation record
 
+## Documentation and scratch cleanup (27 September 2026)
+
+The README now makes the OAuth account permissions, approval flow, planning
+scopes, endpoint reachability and existing-site update step explicit. Detailed
+setup remains in the linked installation and Agent Access guides.
+
+Removed local one-off PHP/Python/JavaScript diagnostics and migration helpers,
+transient discovery captures, the copied upstream checkout and the duplicate
+standalone Drupal test installation. Those files were outside this module's Git
+repository. Published demo media, comparison tooling/evidence, migration
+receipts, rollback backups and the active OAuth keys were preserved. Ignore
+rules prevent module-local scratch directories from being added accidentally.
+
+The full suite passed using the main Drupal project's development dependencies:
+**82 tests / 5,315 assertions**. The duplicate installation is not needed to run
+the maintained tests. Documentation links and Git whitespace checks passed;
+after cleanup the live site bootstrapped successfully and OAuth metadata still
+advertised the planning scope at the correct HTTPS origin.
+
 ## Shared demo: Agent Access and OAuth activated (27 September 2026)
 
 After explicit approval, applied Agent Access **1.0.0-alpha2** to the shared

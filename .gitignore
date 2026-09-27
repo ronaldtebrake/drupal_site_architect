@@ -3,3 +3,7 @@
 /composer.lock
 /.idea/
 .DS_Store
+
+# Local diagnostics and generated test data do not belong in the module.
+/tmp/
+/artifacts/
