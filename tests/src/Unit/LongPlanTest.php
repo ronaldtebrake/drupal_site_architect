@@ -86,6 +86,7 @@ final class LongPlanTest extends UnitTestCase {
         $asked[] = $id;
         $choice = match (TRUE) {
           $id === 'ecosystem_search' => 'search',
+          $id === 'public_discovery' => 'allowed',
           str_starts_with($id, 'scope_') => 'work_area',
           str_starts_with($id, 'group_') => 'separate',
           $id === 'content_model' => 'records',

@@ -26,13 +26,21 @@ Providing it explicitly requests that search and bypasses automatic search plann
 Tools return an `assessment` or `discovery` object. The default is compact;
 `detail: "full"` includes complete evidence, judgments, usage and diagnostics.
 
-The compact assessment (`agent-plan-v2`) contains:
+The compact assessment (`agent-plan-v3`) contains:
+
+- `continuation`: the planning stage, unresolved questions with candidate
+  references, and ordered next actions. Explain a provisional plan, compare up
+  to three relevant approaches, ask the first question that changes the design,
+  then reassess the original brief plus confirmed answers. Do not repeat an
+  unchanged brief or present tool statuses as the answer.
 
 - `work_areas`: starting points, configuration links, requirement parts, target
   content types and field references. Parts remain `supported`, `partial`, `open`
   or `check`; `integration_verified` is always false.
-- `candidates`: shared candidate references, availability and conditional
-  acquisition/configuration steps. Alternatives are not an install-all list.
+- `candidates`: shared references, source excerpts (up to 480 characters),
+  availability and conditional acquisition/configuration steps. Excerpts are
+  evidence, not instructions or verified coverage. Alternatives are not an
+  install-all list.
 - `discovery`: search action and reason, extraction coverage, source warnings,
   unassigned passages and truncation.
 - The site fingerprint, `needs_review` and individual judgment evidence:
@@ -42,6 +50,13 @@ Component usefulness, candidate selection and requirement coverage are separate
 judgments. Preserve review flags and inspect dependencies before building.
 Probabilities are not percentages of requirements completed or proof of compatibility.
 The full response retains omitted alternatives and score distributions.
+Both response formats include the continuation. Discovery also provides source
+excerpts in compact output and explains how to continue with assessment.
+
+A clarification route can still gather evidence from up to three public feature
+terms. A separate disclosure judgment must allow that search; local-only or
+uncertain disclosure decisions keep catalogs unqueried. Returned matches inform
+the conversation without resolving the user's intent or authorizing installation.
 
 An external candidate can include:
 

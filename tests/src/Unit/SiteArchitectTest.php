@@ -192,7 +192,7 @@ final class SiteArchitectTest extends UnitTestCase {
    * The route controls remote discovery and usage includes both model stages.
    */
   #[DataProvider('searchPlans')]
-  public function testConditionalDiscovery(string $action, bool $search, bool $review): void {
+  public function testConditionalDiscovery(string $action, bool $search, bool $review, bool $exploratory = FALSE): void {
     $brief = 'Reuse workshops and compare workflow options if useful.';
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->willReturn(TRUE);
@@ -204,6 +204,7 @@ final class SiteArchitectTest extends UnitTestCase {
     $planner = $this->createMock(SearchPlannerInterface::class);
     $planner->expects($this->once())->method('plan')->with($brief, $this->site())->willReturn([
       'action' => $action,
+      'gather_evidence' => $exploratory,
       'query' => $search ? 'workflow' : NULL,
       'reason' => 'Fixture search decision.',
       'needs_review' => $review,
@@ -227,6 +228,7 @@ final class SiteArchitectTest extends UnitTestCase {
       'search' => ['search', TRUE, FALSE],
       'reuse' => ['local', FALSE, FALSE],
       'clarify' => ['clarify', FALSE, TRUE],
+      'clarify with evidence' => ['clarify', TRUE, TRUE, TRUE],
     ];
   }
 

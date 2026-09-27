@@ -73,8 +73,10 @@ final class ToolResponseTest extends KernelTestBase {
         }
         $this->assertTrue($tool->getResult()->isSuccess());
         $result = $tool->getOutputValue($output);
+        $this->assertArrayHasKey('continuation', $result);
+        $this->assertNotEmpty($result['continuation']['next_actions']);
         if ($detail === 'full') {
-          $this->assertSame($full, $result);
+          $this->assertSame($full, array_diff_key($result, ['continuation' => TRUE]));
         }
         else {
           $this->assertSame('compact', $result['format']);

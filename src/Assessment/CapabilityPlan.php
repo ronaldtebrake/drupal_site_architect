@@ -89,6 +89,7 @@ final class CapabilityPlan {
         'criterion' => $answer['criterion'],
         'needs_review' => $review,
         'check' => self::CHECKS[$answers['check__' . $id]['choice']],
+        'check_kind' => $answers['check__' . $id]['choice'],
         'check_needs_review' => $answers['check__' . $id]['needs_review'],
         'probabilities' => $answer['probabilities'],
       ];

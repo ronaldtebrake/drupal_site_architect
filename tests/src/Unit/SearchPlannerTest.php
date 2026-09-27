@@ -23,10 +23,13 @@ final class SearchPlannerTest extends UnitTestCase {
   /**
    * Builds complete fixture answers from supplied source phrases.
    */
-  private function response(DecisionInput $input, string $route, array $selected = []): DecisionResponse {
+  private function response(DecisionInput $input, string $route, array $selected = [], string $permission = 'allowed'): DecisionResponse {
     $answers = [];
     foreach ($input->getQuestions() as $id => $question) {
       $choice = $id === 'ecosystem_search' ? $route : 'none';
+      if ($id === 'public_discovery') {
+        $choice = $permission;
+      }
       if (str_starts_with($id, 'scope_')) {
         $choice = 'work_area';
       }
@@ -78,7 +81,7 @@ final class SearchPlannerTest extends UnitTestCase {
     $client->method('decide')->willReturnCallback(static function (DecisionInput $input): DecisionResponse {
       $answers = [];
       foreach ($input->getQuestions() as $id => $question) {
-        $choice = 'search';
+        $choice = $id === 'public_discovery' ? 'allowed' : 'search';
         if (str_starts_with($id, 'capability_')) {
           $phrase = $id === 'capability_0' ? 'equipment' : 'serial number';
           $choice = array_search($phrase, $question->getCriteria(), TRUE) ?: 'none';
@@ -263,16 +266,52 @@ final class SearchPlannerTest extends UnitTestCase {
   }
 
   /**
-   * Clarification and local-only decisions still make no external queries.
+   * Restricted briefs never query catalogs, including conflicting route votes.
    */
   public function testClarifyAndLocalRoutesArePreserved(): void {
-    foreach (['clarify', 'local'] as $route) {
+    foreach (['search', 'clarify', 'local'] as $route) {
       $client = $this->createMock(DecisionClientInterface::class);
-      $client->method('decide')->willReturnCallback(fn ($input) => $this->response($input, $route, ['events']));
+      $client->method('decide')->willReturnCallback(fn ($input) => $this->response($input, $route, ['events'], 'restricted'));
       $plan = (new SearchPlanner($client))->plan('Plan events using only the current site. Do not search external catalogs.', []);
-      $this->assertSame($route, $plan['action']);
+      $this->assertSame($route === 'search' ? 'clarify' : $route, $plan['action']);
       $this->assertSame([], $plan['queries']);
+      $this->assertFalse($plan['gather_evidence']);
     }
+  }
+
+  /**
+   * Public evidence can support clarification without choosing an approach.
+   */
+  public function testClarificationGathersBoundedPublicEvidence(): void {
+    $client = $this->createMock(DecisionClientInterface::class);
+    $features = ['equipment', 'booking', 'notification', 'translation'];
+    $client->method('decide')->willReturnCallback(fn ($input) => $this->response($input, 'clarify', $features));
+    $plan = (new SearchPlanner($client))->plan('Equipment. Booking. Notification. Translation.', []);
+    $this->assertSame('clarify', $plan['action']);
+    $this->assertTrue($plan['needs_review']);
+    $this->assertTrue($plan['gather_evidence']);
+    $this->assertSame(['equipment', 'booking', 'notification'], $plan['queries']);
+    $this->assertTrue($plan['exploratory_queries_truncated']);
+    $this->assertCount(4, $plan['capabilities'], 'Unsearched requirements must remain in the plan.');
+    $this->assertSame('clarify', $plan['answers']['ecosystem_search']['choice']);
+  }
+
+  /**
+   * Uncertain disclosure is not authority to send terms to a public catalog.
+   */
+  public function testUncertainDisclosureStopsSearch(): void {
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->method('decide')->willReturnCallback(function ($input) {
+      $answers = $this->response($input, 'clarify', ['equipment'])->getAnswers();
+      if (isset($answers['public_discovery'])) {
+        $distribution = ['allowed' => 0.6, 'restricted' => 0.2, 'unclear' => 0.2];
+        $answers['public_discovery'] = new ChoiceAnswer('allowed', $distribution, 0.4);
+      }
+      return new DecisionResponse($answers);
+    });
+    $plan = (new SearchPlanner($client))->plan('Manage equipment for a confidential project.', []);
+    $this->assertFalse($plan['gather_evidence']);
+    $this->assertSame([], $plan['queries']);
   }
 
   /**

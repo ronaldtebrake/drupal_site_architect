@@ -25,7 +25,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 #[Tool(
   id: 'site_architect:assess_content_brief',
   label: new TranslatableMarkup('Assess a Drupal content brief'),
-  description: new TranslatableMarkup('Send the original brief before building or extending a Drupal site. Discovers relevant local capabilities and ecosystem projects. Returns a compact scored plan: work areas, existing configuration and field references, candidate building blocks, selected probabilities and confidence, open decisions and conditional Composer steps. Contribution, selection and coverage are separate judgments; preserve review flags. Choose among alternatives; do not install them all. Inspect dependencies and compatibility before implementing with other tools. Use detail="full" for complete source evidence, score distributions and diagnostics; it can be very large and performs a fresh assessment. Compact output reduces response size, not internal inference work. No site changes are made.'),
+  description: new TranslatableMarkup('Start a Drupal planning conversation from the original user brief. Returns scored building blocks, source excerpts, configuration pointers and a continuation with decisions and next actions. Present a connected provisional plan, compare up to three relevant approaches, then ask the first question that changes the design. Continue with the original brief plus confirmed answers. Ambiguity may trigger a bounded public catalog lookup to inform the conversation; it does not establish an implementation. Preserve uncertainty and inspect compatibility before building. Use detail="full" for complete evidence and diagnostics; this performs a fresh assessment. No site changes are made.'),
   operation: ToolOperation::Explain,
   input_definitions: [
     'brief' => new InputDefinition(
@@ -71,10 +71,14 @@ final class AssessContentBrief extends ToolBase {
   protected function doExecute(array $values): ExecutableResult {
     // The service repeats access checks even if a caller skips tool->access().
     $result = $this->architect->assess($values['brief'], $this->currentUser, $values['catalog_query'] ?? '');
+    $compact = AgentPlan::compact($result);
     if (($values['detail'] ?? 'compact') === 'compact') {
-      $result = AgentPlan::compact($result);
+      $result = $compact;
     }
-    return ExecutableResult::success(new TranslatableMarkup('Planning handoff ready. Choose the parts to use, inspect dependencies, and validate before building.'), ['assessment' => $result]);
+    else {
+      $result['continuation'] = $compact['continuation'];
+    }
+    return ExecutableResult::success(new TranslatableMarkup('Continue planning using continuation: explain the evidence-backed options, resolve the next decision, and refine the brief before building.'), ['assessment' => $result]);
   }
 
   /**

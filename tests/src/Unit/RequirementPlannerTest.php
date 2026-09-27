@@ -123,7 +123,7 @@ final class RequirementPlannerTest extends UnitTestCase {
       ],
     ];
     $compact = AgentPlan::compact($assessment);
-    $this->assertSame('agent-plan-v2', $compact['schema_version']);
+    $this->assertSame('agent-plan-v3', $compact['schema_version']);
     $area = $compact['work_areas'][0];
     $this->assertSame('undecided', $area['starting_point']['kind']);
     $this->assertCount(5, $area['parts']);

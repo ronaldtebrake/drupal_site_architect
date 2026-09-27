@@ -67,7 +67,7 @@ final class SiteArchitect implements SiteArchitectInterface {
       $search_plan = $this->searchPlanner->plan($brief, $site);
     }
     $mark('search_planning');
-    $search = $search_plan['action'] === 'search';
+    $search = $search_plan['action'] === 'search' || ($search_plan['gather_evidence'] ?? FALSE);
     $queries = $search_plan['queries'] ?? ($search ? [$search_plan['query']] : []);
     $capabilities = $search_plan['capabilities'] ?? [];
     if (!$capabilities) {
@@ -84,6 +84,10 @@ final class SiteArchitect implements SiteArchitectInterface {
       ? $this->catalog->discoverMany($queries, $account)
       : $this->catalog->discover($search ? $queries[0] : $brief, $account, 12, $search);
     $discovery['searched_ecosystem'] = $search;
+    if ($search_plan['exploratory_queries_truncated'] ?? FALSE) {
+      $discovery['truncated'] = TRUE;
+      $discovery['warnings'][] = 'Exploratory discovery covered the first three public capability terms. Clarify the remaining work areas before further searches.';
+    }
     $mark('catalog_discovery');
     $local = LocalModuleCandidates::discover($brief, $site['available_modules'] ?? [], $this->decision);
     $mark('local_discovery');

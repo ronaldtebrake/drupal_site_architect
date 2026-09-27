@@ -97,7 +97,34 @@ final class AgentPlanTest extends UnitTestCase {
     $this->assertArrayNotHasKey('site', $compact);
     $this->assertArrayNotHasKey('questions', $compact);
     $this->assertArrayNotHasKey('description', $compact['candidates']['preferred']);
+    $this->assertSame(480, mb_strlen($compact['candidates']['preferred']['source_excerpt']));
+    $this->assertTrue($compact['candidates']['preferred']['excerpt_truncated']);
+    $this->assertSame('continue_planning', $compact['continuation']['stage']);
+    $this->assertStringContainsString('Requested capability', $compact['continuation']['decisions'][0]['question']);
+    $this->assertSame(['preferred', 'addition', 'second'], $compact['continuation']['decisions'][0]['candidate_refs']);
+    $this->assertSame(['present_plan', 'ask_user', 'reassess_after_answer'], array_column($compact['continuation']['next_actions'], 'action'));
     $this->assertLessThan(strlen(json_encode($assessment)) / 4, strlen(json_encode($compact)));
+
+    // A tentative vote can fall outside contribution-based shortlists. Its
+    // evidence must still be available, without silently recommending it.
+    $tentative = $assessment;
+    $tentative['plan']['areas']['first']['selection']['id'] = 'third';
+    $compact_tentative = AgentPlan::compact($tentative);
+    $this->assertArrayHasKey('third', $compact_tentative['candidates']);
+    $this->assertSame('undecided', $compact_tentative['work_areas'][0]['starting_point']['kind']);
+    $this->assertSame('third', $compact_tentative['continuation']['decisions'][0]['candidate_refs'][0]);
+    $this->assertSame(1, $compact_tentative['work_areas'][0]['other_package_options']);
+
+    // An uncertain check must not make the question assume a record model.
+    $uncertain_check = $assessment;
+    $uncertain_check['plan']['areas']['first']['check_kind'] = 'content';
+    $uncertain_check['plan']['areas']['first']['check_needs_review'] = TRUE;
+    $question = AgentPlan::compact($uncertain_check)['continuation']['decisions'][0]['question'];
+    $this->assertStringContainsString('What should someone be able to do', $question);
+    $uncertain_check['plan']['areas']['first']['check_kind'] = 'access';
+    $uncertain_check['plan']['areas']['first']['check_needs_review'] = FALSE;
+    $question = AgentPlan::compact($uncertain_check)['continuation']['decisions'][0]['question'];
+    $this->assertStringContainsString('Who should be able to view', $question);
 
     // An undecided work area must not disappear because no package was chosen.
     $assessment['plan']['areas']['first']['options'] = [];
@@ -125,6 +152,12 @@ final class AgentPlanTest extends UnitTestCase {
     $this->assertSame('existing_content_type', $first['starting_point']['kind']);
     $this->assertSame('node.type.fixture', $first['existing_configuration'][0]['config']);
     $this->assertSame($links, $first['existing_configuration'][0]['links']);
+    unset($assessment['plan']['areas']['second']);
+    $assessment['status'] = 'assessed';
+    $confirmed = AgentPlan::compact($assessment)['continuation'];
+    $this->assertSame('review_plan', $confirmed['stage']);
+    $this->assertSame([], $confirmed['decisions']);
+    $this->assertSame(['present_plan', 'inspect_before_building'], array_column($confirmed['next_actions'], 'action'));
   }
 
   /**
@@ -162,6 +195,21 @@ final class AgentPlanTest extends UnitTestCase {
     $this->assertSame(['sample' => $local], $discovery['items']);
     $this->assertSame(['Partial search.'], $discovery['warnings']);
     $this->assertTrue($discovery['truncated']);
+    $this->assertSame('compare_candidates', $discovery['continuation']['stage']);
+    $this->assertSame('fixture', $discovery['continuation']['next_actions'][1]['catalog_query_if_applicable']);
+  }
+
+  /**
+   * Excerpts stay bounded without manufacturing missing evidence.
+   */
+  public function testSourceExcerptsArePlainEvidence(): void {
+    $option = $this->option('sample', 'foundation', 0.9);
+    $option['description'] = '<p>Groups &amp; membership.</p>  <p>Separate access.</p>';
+    $candidate = AgentPlan::candidate($option);
+    $this->assertSame('Groups & membership. Separate access.', $candidate['source_excerpt']);
+    $this->assertFalse($candidate['excerpt_truncated']);
+    unset($option['description']);
+    $this->assertArrayNotHasKey('source_excerpt', AgentPlan::candidate($option));
   }
 
   /**

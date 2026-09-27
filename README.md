@@ -88,6 +88,8 @@ Site Architect registers its planning scope automatically.
 | `tool_api__site_architect_discover` | `{"query":"workflow"}` | Local and ecosystem candidates, without a model call. |
 
 Both default to compact output. Add `"detail":"full"` for the complete evidence.
+The response guides the agent through a provisional plan, unresolved questions
+and reassessment with the user's answers, using scored candidates and source evidence.
 [Tool contracts and examples](docs/tools.md) cover other callers, including
 WebMCP and ECA. They can use the same Tool API operations through their adapters.
 

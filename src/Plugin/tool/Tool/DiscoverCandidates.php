@@ -11,6 +11,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\site_architect\Context\CandidateCatalog;
 use Drupal\site_architect\Assessment\AgentPlan;
+use Drupal\site_architect\Assessment\PlanningContinuation;
 use Drupal\tool\Attribute\Tool;
 use Drupal\tool\ExecutableResult;
 use Drupal\tool\Tool\ToolBase;
@@ -71,7 +72,10 @@ final class DiscoverCandidates extends ToolBase {
     if (($values['detail'] ?? 'compact') === 'compact') {
       $result = AgentPlan::discovery($result);
     }
-    return ExecutableResult::success(new TranslatableMarkup('Discovery complete. Review scope and compatibility before choosing a solution.'), ['discovery' => $result]);
+    else {
+      $result['continuation'] = PlanningContinuation::discovery($result);
+    }
+    return ExecutableResult::success(new TranslatableMarkup('Use the candidate evidence to explain possible approaches, clarify the intended behavior, then assess the complete brief.'), ['discovery' => $result]);
   }
 
   /**

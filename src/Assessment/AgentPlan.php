@@ -58,6 +58,13 @@ final class AgentPlan {
       $destination = $area['handoff']['configuration_area'];
       $parts = [];
       $mentioned = $chosen;
+      // Even a weak starting-point vote needs its source evidence. Keeping it
+      // inspectable does not promote it to a confirmed recommendation.
+      $preference = $options[$area['selection']['id']] ?? NULL;
+      if (isset($preference['package'])) {
+        $candidates[$preference['id']] ??= self::candidate($preference);
+        $mentioned[$preference['id']] = $preference;
+      }
       foreach ($area['requirements']['parts'] ?? [] as $part) {
         if ($part['status'] === 'context') {
           continue;
@@ -114,9 +121,10 @@ final class AgentPlan {
     }
     return [
       'format' => 'compact',
-      'schema_version' => 'agent-plan-v2',
+      'schema_version' => 'agent-plan-v3',
       'status' => 'draft',
       'needs_review' => $assessment['status'] === 'needs_clarification',
+      'continuation' => PlanningContinuation::build($assessment, $areas, $candidates),
       'site_fingerprint' => $assessment['site']['fingerprint'] ?? NULL,
       'score_policy' => 'Probabilities and confidence use 0–1. Contribution, component selection and coverage are different judgments. Scores are not calibrated correctness or compatibility guarantees; preserve review flags.',
       'handoff' => [
@@ -128,6 +136,8 @@ final class AgentPlan {
       'candidates' => $candidates,
       'discovery' => [
         'searched_ecosystem' => $assessment['discovery']['searched_ecosystem'] ?? FALSE,
+        'exploratory' => $assessment['search_plan']['gather_evidence'] ?? FALSE,
+        'queries' => $assessment['search_plan']['queries'] ?? [],
         'action' => $assessment['search_plan']['action'] ?? NULL,
         'reason' => $assessment['search_plan']['reason'] ?? NULL,
         'search_choice' => isset($assessment['search_plan']['answers']['ecosystem_search'])
@@ -209,6 +219,11 @@ final class AgentPlan {
           : ($availability === 'enabled_module' ? 'Inspect and configure the enabled module.' : 'Enable the required module/submodules after checking their dependencies, then configure and integrate.'),
       ],
     ];
+    if (!empty($option['description'])) {
+      $description = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($option['description']), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+      $candidate['source_excerpt'] = mb_substr($description, 0, 480);
+      $candidate['excerpt_truncated'] = mb_strlen($description) > 480;
+    }
     if (isset($option['module_name'])) {
       $candidate['module_name'] = $option['module_name'];
       $candidate['core'] = $option['core'] ?? FALSE;
@@ -240,6 +255,7 @@ final class AgentPlan {
     return [
       'format' => 'compact',
       'query' => $discovery['query'],
+      'continuation' => PlanningContinuation::discovery($discovery),
       'items' => $items,
       'truncated' => $discovery['truncated'],
       'warnings' => $discovery['warnings'],

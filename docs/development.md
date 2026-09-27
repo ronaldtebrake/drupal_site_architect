@@ -9,14 +9,16 @@
    enabled contributed and custom modules are included.
 2. Divide the brief into source passages. Jev selects source phrases and groups
    details under work areas. Uncertain ownership remains provisional or unassigned.
-3. Choose local evidence, ecosystem discovery or clarification. A selected
-   read-only search still runs when uncertain, retaining its review flag.
+3. Choose local evidence, ecosystem discovery or clarification. A separate
+   disclosure judgment gates public keyword searches. Clarification can include
+   exploratory discovery for up to three terms without choosing an implementation.
 4. Discover local recipes and query enabled Project Browser sources. There are
    no hardcoded project recommendations or keyword-to-module mappings.
 5. Screen relevance, score starting points and independent contributions, then
    check requirement parts against candidate descriptions and actual fields.
-6. Compose the plan for the UI and compact agent handoff. The application writes
-   the guidance from typed judgments; Jev does not generate free-form plan prose.
+6. Compose the plan and an agent continuation with source excerpts, open decisions
+   and next actions. The calling agent explains the evidence and refines the brief
+   with the user; Jev supplies typed judgments, not free-form plan prose.
 
 Local manifests come from core recipes, Composer recipe packages, conventional
 recipe directories and configured extra roots. Scans reach two subdirectory levels.
@@ -77,8 +79,7 @@ Adjust `contrib` to `custom` if needed. Tests use isolated SQLite storage and
 fixture catalogs, with no provider key or external requests. Reusable checks
 belong in `tests/`; keep one-off diagnostics outside the repository.
 
-Verified: 82 PHP tests, 3 JavaScript tests, fresh installation, recipe-based
-OAuth setup, and live HTTPS MCP discovery/assessment with authorization-code
-S256 PKCE. Missing scope, missing permission and invalid tokens were rejected.
-External-client dynamic registration, refresh tokens and upstream revocation
-were not covered by that live check.
+Coverage includes fresh installation, recipe-based OAuth setup, planning
+continuations, disclosure restrictions and live native MCP assessment/discovery
+with authorization-code S256 PKCE. Missing scope, missing permission and invalid
+tokens were rejected. Refresh tokens and upstream revocation need further testing.
