@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What Jev adds — Drupal Site Architect</title>
+<style>
+:root{color-scheme:light;--ink:#16372e;--muted:#5c7169;--paper:#f4f5ef;--line:#d8e1d8;--green:#14654a;--purple:#6550a4;--amber:#956418}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 Arial,sans-serif}button,a{color:inherit}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid var(--purple);outline-offset:3px}
+.toolbar{max-width:1320px;margin:20px auto;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:0 24px}.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{border:1px solid var(--line);border-radius:24px;background:#fff;padding:9px 16px}.tabs button[aria-pressed=true]{background:var(--ink);color:white;border-color:var(--ink)}.toolbar a{font-size:14px}
+#poster{max-width:1320px;margin:0 auto;background:linear-gradient(145deg,#fafbf7,#f1f5ed);border:1px solid var(--line);border-radius:24px;padding:34px 42px 26px}.masthead{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;letter-spacing:.08em}.brand{letter-spacing:-.03em;font-size:22px}.brand svg{width:23px;height:27px;vertical-align:middle;margin-right:7px}.eyebrow{color:var(--muted);font-size:11px;text-transform:uppercase}
+h1{font-size:48px;letter-spacing:-.05em;line-height:1.06;margin:27px 0 10px;max-width:1050px}h1 span{color:var(--green)}.intro{font-size:18px;margin:0 0 23px;color:var(--muted)}.brief{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:15px}.brief h2{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px;color:var(--muted)}.brief p{margin:0;font-size:16px;line-height:1.45}.shared{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12px;margin:0 0 22px;color:var(--muted)}.shared strong{color:var(--ink)}.pill{background:#e7eee5;padding:5px 10px;border-radius:6px}.columns{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.column{background:#ffffffb0;border:1px solid var(--line);border-radius:16px;padding:20px}.column.scored{border-color:#adccb7;background:#f9fcf7}.column header{display:flex;align-items:start;justify-content:space-between;gap:12px;margin-bottom:17px}.column h2{font-size:24px;line-height:1.1;letter-spacing:-.04em;margin:0 0 6px}.column header p{font-size:13px;margin:0;color:var(--muted)}.badge{font-size:10px;letter-spacing:.06em;font-weight:700;padding:5px 8px;border-radius:5px;white-space:nowrap;background:#e9ece6;color:var(--muted)}.badge.jev{background:#ede7fb;color:var(--purple)}
+.step{min-height:153px;border-top:1px solid var(--line);padding:16px 0 10px}.step .need{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;display:flex;gap:8px;align-items:center}.num{display:inline-grid;place-items:center;background:#e9eee6;width:21px;height:21px;border-radius:50%;font-size:11px}.step h3{font-size:20px;letter-spacing:-.025em;line-height:1.22;margin:8px 0 6px;overflow-wrap:anywhere}.step p{font-size:14px;margin:0;color:var(--muted);line-height:1.4}.step .hint{font-size:11px;margin-top:9px;color:var(--muted)}.trace{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin:7px 0}.node{font-size:12px;border:1px solid #b7cbbb;border-radius:5px;background:#eef5eb;padding:4px 7px}.arrow{font-size:16px;color:#799781}.metric{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px;font-size:11px}.metric strong{color:var(--green)}.metric .review{color:var(--amber);background:#f8eedb;padding:2px 6px;border-radius:4px}.column-note{border-top:1px solid var(--line);padding-top:13px;margin:4px 0 0;font-size:13px;font-weight:700}.takeaway{margin-top:19px;display:grid;grid-template-columns:28px 1fr;gap:7px;font-size:17px;font-weight:700;align-items:start}.takeaway svg{width:23px;height:23px;color:var(--green);margin-top:1px}.takeaway p{margin:0}.caveat{margin:10px 0 0 35px;font-size:12px;color:var(--muted);max-width:1050px}.footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);margin-top:21px;padding-top:12px;font-size:10px;color:var(--muted)}
+.details{max-width:1320px;margin:20px auto 40px;padding:0 24px;color:var(--ink)}.details summary{cursor:pointer;font-weight:700}.details p{max-width:1000px}.details table{border-collapse:collapse;width:100%;font-size:13px;background:white}.details th,.details td{text-align:left;border:1px solid var(--line);padding:10px;vertical-align:top}.details pre{overflow:auto;padding:15px;background:#e9eee6;font-size:12px}.details a{color:var(--green)}
+body.export .toolbar,body.export .details{display:none}body.export #poster{width:1320px;max-width:none;border-radius:0;border:0;margin:0}
+@media(max-width:760px){#poster{margin:0 10px;padding:24px 18px}.masthead{gap:16px}.eyebrow{font-size:9px}h1{font-size:36px}.columns{grid-template-columns:1fr}.toolbar{align-items:start;flex-direction:column;padding:0 16px}.step{min-height:0;padding-bottom:17px}.footer{flex-direction:column;gap:4px}.shared{gap:5px}.caveat{margin-left:0}}
+</style>
+</head>
+<body>
+<nav class="toolbar" aria-label="Comparison cases"><div class="tabs" id="tabs"></div><a href="README.md">Method, findings and limitations ↗</a></nav>
+<main id="poster">
+  <div class="masthead"><div class="brand"><svg viewBox="0 0 24 28" aria-hidden="true"><path fill="currentColor" d="M12 1 23 7v14l-11 6L1 21V7zm0 4L5 9v10l7 4 7-4V9z"/><path stroke="currentColor" stroke-width="2" fill="none" d="m5 9 7 4 7-4m-7 4v10"/></svg>Drupal Site Architect</div><span class="eyebrow">Recorded comparison · Jev 1.13</span></div>
+  <h1>Same evidence.<br><span>A more connected plan.</span></h1>
+  <p class="intro" id="intro"></p>
+  <section class="brief"><h2>The brief · <span id="case-title"></span></h2><p id="brief"></p></section>
+  <div class="shared"><strong>Shared input</strong><span class="pill">Existing content types + fields</span><span class="pill">Core + enabled modules</span><span class="pill">Project Browser results</span><span id="count"></span></div>
+  <div class="columns">
+    <section class="column"><header><div><h2>Without Jev scoring</h2><p>Keyword-ranked evidence. No model calls.</p></div><span class="badge">BM25</span></header><div id="baseline"></div><p class="column-note">Builder chooses the roles, connections and gaps.</p></section>
+    <section class="column scored"><header><div><h2>With Jev scoring</h2><p>Typed judgments over the same evidence.</p></div><span class="badge jev">JEV</span></header><div id="scored"></div><p class="column-note">Builder reviews proposed connections and uncertainty.</p></section>
+  </div>
+  <div class="takeaway"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 5 5L20 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg><p id="takeaway"></p></div>
+  <p class="caveat" id="caveat"></p>
+  <footer class="footer"><span>Same snapshot and fixed catalog query. Editorial summaries of one recorded run per brief.</span><span>Not an LLM benchmark · Scores ≠ correctness · No site changes</span></footer>
+</main>
+<section class="details"><details><summary>Inspect the original passages, matches and judgments</summary><p>Both versions receive the same inspected configuration and catalog search. The baseline is a documented lexical algorithm, not another LLM. Jev also screens local modules. The normal app's automatic search planning is excluded from this experiment. Summary cards above are editorial explanations; the table below preserves every source sentence, including awkward or uncertain results.</p><div id="evidence"></div><p><a href="results.json">Download the recorded evidence and scores</a> · <a href="README.md">Read the complete comparison</a></p></details></section>
+<script>
+const DATA = /*__DATA__*/;
+const STORIES = {
+workshops:{
+ intro:'Finding the existing Workshop type is useful. Connecting it to a listing is the next step.',
+ rows:[
+  {part:1,need:'Store workshop details',left:'Inspect Workshop',leftText:'Its fields mention the date, location, capacity and description. Keyword matching already finds it.',right:'Reuse the Workshop fields',rightText:'The inspected types match the requested stored information.',metric:'coverage'},
+  {part:2,need:'Filter the listing by location',left:'Workshop ranks first again',leftText:'Filter and Options follow. Similar words do not identify which component builds the listing.',right:'Connect Views to the existing field',rightText:'Create a Workshop listing and configure its location filter.',nodes:['Views','Workshop','Location'],metric:'coverage'},
+  {part:3,need:'Share a visual layout',left:'Compare layout candidates',leftText:'Workshop, Layout Discovery and Layout Builder lead the lexical results.',right:'Keep the layout choice open',rightText:'Field Layout is a weak preference for this part. The overall Canvas-template choice is also uncertain.',metric:'selection'}
+ ],
+ takeaway:'The useful addition is Views → Workshop → location, with the unfinished work still visible.',
+ caveat:'Jev marked the listing partial. Neither version configured it or proved recurring scheduling. The date field alone is not evidence that recurrence works.'
+},
+translation:{
+ intro:'Matching “translation” is easy. Distinguishing content translation from interface text matters.',
+ rows:[
+  {part:0,need:'Translate existing article fields',left:'Inspect Article first',leftText:'Its title and body fields match the words. Translation-specific candidates follow.',right:'Start with core Content Translation',rightText:'Selected for translating article fields; its Language dependency and configuration still need inspection.',metric:'selection'},
+  {part:1,need:'Let readers switch language',left:'Interface Translation leads',leftText:'Its description mentions switching languages. That is not evidence of a working article switcher.',right:'An uncertain suggestion stays open',rightText:'Select translation was picked weakly. Its description concerns a Views filter; this does not establish a reader-facing switcher.',metric:'selection'},
+  {part:2,need:'Keep one article with translations',left:'A layout integration ranks first',leftText:'Layout Builder Asymmetric Translation leads this sentence’s keyword matches.',right:'Connect the need to Content Translation',rightText:'A useful direction, still marked partial. Enable languages and verify fields and navigation.',metric:'coverage'}
+ ],
+ takeaway:'Jev identifies the core capability, while the language-switching suggestion still needs correction.',
+ caveat:'This run is not a finished multilingual implementation. The weak switcher suggestion is retained here; probabilities do not certify a module’s suitability or compatibility.'
+},
+discussions:{
+ intro:'A discussion feature needs records, replies and delivery. “Email” alone does not describe the behavior.',
+ rows:[
+  {part:0,need:'Store a topic title and body',left:'Inspect the existing Article type',leftText:'Its title and body match. The builder still needs to decide whether articles should become discussion topics.',right:'Treat Article as a partial starting point',rightText:'The fields are useful evidence; the model does not confirm the whole discussion model.',metric:'coverage'},
+  {part:1,need:'Add threaded replies',left:'Comment already ranks first',leftText:'This is a good keyword match. No scoring is needed to find the obvious candidate.',right:'Use Comment as a supporting part',rightText:'Threading, attachment to the chosen record type and access still need configuration and testing.',metric:'coverage'},
+  {part:2,need:'Subscribe and email on replies',left:'Account-change email recipes lead',leftText:'The first three hits concern email, role or password changes. Their shared words do not establish reply subscriptions.',right:'Investigate Notification System',rightText:'Its contribution is judged partial, but the candidate choice is weak. Compare alternatives and verify triggers, subscribers and delivery.',metric:'selection'}
+ ],
+ takeaway:'Jev separates the jobs of the components. It does not prove that the combination works.',
+ caveat:'Notification System is a candidate to investigate, not a confirmed recommendation. The overall starting point is also under review. Both versions found Article and Comment.'
+}
+};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct=n=>Math.round(n*100)+'%';
+function metric(part,kind){const j=part[kind];if(!j)return '';const prob=j.probabilities[j.choice];const label=kind==='selection'?'Candidate choice':'P('+j.choice+' coverage)';return '<div class="metric"><strong>'+esc(label)+' '+pct(prob)+'</strong><span>confidence '+pct(j.confidence)+'</span>'+(part.needs_review?'<span class="review">Review needed</span>':'')+'</div>'}
+function render(id){
+ const c=DATA.cases.find(c=>c.id===id);if(!c)throw new Error('Unknown case');const s=STORIES[id];
+ $('intro').textContent=s.intro;$('case-title').textContent=c.label;$('brief').textContent=c.brief;$('count').textContent=c.pool.length+' candidates before semantic screening';
+ $('takeaway').textContent=s.takeaway;$('caveat').textContent=s.caveat;
+ $('baseline').innerHTML=s.rows.map((r,i)=>'<article class="step"><div class="need"><span class="num">'+(i+1)+'</span>'+esc(r.need)+'</div><h3>'+esc(r.left)+'</h3><p>'+esc(r.leftText)+'</p><div class="hint">Top keyword match: '+esc(c.baseline.rankings[r.part].candidates[0]?.label||'None')+'</div></article>').join('');
+ $('scored').innerHTML=s.rows.map((r,i)=>{const p=c.jev.parts[r.part];return '<article class="step"><div class="need"><span class="num">'+(i+1)+'</span>'+esc(r.need)+'</div><h3>'+esc(r.right)+'</h3>'+(r.nodes?'<div class="trace">'+r.nodes.map(n=>'<span class="node">'+esc(n)+'</span>').join('<span class="arrow">→</span>')+'</div>':'')+'<p>'+esc(r.rightText)+'</p>'+metric(p,r.metric)+'</article>'}).join('');
+ // Keep each pair aligned even when a paragraph wraps differently.
+ const left=[...$('baseline').children],right=[...$('scored').children];
+ if(innerWidth>760)left.forEach((node,i)=>{const h=Math.max(node.getBoundingClientRect().height,right[i].getBoundingClientRect().height);node.style.minHeight=right[i].style.minHeight=Math.ceil(h)+'px'});
+ $('tabs').innerHTML=DATA.cases.map(item=>'<button type="button" data-case="'+item.id+'" aria-pressed="'+(item.id===id)+'">'+esc(item.label)+'</button>').join('');
+ for(const button of $('tabs').querySelectorAll('button'))button.onclick=()=>{render(button.dataset.case);history.replaceState(null,'','?case='+button.dataset.case)};
+ $('evidence').innerHTML='<table><thead><tr><th>Source passage</th><th>Top three lexical matches</th><th>Recorded Jev output</th></tr></thead><tbody>'+c.jev.parts.map((p,i)=>'<tr><td>'+esc(p.text)+'</td><td>'+c.baseline.rankings[i].candidates.map(v=>esc(v.label)+' · '+v.score.toFixed(2)+' BM25').join('<br>')+'</td><td>'+esc(p.kind+' → '+(p.option_label||'No component selected')+' · '+p.status)+(p.target?'<br>Target: '+esc(p.target.config):'')+p.fields.map(f=>'<br>'+esc(f.name+' ('+f.purpose+')')).join('')+metric(p,'selection')+metric(p,'coverage')+'</td></tr>').join('')+'</tbody></table>';
+ window.Comparison.current=id;
+}
+window.Comparison={render,current:null,data:DATA};
+const params=new URLSearchParams(location.search);if(params.has('export'))document.body.classList.add('export');
+render(params.get('case')||'workshops');
+window.addEventListener('resize',()=>render(window.Comparison.current));
+</script>
+</body>
+</html>

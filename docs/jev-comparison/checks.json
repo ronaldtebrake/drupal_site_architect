@@ -1,0 +1,63 @@
+{
+  "source_sha256": "de1a69dbe5c8927acf7fc9b11c8e470dfb4a86f39437f836e620b403b0e1f37f",
+  "cases": [
+    {
+      "case": "workshops",
+      "width": 1320,
+      "height": 1192.046875,
+      "overflow": [],
+      "aligned": true,
+      "documentFits": true,
+      "externalResources": []
+    },
+    {
+      "case": "translation",
+      "width": 1320,
+      "height": 1178.046875,
+      "overflow": [],
+      "aligned": true,
+      "documentFits": true,
+      "externalResources": []
+    },
+    {
+      "case": "discussions",
+      "width": 1320,
+      "height": 1178.046875,
+      "overflow": [],
+      "aligned": true,
+      "documentFits": true,
+      "externalResources": []
+    },
+    {
+      "case": "workshops",
+      "width": 390,
+      "height": 2620.734375,
+      "overflow": [],
+      "aligned": true,
+      "documentFits": true,
+      "externalResources": []
+    },
+    {
+      "case": "translation",
+      "width": 390,
+      "height": 2685.8125,
+      "overflow": [],
+      "aligned": true,
+      "documentFits": true,
+      "externalResources": []
+    },
+    {
+      "case": "discussions",
+      "width": 390,
+      "height": 2743.328125,
+      "overflow": [],
+      "aligned": true,
+      "documentFits": true,
+      "externalResources": []
+    }
+  ],
+  "buttons": true,
+  "evidence_toggle": true,
+  "evidence_hashes": true,
+  "script_errors": []
+}

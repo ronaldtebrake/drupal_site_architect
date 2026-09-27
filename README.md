@@ -71,6 +71,20 @@ source phrases, candidate matches and building blocks assembling into a plan.
 It retains the original walkthrough. [Visual export instructions](docs/architecture/VISUAL.md)
 describe its separate MP4/GIF renderer.
 
+## What Jev adds to the plan
+
+The [side-by-side comparison](docs/jev-comparison/README.md) runs three briefs
+against shared site and catalog evidence: workshops, translation, and discussion
+notifications. It compares a keyword-based inspection checklist with the actual
+Jev judgments and shows the proposed record, field and component connections.
+Useful keyword matches and weak Jev suggestions are both retained.
+
+[Explore the comparison](docs/jev-comparison/index.html) ·
+[Share the Workshop poster](docs/jev-comparison/workshops.png)
+
+This is a recorded comparison with a documented lexical baseline, not a benchmark
+against another LLM. No production planning code was changed for the experiment.
+
 ## Requirements and standalone installation
 
 Site Architect is **one module with the complete planning stack included**.

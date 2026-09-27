@@ -1,0 +1,20 @@
+[
+  {
+    "id": "workshops",
+    "label": "Recurring workshops",
+    "query": "workshop",
+    "brief": "We now want to run recurring workshops. Editors need to store a date, location, capacity and description for each workshop. Visitors should filter the workshop listing by location. Present each workshop consistently with a shared visual layout. Reuse a suitable existing content type if possible."
+  },
+  {
+    "id": "translation",
+    "label": "Translated articles",
+    "query": "translation",
+    "brief": "Editors need to translate the title and body of existing articles into Dutch and English. Readers should switch between translations of the same article. Keep one article record with its translations rather than creating a separate content type for each language."
+  },
+  {
+    "id": "discussions",
+    "label": "Discussion and notifications",
+    "query": "notification",
+    "brief": "Members should publish discussion topics with a title and body. Other members should reply to those topics with threaded comments. Members can subscribe to a topic and receive an email when someone replies. Reuse existing content structures where suitable."
+  }
+]

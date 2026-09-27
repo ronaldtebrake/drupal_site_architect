@@ -1,5 +1,33 @@
 # Validation record
 
+## Jev comparison (27 September 2026)
+
+The [recorded comparison](docs/jev-comparison/README.md) contains all three
+declared briefs and their outputs. Each capture asserts identical site
+fingerprints and catalog candidates before and during the real assessment.
+Fixed queries bypass automatic search planning; Jev's production semantic
+screening, assessment and requirement planning remain active on the scored side.
+The lexical baseline uses the common inventory before that screening, with no
+inference or model-supplied roles, preferences or probabilities.
+
+- Recorded model: **jev-1.13.0**; profile: **content-planning-v8**.
+- Shared candidate pools: **115 / 125 / 125**; all source passages preserved in
+  the comparison's evidence table, alongside original judgments and review flags.
+- Baseline output, scores and HTML reproduced deterministically from the captures.
+- All three desktop PNG exports and all three mobile layouts passed clipping,
+  alignment and page-width checks. Case buttons and the evidence toggle passed;
+  no JavaScript errors or external page resources were detected. All three
+  exported images were visually inspected.
+- Public evidence is an allowlisted projection. Credentials, provider settings,
+  content records and raw request logs are excluded; capture hashes and public
+  evidence hashes are retained. PHP syntax and Git whitespace checks passed.
+- Changes are limited to documentation and standalone comparison scripts/assets.
+  No production service, configuration or UI implementation was changed.
+
+These are integration observations and render checks, not accuracy evals. The
+uncertain layout, unverified recurrence, weak translation-switcher suggestion
+and weak notification choice are documented rather than removed from the results.
+
 ## Complete standalone product (27 September 2026)
 
 Project Browser discovery, Tool API plugins and MCP mappings now belong to the
