@@ -48,7 +48,7 @@ this module currently supplies informed planning and discovery.
 
 ## Architecture walkthrough
 
-[![A brief becomes key phrases, matches to the Drupal site and ecosystem, and a draft plan](docs/architecture/ai-site-advisor-visual.gif)](docs/architecture/visual.html)
+[![A brief becomes key phrases, matches to the Drupal site and ecosystem, and a draft plan](docs/architecture/ai-site-advisor-story.gif)](docs/architecture/story.html)
 
 The concise [22-second visual story](docs/architecture/story.html) follows a
 brief through phrases, site/ecosystem evidence, recorded Jev scores and a draft
