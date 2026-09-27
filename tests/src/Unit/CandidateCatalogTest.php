@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Tests\UnitTestCase;
-use Drupal\ai_site_advisor\Context\CandidateCatalog;
-use Drupal\ai_site_advisor\Context\CatalogSourceInterface;
+use Drupal\site_architect\Context\CandidateCatalog;
+use Drupal\site_architect\Context\CatalogSourceInterface;
 use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Tests discovery boundaries, source failures and fair candidate limits.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class CandidateCatalogTest extends UnitTestCase {
 
   /**

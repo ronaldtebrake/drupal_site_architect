@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Form;
+namespace Drupal\site_architect\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -16,21 +16,21 @@ final class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function getFormId(): string {
-    return 'ai_site_advisor_settings';
+    return 'site_architect_settings';
   }
 
   /**
    * {@inheritdoc}
    */
   protected function getEditableConfigNames(): array {
-    return ['ai_site_advisor.settings'];
+    return ['site_architect.settings'];
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    $config = $this->config('ai_site_advisor.settings');
+    $config = $this->config('site_architect.settings');
     $form['site_policy'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Site planning policy'),
@@ -44,7 +44,7 @@ final class SettingsForm extends ConfigFormBase {
       '#default_value' => implode(', ', $config->get('included_bundles') ?? []),
       '#description' => $this->t('Optional comma-separated content type machine names. Empty includes all. At most 24 content types can be assessed at once.'),
     ];
-    $form['provider'] = ['#markup' => '<p>' . $this->t('The advisor uses the default Decision provider and model configured in Drupal AI. Configure the TypeSafe provider to use Jev. Credentials remain managed by the provider and Key modules.') . '</p>'];
+    $form['provider'] = ['#markup' => '<p>' . $this->t('The architect uses the default Decision provider and model configured in Drupal AI. Configure the TypeSafe provider to use Jev. Credentials remain managed by the provider and Key modules.') . '</p>'];
     $form['recipe_directories'] = [
       '#type' => 'textarea',
       '#title' => $this->t('Additional recipe directories'),
@@ -71,7 +71,7 @@ final class SettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $directories = preg_split('/\R/', trim((string) $form_state->getValue('recipe_directories')), -1, PREG_SPLIT_NO_EMPTY);
-    $this->config('ai_site_advisor.settings')
+    $this->config('site_architect.settings')
       ->set('site_policy', trim((string) $form_state->getValue('site_policy')))
       ->set('included_bundles', $form_state->get('bundle_ids'))
       ->set('recipe_directories', array_values(array_unique(array_map('trim', $directories))))

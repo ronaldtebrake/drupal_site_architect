@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\ai\Dto\TokenUsageDto;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
-use Drupal\ai_site_advisor\Assessment\AgentPlan;
-use Drupal\ai_site_advisor\Assessment\CapabilityOptions;
-use Drupal\ai_site_advisor\Assessment\ContentPlanningProfile;
-use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
-use Drupal\ai_site_advisor\Assessment\DecisionBatch;
-use Drupal\ai_site_advisor\Assessment\LocalModuleCandidates;
+use Drupal\site_architect\Assessment\AgentPlan;
+use Drupal\site_architect\Assessment\CapabilityOptions;
+use Drupal\site_architect\Assessment\ContentPlanningProfile;
+use Drupal\site_architect\Assessment\DecisionClientInterface;
+use Drupal\site_architect\Assessment\DecisionBatch;
+use Drupal\site_architect\Assessment\LocalModuleCandidates;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Semantic screening preserves useful and uncertain local options.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class LocalModuleCandidatesTest extends UnitTestCase {
 
   /**

@@ -1,5 +1,40 @@
 # Validation record
 
+## Site Architect rename (27 September 2026)
+
+Renamed the main module and its optional integrations to `site_architect`, with
+the display name **Drupal Site Architect** and Composer package
+`drupal/site_architect`. Namespaces, service IDs, permissions, theme hooks,
+libraries, Tool API plugin IDs, MCP mappings and documentation use the new name.
+The UI is now `/admin/structure/site-architect`; settings are at
+`/admin/config/ai/site-architect`.
+
+- Full PHPUnit suite: **76 tests, 5,243 assertions**, including fresh standalone
+  installation, optional integrations and tool responses.
+- All three JavaScript handoff tests, JavaScript syntax, Drupal/DrupalPractice
+  coding standards and Composer metadata validation passed.
+- Before migrating the local DDEV installation, a database snapshot was taken.
+  All 15 affected configuration objects and five installed schema registrations
+  matched the migration receipt. Row counts and hashes across all 17 node tables
+  were unchanged. The existing `advisor_workshop` bundle ID is intentionally
+  stable; renaming the module does not rename or delete content records.
+- The renamed page produced a live Workshop assessment using the configured
+  Decision provider, rendered the connected plan and reported successful copying
+  of its agent handoff. This checks UI behavior, not model accuracy or an actual
+  paste into a separate agent.
+- Real authenticated MCP `tools/list` included
+  `tool_api__site_architect_discover` and `tool_api__site_architect_assess`, with
+  no old advisor tool names. Discovery and assessment both succeeded through the
+  actual MCP endpoint; assessment returned HTTP 200 and structured output.
+- Both committed GIFs were regenerated with the new branding. All five story
+  chapters, six visual chapters and eight original walkthrough chapters passed
+  layout, playback and reduced-motion checks. The story remains 22 seconds.
+  Recorded scores and their original provenance are unchanged.
+
+The earlier records below describe development before this rename. Historical
+artifact paths retain their original names; current usage examples use the new
+module name. No credentials or local migration scripts are committed.
+
 Verified on 26 September 2026. Software checks and live smoke observations,
 not a model evaluation dataset, accuracy calibration or cost comparison.
 
@@ -102,7 +137,7 @@ The community-plan check below exercises the current multi-query path.
 Enabled Project Browser sources on the demo site:
 
 - `drupalorg_jsonapi` (contributed modules).
-- `recipes` (local UI source; the adviser uses its own manifest reader).
+- `recipes` (local UI source; the architect uses its own manifest reader).
 - `api_browser_project:packagist_recipes` (API Browser's upstream configuration).
 
 The local source discovered **28 manifests**. A `workflow` search found one local
@@ -113,7 +148,7 @@ matches reported by the configured Packagist source:
 - `drupal/orchestration_recipe_workflow_blog`
 - `drupal/varbase_workflow_base`
 
-The adviser assessed **12 candidates**, including all three remote recipes, and
+The architect assessed **12 candidates**, including all three remote recipes, and
 marked the search as truncated. These counts are observations of a bounded,
 source-cached search and can change. None of these recipe packages was installed
 or applied for this verification; their dependencies and applicability have
@@ -126,8 +161,8 @@ Used the site's actual `/mcp` endpoint over HTTP, not direct PHP plugin invocati
 1. Anonymous `initialize` returned **401**.
 2. An authenticated Drupal session initialized successfully (**200**) using MCP
    protocol version `2025-03-26`.
-3. `tools/list` exposed both adviser wire names and their string-length limits:
-   `tool_api__ai_site_advisor_discover` and `tool_api__ai_site_advisor_assess`.
+3. `tools/list` exposed both architect wire names and their string-length limits:
+   `tool_api__site_architect_discover` and `tool_api__site_architect_assess`.
 4. `tools/call` on discovery returned source reports and local/remote candidates
    through MCP Server → Tool Bridge → Tool API → Project Browser.
 5. `tools/call` on assessment used the configured Jev provider and returned the
@@ -166,7 +201,7 @@ through this response contract.
 
 Enabling the upstream bridge imported optional mappings from other installed
 modules. Only newly imported, unrelated mappings were disabled during setup;
-pre-existing mappings were preserved. The adviser owns two enabled mappings.
+pre-existing mappings were preserved. The architect owns two enabled mappings.
 
 ## Browser verification
 
@@ -185,7 +220,7 @@ pre-existing mappings were preserved. The adviser owns two enabled mappings.
   advice was shown. Subsequent calls, including a repeated AJAX submission,
   succeeded. The validation rules were retained; the retry message was clarified.
 - Desktop layout was visually inspected in the in-app browser.
-- Initial phase-one checks also verified anonymous adviser denial, anonymous
+- Initial phase-one checks also verified anonymous architect denial, anonymous
   Tool API denial, the real Workshop node form, Workshop reuse/price-field
   extension, Canvas campaign presentation and clarification for vague briefs.
 
@@ -289,7 +324,7 @@ rejecting 0.98. Mechanical singularization now preserves collective nouns such
 as media and data instead of changing the search to medium or datum.
 
 An authenticated HTTP MCP `tools/list` advertised `brief.minLength = 10` and
-`brief.maxLength = 20000` for `tool_api__ai_site_advisor_assess`. Its temporary
+`brief.maxLength = 20000` for `tool_api__site_architect_assess`. Its temporary
 session was closed successfully (HTTP 200). No extra inference was needed for
 this schema check. The final long brief was exercised through the Drupal form;
 the earlier MCP execution check above remains the transport smoke test.
@@ -299,13 +334,13 @@ assessments. Temporary diagnostic scripts were removed before committing.
 
 ## Authenticated MCP assessment after the batching update
 
-Confirmed MCP Server, Tool API Bridge and AI Site Advisor MCP were already
+Confirmed MCP Server, Tool API Bridge and Drupal Site Architect MCP were already
 enabled; no package reinstall or version change was needed. A fresh HTTPS test
 used certificate verification and an in-memory Drupal login session. Anonymous
 initialization returned HTTP 401. Authenticated initialization negotiated
-protocol `2025-11-25`, and `tools/list` returned both adviser wire tools.
+protocol `2025-11-25`, and `tools/list` returned both architect wire tools.
 
-An actual `tools/call` to `tool_api__ai_site_advisor_assess` with the original
+An actual `tools/call` to `tool_api__site_architect_assess` with the original
 community brief succeeded. It returned six work areas, 71 distinct candidates
 including `drupal/group`, and a draft plan with unresolved decisions retained
 (`status = needs_clarification`). Server time was 9.241 seconds. Reported usage
@@ -356,7 +391,7 @@ response was rejected as incomplete/inconsistent; the subsequent submission
 succeeded. Validation was not relaxed, and no partial advice was displayed.
 
 A fresh authenticated HTTPS MCP `tools/call` sent the same full brief to
-`tool_api__ai_site_advisor_assess`. It returned profile `content-planning-v5`,
+`tool_api__site_architect_assess`. It returned profile `content-planning-v5`,
 all 17 Events options and their separate judgments. Recurring Events had 0.91
 foundation probability (0.87 confidence), 0.06 starting-point probability and
 0.90 whole-brief relevance. Workshop remained a preferred option needing review
@@ -537,7 +572,7 @@ Translation (97% selection probability, 96% confidence in the observed run).
 Views was selected provisionally for overviews and the activity stream, with its
 actual `/admin/structure/views` destination. These are observations of a single
 run, not calibrated quality claims. Content Translation was correctly shown as
-shipped core code that is not enabled; no site modules were enabled by the adviser.
+shipped core code that is not enabled; no site modules were enabled by the architect.
 
 An authenticated HTTPS MCP call with a focused translation/overview brief returned
 HTTP 200, compact format and both `module__content_translation` and `module__views`
@@ -580,7 +615,7 @@ resources in each area. Content Translation and Views remained selectable local
 capabilities. These successful runs do not establish a provider failure rate;
 targeted recovery is exercised deterministically by the regression tests.
 
-The redundant "What the advisor can see" template, theme registration and form
+The redundant "What the architect can see" template, theme registration and form
 dependencies were removed. The form no longer recollects site/catalog evidence
 on display or AJAX rebuild; the assessment still collects its full site evidence.
 The original browser tab and its brief were preserved while verification ran in
@@ -629,7 +664,7 @@ assessment separated the record choice from Comment as a reply building block;
 Notification System and Workflow Notifications appeared as notification options.
 Remaining field, relationship, subscription and access questions stayed partial,
 open or subject to verification. A before/after site fingerprint check matched.
-No modules or configuration were installed by the adviser.
+No modules or configuration were installed by the architect.
 
 The browser exercised the user's full 5,252-character brief: 11 work areas,
 54 visible source parts in the observed run, no assessment error, and no more
@@ -718,7 +753,7 @@ Validation:
   that system clipboard, so a clipboard paste roundtrip was not verified there.
   The exact write payload and fallback are covered by the JavaScript tests.
 - An authenticated request to `/mcp` called
-  `tool_api__ai_site_advisor_assess` and returned HTTP 200 with success and the
+  `tool_api__site_architect_assess` and returned HTTP 200 with success and the
   compact scored response. It included distinct Views contribution and preference
   scores, Workshop references, field evidence and review flags. Session cleanup
   requests were made; credentials and session identifiers were not saved.
@@ -731,9 +766,9 @@ future work. Both current entry points use the same read-only assessment service
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's
 complete planning/building session has not been benchmarked. No WebMCP or ECA
-adapter was configured specifically for this adviser. Those interfaces can
+adapter was configured specifically for this architect. Those interfaces can
 reuse its services or Tool API plugins through their own adapters.
 
 Package compatibility, recipe conflict simulation, role permissions, ECA runtime
 behavior, approved installation/build operations and model evals remain separate
-work. The current tools provide grounded discovery and typed advisory judgments.
+work. The current tools provide grounded discovery and typed architecty judgments.

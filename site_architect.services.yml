@@ -1,0 +1,35 @@
+services:
+  site_architect.context:
+    class: Drupal\site_architect\Context\SiteContextCollector
+    arguments: ['@entity_type.manager', '@entity_field.manager', '@module_handler', '@config.factory', '@extension.list.module', '@site_architect.configuration', '@site_architect.module_inventory']
+  site_architect.module_inventory:
+    class: Drupal\site_architect\Context\ModuleInventory
+    arguments: ['@extension.list.module', '@module_handler']
+  site_architect.configuration:
+    class: Drupal\site_architect\Context\ConfigurationInspector
+    arguments: ['@entity_type.manager', '@entity_field.manager', '@extension.list.module']
+  site_architect.catalog:
+    class: Drupal\site_architect\Context\RecipeCatalog
+    arguments: ['%app.root%', '@config.factory']
+    tags:
+      - { name: site_architect.catalog_source }
+  site_architect.candidates:
+    class: Drupal\site_architect\Context\CandidateCatalog
+    tags:
+      - { name: service_collector, tag: site_architect.catalog_source, call: addSource }
+  site_architect.profile:
+    class: Drupal\site_architect\Assessment\ContentPlanningProfile
+  site_architect.decision:
+    class: Drupal\site_architect\Assessment\DecisionClient
+    arguments: ['@ai.provider']
+  site_architect.search_planner:
+    class: Drupal\site_architect\Assessment\SearchPlanner
+    arguments: ['@site_architect.decision']
+  site_architect.requirement_planner:
+    class: Drupal\site_architect\Assessment\RequirementPlanner
+    arguments: ['@site_architect.decision']
+  site_architect.architect:
+    class: Drupal\site_architect\Assessment\SiteArchitect
+    arguments: ['@site_architect.context', '@site_architect.candidates', '@site_architect.profile', '@site_architect.decision', '@site_architect.search_planner', '@site_architect.requirement_planner']
+  Drupal\site_architect\Assessment\SiteArchitectInterface:
+    alias: site_architect.architect

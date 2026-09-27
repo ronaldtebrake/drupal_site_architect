@@ -1,8 +1,0 @@
-name: AI Site Advisor MCP
-type: module
-description: Register the advisor discovery and assessment tools with MCP Server Tool Bridge.
-package: AI
-core_version_requirement: ^11.2
-dependencies:
-  - ai_site_advisor:ai_site_advisor_tool
-  - mcp_server_tool_bridge:mcp_server_tool_bridge

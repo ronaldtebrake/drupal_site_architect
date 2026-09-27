@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\ai\Dto\TokenUsageDto;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
-use Drupal\ai_site_advisor\Assessment\DecisionBatch;
-use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
-use Drupal\ai_site_advisor\Assessment\RequirementPlanner;
-use Drupal\ai_site_advisor\Assessment\AgentPlan;
+use Drupal\site_architect\Assessment\DecisionBatch;
+use Drupal\site_architect\Assessment\DecisionClientInterface;
+use Drupal\site_architect\Assessment\RequirementPlanner;
+use Drupal\site_architect\Assessment\AgentPlan;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Combinations preserve source needs, distinct components and coverage gaps.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class RequirementPlannerTest extends UnitTestCase {
 
   /**

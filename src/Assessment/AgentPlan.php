@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Assessment;
+namespace Drupal\site_architect\Assessment;
 
 /**
  * A small build handoff; full inference evidence belongs in diagnostics.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Context;
+namespace Drupal\site_architect\Context;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -35,10 +35,10 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
    * {@inheritdoc}
    */
   public function collect(AccountInterface $account): array {
-    if (!$account->hasPermission('access ai site advisor')) {
+    if (!$account->hasPermission('access site architect')) {
       throw new AccessDeniedHttpException();
     }
-    $settings = $this->config->get('ai_site_advisor.settings');
+    $settings = $this->config->get('site_architect.settings');
     $included = $settings->get('included_bundles') ?? [];
     $types = $this->entities->getStorage('node_type')->loadMultiple();
     ksort($types);
@@ -75,7 +75,7 @@ final class SiteContextCollector implements SiteContextCollectorInterface {
       ];
     }
     if (count($bundles) > 24) {
-      throw new \LengthException('Select up to 24 content types in AI Site Advisor settings before assessing this site.');
+      throw new \LengthException('Select up to 24 content types in Drupal Site Architect settings before assessing this site.');
     }
     $features = [];
     foreach (['node', 'views', 'canvas', 'content_moderation', 'workflows', 'media', 'webform'] as $module) {

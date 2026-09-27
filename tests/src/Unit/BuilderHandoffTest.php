@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
-use Drupal\ai_site_advisor\Assessment\BuilderHandoff;
+use Drupal\site_architect\Assessment\BuilderHandoff;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Actionable guidance is composed from evidence rather than package names.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class BuilderHandoffTest extends UnitTestCase {
 
   /**

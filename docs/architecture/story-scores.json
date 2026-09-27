@@ -3,7 +3,7 @@
   "source_sha256": "928c6bc4d82c4571ad146b07b4a1705bb9641f7995323d5d78c64232cd173958",
   "model": "jev-1.13.0",
   "full_brief": "Topics: Members should create discussion posts with a title and opening body. Other members should reply to those posts. A reply may itself have replies. Discussions belong to a club. Members must not see private discussions in clubs they do not belong to. Inspect actual existing fields before creating a new record type.\n\nNotifications: Members should subscribe to a discussion and get an email when someone replies. Members can unsubscribe. Sending a message must respect current club membership and content access. A module that only stores comments is not a notification delivery system.",
-  "scope": "Selected judgments from a recorded development run, before later advisor refinements. Brief and labels shortened in the animation. These are per-requirement probabilities for partial fit, not coverage percentages or a ranking across requirements. No combination is verified.",
+  "scope": "Selected judgments from a recorded development run, before later architect refinements. Brief and labels shortened in the animation. These are per-requirement probabilities for partial fit, not coverage percentages or a ranking across requirements. No combination is verified.",
   "items": [
     {
       "question_id": "part_fit__r_23d611a6f6f8__p0",

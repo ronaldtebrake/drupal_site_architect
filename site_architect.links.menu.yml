@@ -1,0 +1,9 @@
+site_architect.assess:
+  title: 'Drupal Site Architect'
+  description: 'Assess a content brief against the current Drupal site.'
+  route_name: site_architect.assess
+  parent: system.admin_structure
+site_architect.settings:
+  title: 'Drupal Site Architect'
+  route_name: site_architect.settings
+  parent: system.admin_config_services

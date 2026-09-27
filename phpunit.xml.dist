@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="../../../core/tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache" failOnWarning="true">
   <testsuites>
-    <testsuite name="AI Site Advisor">
+    <testsuite name="Drupal Site Architect">
       <directory>tests/src</directory>
     </testsuite>
   </testsuites>

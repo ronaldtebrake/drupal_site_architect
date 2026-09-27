@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Kernel;
+namespace Drupal\Tests\site_architect\Kernel;
 
 use Drupal\Core\Session\AccountInterface;
 use Drupal\KernelTests\KernelTestBase;
@@ -13,7 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * Tests fresh discovery, real workflow evidence and optional source wiring.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class CatalogIntegrationTest extends KernelTestBase {
 
   /**
@@ -41,7 +41,7 @@ final class CatalogIntegrationTest extends KernelTestBase {
    */
   private function account(): AccountInterface {
     $account = $this->createMock(AccountInterface::class);
-    $account->method('hasPermission')->willReturnCallback(static fn ($permission) => $permission === 'access ai site advisor');
+    $account->method('hasPermission')->willReturnCallback(static fn ($permission) => $permission === 'access site architect');
     return $account;
   }
 
@@ -49,16 +49,16 @@ final class CatalogIntegrationTest extends KernelTestBase {
    * Adding and changing a real recipe requires no catalog code or cache clear.
    */
   public function testDynamicLocalDiscovery(): void {
-    $this->container->get('module_installer')->install(['ai_site_advisor']);
-    $directory = $this->recipeDirectory = sys_get_temp_dir() . '/advisor-recipes-' . $this->randomMachineName();
+    $this->container->get('module_installer')->install(['site_architect']);
+    $directory = $this->recipeDirectory = sys_get_temp_dir() . '/architect-recipes-' . $this->randomMachineName();
     mkdir($directory . '/new-recipe', 0777, TRUE);
     $manifest = $directory . '/new-recipe/recipe.yml';
     file_put_contents($manifest, "name: ECA approval starter\ndescription: Review workflow\ninstall: [workflows]\n");
     file_put_contents($directory . '/new-recipe/composer.json', '{"name":"example/approval","type":"drupal-recipe"}');
     mkdir($directory . '/new-recipe/config');
     file_put_contents($directory . '/new-recipe/config/fixture.settings.yml', "label: Review settings\napi_key: fixture-secret-not-for-export\ndefault_value: do-not-export\n");
-    $this->config('ai_site_advisor.settings')->set('recipe_directories', [realpath($directory)])->save();
-    $catalog = $this->container->get('ai_site_advisor.catalog');
+    $this->config('site_architect.settings')->set('recipe_directories', [realpath($directory)])->save();
+    $catalog = $this->container->get('site_architect.catalog');
     $first = $catalog->search('ECA', 12);
     $this->assertCount(1, $first['items']);
     $item = $first['items'][0];
@@ -90,7 +90,7 @@ final class CatalogIntegrationTest extends KernelTestBase {
    * Workflow evidence comes from current configuration, with no recipe history.
    */
   public function testActiveWorkflowEvidence(): void {
-    $this->container->get('module_installer')->install(['ai_site_advisor_demo', 'content_moderation']);
+    $this->container->get('module_installer')->install(['site_architect_demo', 'content_moderation']);
     Workflow::create([
       'id' => 'review',
       'label' => 'Review content',
@@ -105,7 +105,7 @@ final class CatalogIntegrationTest extends KernelTestBase {
         'default_moderation_state' => 'draft',
       ],
     ])->save();
-    $collector = $this->container->get('ai_site_advisor.context');
+    $collector = $this->container->get('site_architect.context');
     $first = $collector->collect($this->account());
     $workflow = $first['workflows']['review'];
     $this->assertSame('draft', $workflow['transitions']['publish']['from'][0]);
@@ -125,9 +125,9 @@ final class CatalogIntegrationTest extends KernelTestBase {
   public function testProjectBrowserAndMcpIntegrations(): void {
     $this->installEntitySchema('user');
     $this->installSchema('user', ['users_data']);
-    $this->container->get('module_installer')->install(['ai_site_advisor_project_browser', 'ai_site_advisor_test']);
-    $this->config('project_browser.admin_settings')->set('enabled_sources', ['advisor_fixture' => []])->save();
-    $catalog = $this->container->get('ai_site_advisor.candidates');
+    $this->container->get('module_installer')->install(['site_architect_project_browser', 'site_architect_test']);
+    $this->config('project_browser.admin_settings')->set('enabled_sources', ['architect_fixture' => []])->save();
+    $catalog = $this->container->get('site_architect.candidates');
     $result = $catalog->discover('workflow', $this->account());
     $items = array_column($result['items'], NULL, 'package');
     $recipe = $items['example/editorial-recipe'];
@@ -138,24 +138,24 @@ final class CatalogIntegrationTest extends KernelTestBase {
     $this->assertSame('Editorial review & approval.', $recipe['description']);
     $this->assertSame('enabled_module', $items['drupal/core']['availability']);
     $this->assertTrue($result['truncated']);
-    $this->assertSame('workflow', $this->container->get('state')->get('advisor_test.query')['search']);
+    $this->assertSame('workflow', $this->container->get('state')->get('architect_test.query')['search']);
     $cached = $catalog->discover('workflow', $this->account());
-    $this->assertSame(1, $this->container->get('state')->get('advisor_test.calls'));
+    $this->assertSame(1, $this->container->get('state')->get('architect_test.calls'));
     $this->assertSame($result['items'], $cached['items']);
     $this->assertFalse(end($result['sources'])['cache']['hit']);
     $this->assertTrue(end($cached['sources'])['cache']['hit']);
     // The ordinary Project Browser refresh tag also refreshes our pages.
-    $this->container->get('cache_tags.invalidator')->invalidateTags(['project_browser:advisor_fixture']);
-    $this->container->get('state')->set('advisor_test.fail', TRUE);
+    $this->container->get('cache_tags.invalidator')->invalidateTags(['project_browser:architect_fixture']);
+    $this->container->get('state')->set('architect_test.fail', TRUE);
     $partial = $catalog->discover('workflow', $this->account());
     $this->assertNotEmpty($partial['items'], 'Local discovery survives a Project Browser source failure.');
     $this->assertStringNotContainsString('credentials', implode(' ', $partial['warnings']));
-    $this->assertStringContainsString('advisor_fixture could not be queried', implode(' ', $partial['warnings']));
+    $this->assertStringContainsString('architect_fixture could not be queried', implode(' ', $partial['warnings']));
 
-    $this->container->get('module_installer')->install(['ai_site_advisor_mcp']);
-    $this->assertSame('ai_site_advisor:discover_candidates', $this->config('mcp_server_tool_bridge.mcp_tool_config.ai_site_advisor_discover')->get('tool_id'));
-    $this->assertTrue($this->config('mcp_server_tool_bridge.mcp_tool_config.ai_site_advisor_assess')->get('status'));
-    $this->assertArrayHasKey('ai_site_advisor:discover_candidates', $this->container->get('plugin.manager.tool')->getDefinitions());
+    $this->container->get('module_installer')->install(['site_architect_mcp']);
+    $this->assertSame('site_architect:discover_candidates', $this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_discover')->get('tool_id'));
+    $this->assertTrue($this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_assess')->get('status'));
+    $this->assertArrayHasKey('site_architect:discover_candidates', $this->container->get('plugin.manager.tool')->getDefinitions());
   }
 
 }

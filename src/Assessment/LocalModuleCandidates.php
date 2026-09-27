@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Assessment;
+namespace Drupal\site_architect\Assessment;
 
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\Value\ChoiceQuestion;
-use Drupal\ai_site_advisor\Context\ModuleInventory;
+use Drupal\site_architect\Context\ModuleInventory;
 
 /**
  * Semantic retrieval keeps local capabilities alongside catalog matches.

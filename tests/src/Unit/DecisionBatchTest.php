@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\ai\Dto\TokenUsageDto;
@@ -10,17 +10,17 @@ use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
 use Drupal\ai_decision\Value\ChoiceQuestion;
-use Drupal\ai_site_advisor\Assessment\DecisionBatch;
-use Drupal\ai_site_advisor\Assessment\ChoiceValidator;
-use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
-use Drupal\ai_site_advisor\Assessment\InvalidDecisionResponseException;
+use Drupal\site_architect\Assessment\DecisionBatch;
+use Drupal\site_architect\Assessment\ChoiceValidator;
+use Drupal\site_architect\Assessment\DecisionClientInterface;
+use Drupal\site_architect\Assessment\InvalidDecisionResponseException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Validates failure and accounting boundaries across multiple provider calls.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class DecisionBatchTest extends UnitTestCase {
 
   /**

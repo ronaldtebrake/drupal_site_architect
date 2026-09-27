@@ -1,0 +1,9 @@
+architect:
+  css:
+    theme:
+      css/architect.css: {}
+  js:
+    js/architect.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
-use Drupal\ai_site_advisor\Assessment\AgentPlan;
-use Drupal\ai_site_advisor\Presentation\AgentHandoff;
+use Drupal\site_architect\Assessment\AgentPlan;
+use Drupal\site_architect\Presentation\AgentHandoff;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * The clipboard export is the same assessment with portable prompt context.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class AgentHandoffTest extends UnitTestCase {
 
   /**

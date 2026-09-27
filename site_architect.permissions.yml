@@ -1,0 +1,7 @@
+access site architect:
+  title: 'Use Drupal Site Architect'
+  description: 'Read site structure and send selected configuration metadata and briefs to the configured AI Decision provider.'
+  restrict access: true
+administer site architect:
+  title: 'Administer Drupal Site Architect'
+  restrict access: true

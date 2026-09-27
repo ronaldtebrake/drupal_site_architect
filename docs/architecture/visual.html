@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Your words. Drupal's building blocks. · AI Site Advisor</title>
+<title>Your words. Drupal's building blocks. · Drupal Site Architect</title>
 <style>
 :root{--paper:#f7f8f2;--ink:#20362f;--muted:#66776c;--green:#176c50;--greenlight:#e4f0e7;--purple:#7350bd;--purplelight:#eee7fb;--line:#d5dfd4;--amber:#896329}
 *{box-sizing:border-box}body{margin:0;background:#e9ede6;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
@@ -84,9 +84,9 @@ h1 span{color:var(--green)}#phase{position:absolute;top:150px;left:100px;right:1
 </style>
 </head>
 <body>
-<main id="viewport" aria-label="Visual animation of the Drupal adviser architecture">
+<main id="viewport" aria-label="Visual animation of the Drupal architect architecture">
 <div id="frame"><article id="board">
-<header><div class="brand"><span class="mark" aria-hidden="true"></span>AI Site Advisor</div><span class="eyebrow">Drupal + Jev · the visual version</span></header>
+<header><div class="brand"><span class="mark" aria-hidden="true"></span>Drupal Site Architect</div><span class="eyebrow">Drupal + Jev · the visual version</span></header>
 <h1>Your words. <span>Drupal’s building blocks.</span></h1>
 <p id="phase"></p>
 <div class="brief"><span class="brief-label">A brief · example excerpt</span><span class="brief-note">The original text stays available throughout.</span></div>
@@ -107,7 +107,7 @@ h1 span{color:var(--green)}#phase{position:absolute;top:150px;left:100px;right:1
 <div id="plan"><span id="plan-label">A draft plan · several parts working together</span><span id="plan-sub">Proposed building blocks</span><span id="plan-note">Inspect the fit. Configure the parts. Resolve the gaps.</span></div>
 <div id="outputs"><span class="output"><strong>Drupal UI</strong> · builder’s plan</span><span class="arrow">↔</span><span class="output"><strong>Tool API → MCP Server</strong> · agent handoff</span></div>
 <div id="hint"></div>
-<div id="providers"><span>Adviser</span><span class="arr">→</span><span>Drupal AI · Decision</span><span class="arr">→</span><span>TypeSafe AI provider</span><span class="arr">→</span><b>Jev</b></div>
+<div id="providers"><span>Architect</span><span class="arr">→</span><span>Drupal AI · Decision</span><span class="arr">→</span><span>TypeSafe AI provider</span><span class="arr">→</span><b>Jev</b></div>
 <div id="chapters" aria-label="Animation chapters"></div>
 <p id="disclosure">Illustrative architecture · no live scores or site changes · integration still needs validation</p>
 <div id="progress-track" aria-hidden="true"><div id="progress"></div></div>
@@ -305,7 +305,7 @@ $('restart').addEventListener('click',()=>{render(0);setPlaying(true);});
 $('seek').addEventListener('input',()=>{setPlaying(false);render(Number($('seek').value));});
 addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>lastFrame=performance.now());
 function tick(now) {if(playing&&!document.hidden)render((time+Math.min(.15,(now-lastFrame)/1000))%duration);lastFrame=now;requestAnimationFrame(tick);}
-window.AdvisorAnimation=Object.freeze({
+window.ArchitectAnimation=Object.freeze({
 duration,chapters,
 seek(seconds){setPlaying(false);render(seconds);},
 play(){setPlaying(true);},pause(){setPlaying(false);},

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Hook;
+namespace Drupal\site_architect\Hook;
 
 use Drupal\Core\Hook\Attribute\Hook;
-use Drupal\ai_site_advisor\Presentation\PlanHighlights;
-use Drupal\ai_site_advisor\Presentation\ImplementationStory;
+use Drupal\site_architect\Presentation\PlanHighlights;
+use Drupal\site_architect\Presentation\ImplementationStory;
 
 /**
  * Registers templates without a procedural .module file.
@@ -19,14 +19,14 @@ final class ThemeHooks {
   #[Hook('theme')]
   public function theme(): array {
     return [
-      'ai_site_advisor_result' => ['variables' => ['assessment' => [], 'agent_handoff' => NULL]],
+      'site_architect_result' => ['variables' => ['assessment' => [], 'agent_handoff' => NULL]],
     ];
   }
 
   /**
    * Adds UI highlights while preserving the complete service response.
    */
-  #[Hook('preprocess_ai_site_advisor_result')]
+  #[Hook('preprocess_site_architect_result')]
   public function preprocessResult(array &$variables): void {
     foreach ($variables['assessment']['plan']['areas'] as &$area) {
       $area['highlights'] = PlanHighlights::build($area);

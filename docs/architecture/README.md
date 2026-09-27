@@ -1,4 +1,4 @@
-# AI Site Advisor architecture animation
+# Drupal Site Architect architecture animation
 
 Start with the [22-second story](story.html): a brief becomes phrases, candidates
 from the site and ecosystem, visible Jev scores and a draft plan. Its
@@ -8,13 +8,13 @@ There is also a [25-second visual version](visual.html) with moving phrases,
 candidate connections and assembling plan cards. See [its export instructions](VISUAL.md).
 The original walkthrough below remains available unchanged.
 
-A self-contained, silent 43-second walkthrough of the current adviser. Open
+A self-contained, silent 43-second walkthrough of the current architect. Open
 [index.html](index.html) directly in a browser; it needs no Drupal runtime,
 provider credentials, network requests, fonts or JavaScript packages.
 
 In the local DDEV site:
 
-`https://webmcp-integration.ddev.site/modules/custom/ai_site_advisor/docs/architecture/index.html`
+`https://webmcp-integration.ddev.site/modules/custom/site_architect/docs/architecture/index.html`
 
 The page loops and offers Play/Pause, Restart and a scrubber. Reduced-motion
 preferences disable autoplay. The clean recording link uses `?record=1` to hide
@@ -24,7 +24,7 @@ controls and fill the viewport. Use a **1280 × 900** viewport for exact framing
 This is an **architecture explanation with illustrative content**, not a
 recording of an assessment. It contains no measured scores or performance
 claims. Its fixed sample labels and module names illustrate a path through the
-architecture; they are not a feature mapping used by the adviser. The current
+architecture; they are not a feature mapping used by the architect. The current
 automatic planning path assumes the optional Project Browser integration is
 available; without a remote catalogue adapter, the service falls back to a
 single work area and local evidence.
@@ -33,7 +33,7 @@ single work area and local evidence.
 
 | Time | Stage | Current implementation |
 | --- | --- | --- |
-| 0–4 s | Receive a brief from the Drupal form or an agent | `SiteAdvisor::assess()`; optional `AssessContentBrief` Tool API plugin and MCP Server adapter |
+| 0–4 s | Receive a brief from the Drupal form or an agent | `SiteArchitect::assess()`; optional `AssessContentBrief` Tool API plugin and MCP Server adapter |
 | 4–9 s | Read actual site structure | `SiteContextCollector`, `ConfigurationInspector`, `ModuleInventory` |
 | 9–14 s | Split source text and construct possible labels | `BriefCapabilities::clauses()` |
 | 14–19 s | Select labels and the search route, then normalise terms | Jev via `SearchPlanner`; `BriefCapabilities::query()` |
@@ -67,8 +67,8 @@ temporary profile afterward. It does not use the editor's browser session.
 From the sandbox project root:
 
 ```sh
-ddev exec node web/modules/custom/ai_site_advisor/docs/architecture/render.mjs \
-  --output /var/www/html/artifacts/ai-site-advisor-architecture
+ddev exec node web/modules/custom/site_architect/docs/architecture/render.mjs \
+  --output /var/www/html/artifacts/site-architect-architecture
 ```
 
 Add `--check` to inspect the chapters and playback without encoding the video.
@@ -76,8 +76,8 @@ Set `CHROMIUM` if the Chromium executable has another name.
 
 Outputs:
 
-- `ai-site-advisor-architecture.mp4`: H.264, 1280 × 900, 24 fps, no audio.
-- `ai-site-advisor-architecture.gif`: 960 × 675, 12 fps, infinite loop.
+- `site-architect-architecture.mp4`: H.264, 1280 × 900, 24 fps, no audio.
+- `site-architect-architecture.gif`: 960 × 675, 12 fps, infinite loop.
 - `chapter-01.png` through `chapter-08.png`: review frames.
 - `checks.json`: source hash, chapter layout, runtime, playback and reduced-motion checks.
 - `video-metadata.json`: encoded stream and duration verification.

@@ -1,9 +1,0 @@
-name: AI Site Advisor Demo
-type: module
-description: Adds a real Workshop content type for the advisor demonstration. Optional; no inference or fixtures are faked.
-package: AI
-core_version_requirement: ^11.2
-dependencies:
-  - ai_site_advisor:ai_site_advisor
-  - drupal:datetime
-  - drupal:text

@@ -1,7 +1,10 @@
-# AI Site Advisor
+# Drupal Site Architect
+
+Source: [ronaldtebrake/drupal_site_architect](https://github.com/ronaldtebrake/drupal_site_architect).
+Drupal machine name: `site_architect`. Composer package: `drupal/site_architect`.
 
 Help site builders and agents decide what to reuse, investigate or build on a Drupal site.
-The adviser reads the current site structure, identifies capabilities in a
+The architect reads the current site structure, identifies capabilities in a
 brief, decides whether ecosystem searches would help, and returns a draft plan
 grounded in the site and discovered recipe/module candidates.
 The phase-one demo uses **Jev through the TypeSafe AI provider**.
@@ -12,19 +15,19 @@ works independently of those integrations and of Canvas, WebMCP and ECA.
 
 For example: “We need an editorial workflow for our existing news content.
 What can we reuse here, which ecosystem solutions should we investigate, and
-what would remain to build?” The adviser compares actual moderation states,
+what would remain to build?” The architect compares actual moderation states,
 transitions and assigned content types with discovered recipes and modules.
 It works whether the existing workflow came from a recipe, a site builder or
 custom code. Recipe application history is not required.
 
 This is read-only advice. A relevance judgment is not a compatibility check or
 permission to install. No recipe is applied, package installed, content created
-or configuration changed by either adviser tool. Phase one includes software
+or configuration changed by either architect tool. Phase one includes software
 tests and live checks; model evals and cost comparisons remain later work.
 
 ## Two entry points, one assessment
 
-The adviser serves two equally important workflows:
+The architect serves two equally important workflows:
 
 - **A site builder in Drupal:** review a readable plan, compare options and see
   how records, fields and supporting capabilities fit together. **Copy plan for
@@ -48,7 +51,7 @@ this module currently supplies informed planning and discovery.
 
 ## Architecture walkthrough
 
-[![A brief becomes key phrases, matches to the Drupal site and ecosystem, and a draft plan](docs/architecture/ai-site-advisor-story.gif)](docs/architecture/story.html)
+[![A brief becomes key phrases, matches to the Drupal site and ecosystem, and a draft plan](docs/architecture/site-architect-story.gif)](docs/architecture/story.html)
 
 The concise [22-second visual story](docs/architecture/story.html) follows a
 brief through phrases, site/ecosystem evidence, recorded Jev scores and a draft
@@ -77,12 +80,19 @@ describe its separate MP4/GIF renderer.
 
 This directory is a self-contained module with its own Composer metadata and
 license. Until it has a published release, place it at
-`web/modules/contrib/ai_site_advisor`, or use a Composer path/VCS repository.
+`web/modules/contrib/site_architect`, or use a Composer path/VCS repository.
+
+This module was previously named `ai_site_advisor`. Existing prototype installs
+need their enabled module names, settings, configuration dependencies, permissions
+and MCP mappings migrated before replacing the code. Changing the directory name
+alone is insufficient. The local demo was migrated with its content preserved;
+see [rename verification](VALIDATION.md#site-architect-rename-27-september-2026).
+
 From the Drupal project root:
 
 ```sh
 composer require 'drupal/ai:^1.5@RC' 'drupal/ai_decision:^1.0@dev'
-drush en ai_site_advisor -y
+drush en site_architect -y
 ```
 
 For Jev, install
@@ -98,15 +108,17 @@ default **Decision** model. Credentials and provider configuration are never
 shipped with this module. Pin development dependencies in the host site's lock
 file; tested versions are recorded in [VALIDATION.md](VALIDATION.md).
 
-Grant `access ai site advisor` to trusted site builders. It permits structural
+Grant `access site architect` to trusted site builders. It permits structural
 metadata inspection, configured catalogue searches and provider calls.
 
-- Adviser: `/admin/structure/ai-site-advisor` (Structure → AI Site Advisor).
+- Architect: `/admin/structure/site-architect` (Structure → Drupal Site Architect).
 - Policy, content-type scope and additional recipe directories:
-  `/admin/config/ai/site-advisor`.
-- Optional sample content type: `drush en ai_site_advisor_demo -y` creates a
+  `/admin/config/ai/site-architect`.
+- Optional sample content type: `drush en site_architect_demo -y` creates a
   regular Workshop node type with description, date, location and capacity.
   Its normal form is `/node/add/advisor_workshop`. It creates no content records.
+  The demo keeps its original `advisor_workshop` bundle ID to preserve existing
+  demo content when the module is renamed.
 
 In DDEV, prefix Composer and Drush commands with `ddev`.
 
@@ -118,7 +130,7 @@ files from:
 - Drupal core's `core/recipes` directory.
 - Composer packages of type `drupal-recipe`, using their recorded install paths.
 - Conventional `recipes` directories at the Composer root and Drupal docroot.
-- Additional directories configured in the adviser settings, relative to the
+- Additional directories configured in the architect settings, relative to the
   Composer root or absolute. Directory scans include manifests up to two
   subdirectory levels down and follow links. Add a nearer root for deeper trees.
 
@@ -143,7 +155,7 @@ be compatible. The site collector separately reads current configuration.
 
 ## Core and existing module capabilities
 
-The adviser reads visible module metadata from Drupal's extension list. Every
+The architect reads visible module metadata from Drupal's extension list. Every
 module shipped with core is considered even when disabled; enabled contributed
 and custom modules are also included. Hidden and test modules are excluded.
 Names and descriptions come from the modules themselves. There is no list mapping
@@ -183,7 +195,7 @@ Enable the optional adapter:
 
 ```sh
 composer require 'drupal/project_browser:^2.1'
-drush en ai_site_advisor_project_browser -y
+drush en site_architect_project_browser -y
 ```
 
 The adapter calls Project Browser's public source plugin API and respects its
@@ -204,7 +216,7 @@ At `/admin/config/development/project_browser`, enable **Packagist Drupal
 Recipes**, keeping any existing sources you need. API Browser ships this source
 configuration; its plugin ID is `api_browser_project:packagist_recipes`.
 Use its **API Browser Services** settings to configure other external JSON
-catalogues. The adviser has no dependency on Packagist or a particular source ID.
+catalogues. The architect has no dependency on Packagist or a particular source ID.
 Project Browser's installation UI does not need to be enabled for discovery.
 
 Enter the requirement in the original brief; there is no separate search field.
@@ -219,7 +231,7 @@ structure and chooses one of three paths:
 
 Only the search path queries external catalogue adapters. Local recipe files
 remain available on every path. The resulting candidates then inform the
-assessment stage. Without an ecosystem adapter, the adviser skips
+assessment stage. Without an ecosystem adapter, the architect skips
 search planning and assesses the local evidence directly.
 
 The form and assessment tool accept **10–20,000 characters**. Named paragraphs
@@ -281,15 +293,15 @@ Enable Tool API integration:
 
 ```sh
 composer require 'drupal/tool:^1.0@beta'
-drush en ai_site_advisor_tool -y
+drush en site_architect_tool -y
 ```
 
 | Tool API plugin | Input | Output |
 | --- | --- | --- |
-| `ai_site_advisor:discover_candidates` | `query`: 1–120 characters; optional `detail`: `compact` (default) or `full` | `discovery`: candidate pointers and conditional acquisition steps; no inference call. |
-| `ai_site_advisor:assess_content_brief` | `brief`: 10–20,000 characters; optional advanced `catalog_query` override: up to 120; optional `detail`: `compact` (default) or `full` | `assessment`: compact build handoff, or complete evidence with `detail: "full"`. |
+| `site_architect:discover_candidates` | `query`: 1–120 characters; optional `detail`: `compact` (default) or `full` | `discovery`: candidate pointers and conditional acquisition steps; no inference call. |
+| `site_architect:assess_content_brief` | `brief`: 10–20,000 characters; optional advanced `catalog_query` override: up to 120; optional `detail`: `compact` (default) or `full` | `assessment`: compact build handoff, or complete evidence with `detail: "full"`. |
 
-The operations are `Read` and `Explain`. Both check `access ai site advisor`
+The operations are `Read` and `Explain`. Both check `access site architect`
 inside the service, including for callers that skip Tool API's access method.
 
 ### Compact agent handoff
@@ -356,7 +368,7 @@ establish enabled modules. Unknown package identities require inspection.
 The default response omits repeated descriptions, raw questions, fields, score
 distributions and provider usage. `detail: "full"` performs a fresh assessment,
 not a lookup of a saved report, so results can differ. Formatting reduces the
-agent-facing payload; it does not reduce the adviser's internal inference work
+agent-facing payload; it does not reduce the architect's internal inference work
 or establish a token-cost saving. The current MCP bridge includes the output
 in both its text content and `structuredContent`.
 
@@ -368,7 +380,7 @@ at a version compatible with your MCP Server installation:
 
 ```sh
 composer require 'drupal/mcp_server_tool_bridge:^1.0@beta'
-drush en ai_site_advisor_mcp -y
+drush en site_architect_mcp -y
 drush cr
 ```
 
@@ -376,15 +388,15 @@ This optional submodule installs two enabled Tool API mappings. The demo uses
 MCP Server `2.0.0-beta2` and bridge `1.0.0-beta1`; newer bridge releases require
 newer server APIs. Review the host's existing MCP tool mappings when enabling
 the bridge: other installed modules can supply optional mappings of their own.
-This module owns only its two adviser mappings.
+This module owns only its two architect mappings.
 
 The default MCP HTTP endpoint is `/mcp`. Use the host's configured authenticated
-MCP connection and an account with both `access mcp server` and `access ai site
-advisor`. This module does not provision credentials or anonymous access. The
+MCP connection and an account with both `access mcp server` and
+`access site architect`. This module does not provision credentials or anonymous access. The
 verified wire names are:
 
-- `tool_api__ai_site_advisor_discover`
-- `tool_api__ai_site_advisor_assess`
+- `tool_api__site_architect_discover`
+- `tool_api__site_architect_assess`
 
 Manage these mappings at `/admin/config/services/mcp-server/tools`. On the local
 demo, MCP Server currently authenticates HTTP requests through a Drupal login
@@ -418,14 +430,14 @@ flowchart LR
   Agent --> MCP[MCP Server]
   MCP --> Bridge[Tool API bridge]
   Bridge --> Tools[Discovery and assessment tools]
-  Tools --> Advisor[Shared adviser services]
-  Form[Drupal form] --> Advisor
-  Advisor --> Site[Current fields and workflows]
-  Advisor --> Local[Local recipe manifests]
-  Advisor --> Plan[Decide local / search / clarify]
+  Tools --> Architect[Shared architect services]
+  Form[Drupal form] --> Architect
+  Architect --> Site[Current fields and workflows]
+  Architect --> Local[Local recipe manifests]
+  Architect --> Plan[Decide local / search / clarify]
   Plan -->|search only| PB[Enabled Project Browser sources]
   PB --> Catalogs[Module and recipe catalogues]
-  Advisor --> Decision[AI Decision / Jev]
+  Architect --> Decision[AI Decision / Jev]
 ```
 
 ECA, WebMCP and other callers can use the same service or Tool API plugins through
@@ -481,7 +493,7 @@ The plan now separates three different judgments:
 Foundation and addition summaries suggest investigation paths. They do not assert
 that the packages integrate. For example, a module that supplies its own event
 entities may be an alternative foundation to a Workshop node type, while a
-field-oriented recurrence module may extend an existing model. The adviser uses
+field-oriented recurrence module may extend an existing model. The architect uses
 retrieved descriptions to judge this distinction; it does not contain package
 rules or automatically install combinations. Roles needing review are identified
 in the summary and table. Missing evidence and runtime compatibility remain open.
@@ -580,7 +592,7 @@ field-by-field implementation design remain separate work.
 
 For the earlier workflow example:
 
-1. Open the adviser and expand **Available capabilities and recipe catalog**.
+1. Open the architect and expand **Available capabilities and recipe catalog**.
    Show the site's actual fields, moderation states and discovered local files.
 2. Select **Editorial workflow** and click **Propose a plan**. Show Jev's
    search decision and selected term above the results. In the live check it
@@ -594,7 +606,7 @@ For the earlier workflow example:
    projects from memory or decide installation permissions.
 6. Try **Recurring workshops**, then **An unclear brief** to demonstrate when
    an ecosystem search may add nothing or the requirement needs clarification.
-7. In an MCP agent, ask: “Use the adviser to assess our news workflow requirement.
+7. In an MCP agent, ask: “Use the architect to assess our news workflow requirement.
    Compare what we have with available solutions before proposing custom work.
    Do not install or change anything yet.” Only the original brief is required.
 
@@ -611,14 +623,14 @@ a fixed catalogue or a model-quality benchmark.
 
 ## Service contract and evidence
 
-Inject `Drupal\ai_site_advisor\Assessment\SiteAdvisorInterface`, or service
-`ai_site_advisor.advisor`:
+Inject `Drupal\site_architect\Assessment\SiteArchitectInterface`, or service
+`site_architect.architect`:
 
 ```php
-$assessment = $advisor->assess($brief, $account);
+$assessment = $architect->assess($brief, $account);
 ```
 
-For discovery alone, inject `ai_site_advisor.candidates`:
+For discovery alone, inject `site_architect.candidates`:
 
 ```php
 $discovery = $catalog->discover('workflow', $account, limit: 12);
@@ -626,7 +638,7 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 
 | Assessment key | Meaning |
 | --- | --- |
-| `status`, `summary`, `follow_up` | Advisory outcome and unresolved questions; never authorisation to build. |
+| `status`, `summary`, `follow_up` | Architecty outcome and unresolved questions; never authorisation to build. |
 | `answers` | Choices, full distributions, confidence, individual review flags and static criteria. |
 | `reuse_candidates`, `extension_candidates` | Confidently matched node content-type IDs. |
 | `workflow_candidates` | Existing workflow IDs with a `ready` or `extend` judgment. |
@@ -683,7 +695,7 @@ adapter is installed. Its usage and requests are recorded as `local_discovery`.
 planning, as does a site without a remote adapter.
 
 If a normalized response has missing answers, mismatched options, an invalid
-distribution total or a selected option below the highest score, the adviser
+distribution total or a selected option below the highest score, the architect
 retries only the affected questions once. Evidence and criteria stay identical;
 valid answers (including uncertain ones) are kept. Scores are never repaired
 or normalized locally. A second invalid response rejects the entire plan.
@@ -693,10 +705,10 @@ attempts and recovery. Persistent contract failures log only reason counts,
 without provider responses or site evidence.
 
 The page presents site reuse within each work area's plan and configuration
-links. There is no separate "What the advisor can see" panel or extra site scan
+links. There is no separate "What the architect can see" panel or extra site scan
 when the form rebuilds. Removing that panel does not narrow assessment evidence.
 
-Site evidence and local recipe files are inspected afresh; the adviser does not
+Site evidence and local recipe files are inspected afresh; the architect does not
 cache assessments. The optional Project Browser adapter reuses successful
 catalogue pages for up to five minutes, scoped by source configuration, query,
 account/permissions, language and Composer lockfile. Source refresh tags and
@@ -742,11 +754,11 @@ individual review flags even when the overall status is `assessed`.
 
 ## Extending and validating
 
-The collector, search planner, profile, provider adapter, adviser and UI are
+The collector, search planner, profile, provider adapter, architect and UI are
 separate classes. Replace the planner through `SearchPlannerInterface`, decorate
-the collector or replace the adviser through their interfaces. Add a
+the collector or replace the architect through their interfaces. Add a
 catalogue adapter by implementing `CatalogSourceInterface` and tagging its
-service `ai_site_advisor.catalog_source`. No procedural `.module` file is needed.
+service `site_architect.catalog_source`. No procedural `.module` file is needed.
 Keep rubric changes versioned. New entity types, package compatibility checks,
 approved installation workflows and model evals are separate follow-up work.
 
@@ -755,11 +767,11 @@ dependencies installed:
 
 ```sh
 SIMPLETEST_DB=sqlite://localhost/:memory: vendor/bin/phpunit \
-  -c web/modules/contrib/ai_site_advisor/phpunit.xml.dist
+  -c web/modules/contrib/site_architect/phpunit.xml.dist
 vendor/bin/phpcs --standard=Drupal,DrupalPractice --extensions=php \
-  web/modules/contrib/ai_site_advisor
-node --check web/modules/contrib/ai_site_advisor/js/advisor.js
-node --test web/modules/contrib/ai_site_advisor/tests/js/advisor.test.cjs
+  web/modules/contrib/site_architect
+node --check web/modules/contrib/site_architect/js/architect.js
+node --test web/modules/contrib/site_architect/tests/js/architect.test.cjs
 ```
 
 Adjust `contrib` to `custom` as needed. Tests use an isolated SQLite database,

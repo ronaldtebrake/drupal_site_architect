@@ -1,0 +1,8 @@
+name: Drupal Site Architect Tool API
+type: module
+description: Expose the read-only site assessment through Tool API.
+package: AI
+core_version_requirement: ^11.2
+dependencies:
+  - site_architect:site_architect
+  - tool:tool (>=1.0.0-beta8)

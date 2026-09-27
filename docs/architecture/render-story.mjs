@@ -20,7 +20,7 @@ const output = resolve(outputArg >= 0 ? args[outputArg + 1] : './story-export');
 const checkOnly = args.includes('--check');
 const source = join(dirname(fileURLToPath(import.meta.url)), 'story.html');
 const width = 1280, height = 900, fps = 30;
-const scratch = await mkdtemp(join(tmpdir(), 'advisor-architecture-'));
+const scratch = await mkdtemp(join(tmpdir(), 'architect-architecture-'));
 await mkdir(output, { recursive: true });
 let chrome, ffmpeg, socket;
 const runtimeErrors = [], pending = new Map();
@@ -41,7 +41,7 @@ async function evaluate(expression) {
 }
 const evaluateFunction = fn => evaluate('(' + fn.toString() + ')()');
 async function imageAt(time) {
-  await evaluate('AdvisorAnimation.seek(' + time + ')');
+  await evaluate('ArchitectAnimation.seek(' + time + ')');
   const shot = await command('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false, clip: { x: 0, y: 0, width, height, scale: 1 } });
   return Buffer.from(shot.data, 'base64');
 }
@@ -58,7 +58,7 @@ async function navigate(query) {
   await command('Page.navigate', { url: pathToFileURL(source).href + query });
   for (let i = 0; i < 100; i++) {
     try {
-      if (await evaluate('document.readyState === "complete" && Boolean(window.AdvisorAnimation) && location.search === ' + JSON.stringify(query))) return;
+      if (await evaluate('document.readyState === "complete" && Boolean(window.ArchitectAnimation) && location.search === ' + JSON.stringify(query))) return;
     } catch {}
     await delay(40);
   }
@@ -101,12 +101,12 @@ try {
   await command('Runtime.enable');
   await command('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
   await navigate('?record=1&paused=1');
-  const chapters = await evaluate('AdvisorAnimation.chapters');
-  const duration = await evaluate('AdvisorAnimation.duration');
+  const chapters = await evaluate('ArchitectAnimation.chapters');
+  const duration = await evaluate('ArchitectAnimation.duration');
   const deterministic = await evaluateFunction(() => {
     const snapshots = [];
     for (let pass=0; pass<2; pass++) {
-      AdvisorAnimation.seek(5);
+      ArchitectAnimation.seek(5);
       snapshots.push(document.getElementById('board').innerHTML);
     }
     return snapshots[0] === snapshots[1];
@@ -140,7 +140,7 @@ try {
         }
       }
       return {
-        stage: AdvisorAnimation.state().stage,
+        stage: ArchitectAnimation.state().stage,
         heading: document.getElementById('phase').textContent,
         overflow,
         viewportFits: Math.abs(board.width - innerWidth) < 1 && Math.abs(board.height - innerHeight) < 1,
@@ -158,21 +158,21 @@ try {
   await navigate('?paused=1');
   const controls = await evaluateFunction(() => {
     const seek = document.getElementById('seek');
-    seek.value = AdvisorAnimation.duration - 0.5; seek.dispatchEvent(new Event('input'));
-    const scrub = AdvisorAnimation.state().stage === AdvisorAnimation.chapters.length - 1 && !AdvisorAnimation.state().playing;
+    seek.value = ArchitectAnimation.duration - 0.5; seek.dispatchEvent(new Event('input'));
+    const scrub = ArchitectAnimation.state().stage === ArchitectAnimation.chapters.length - 1 && !ArchitectAnimation.state().playing;
     document.getElementById('play').click();
-    const play = AdvisorAnimation.state().playing;
+    const play = ArchitectAnimation.state().playing;
     document.getElementById('play').click();
-    const pause = !AdvisorAnimation.state().playing;
+    const pause = !ArchitectAnimation.state().playing;
     document.getElementById('restart').click();
-    const restart = AdvisorAnimation.state().time === 0 && AdvisorAnimation.state().playing;
-    AdvisorAnimation.pause();
+    const restart = ArchitectAnimation.state().time === 0 && ArchitectAnimation.state().playing;
+    ArchitectAnimation.pause();
     return { scrub, play, pause, restart, recordingLink: document.getElementById('record-link').getAttribute('href') === '?record=1' };
   });
   if (Object.values(controls).some(value => !value)) throw new Error('Playback check failed.');
   await command('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   await navigate('?record=1');
-  const reducedMotion = !(await evaluate('AdvisorAnimation.state().playing'));
+  const reducedMotion = !(await evaluate('ArchitectAnimation.state().playing'));
   if (!reducedMotion) throw new Error('Reduced motion did not pause autoplay.');
   await command('Emulation.setEmulatedMedia', { features: [] });
   await navigate('?record=1&paused=1');
@@ -181,7 +181,7 @@ try {
   await writeFile(join(output, 'checks.json'), JSON.stringify({ sourceHash, checks, controls, deterministic, reducedMotion, runtimeErrors, duration, width, height, fps }, null, 2));
   console.log('Verified all ' + chapters.length + ' chapters, layout, playback controls and reduced motion.');
   if (!checkOnly) {
-    const mp4 = join(output, 'ai-site-advisor-story.mp4');
+    const mp4 = join(output, 'site-architect-story.mp4');
     ffmpeg = spawn('ffmpeg', [
       '-hide_banner', '-loglevel', 'error', '-y',
       '-f', 'image2pipe', '-vcodec', 'png', '-framerate', String(fps), '-i', '-',
@@ -203,7 +203,7 @@ try {
     await run('ffmpeg', [
       '-hide_banner', '-loglevel', 'error', '-y', '-i', mp4,
       '-filter_complex', '[0:v]fps=15,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle',
-      '-loop', '0', join(output, 'ai-site-advisor-story.gif')
+      '-loop', '0', join(output, 'site-architect-story.gif')
     ]);
     const metadata = JSON.parse(await run('ffprobe', ['-v', 'error', '-show_streams', '-show_format', '-of', 'json', mp4]));
     if (metadata.streams.length !== 1 || metadata.streams[0].codec_type !== 'video' || Math.abs(Number(metadata.format.duration) - duration) > 0.05) throw new Error('Unexpected video streams or duration.');

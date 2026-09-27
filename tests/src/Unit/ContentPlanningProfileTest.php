@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
-use Drupal\ai_site_advisor\Assessment\ContentPlanningProfile;
-use Drupal\ai_site_advisor\Assessment\DecisionBatch;
+use Drupal\site_architect\Assessment\ContentPlanningProfile;
+use Drupal\site_architect\Assessment\DecisionBatch;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Packing optimizations must preserve judgments and all referenced evidence.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class ContentPlanningProfileTest extends UnitTestCase {
 
   /**

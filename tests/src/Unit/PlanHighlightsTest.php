@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
-use Drupal\ai_site_advisor\Hook\ThemeHooks;
-use Drupal\ai_site_advisor\Presentation\PlanHighlights;
+use Drupal\site_architect\Hook\ThemeHooks;
+use Drupal\site_architect\Presentation\PlanHighlights;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * UI recommendations preserve choices, review states and the full comparison.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class PlanHighlightsTest extends UnitTestCase {
 
   /**

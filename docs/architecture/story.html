@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>From brief to building blocks · AI Site Advisor</title>
+<title>From brief to building blocks · Drupal Site Architect</title>
 <style>
 :root{--paper:#f7f8f2;--ink:#21372e;--muted:#66776a;--green:#17694e;--line:#d7e0d4;--purple:#7652bd;--light:#eee8fa}
 *{box-sizing:border-box}body{margin:0;background:#e9ede5;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
@@ -61,7 +61,7 @@ h1{position:absolute;top:97px;left:0;right:0;margin:0;text-align:center;font-siz
 </head>
 <body>
 <main id="viewport" aria-label="Story of a brief becoming a Drupal plan"><div id="frame"><article id="board">
-<header><span class="brand">AI Site Advisor</span><span class="eyebrow">Drupal evidence · Jev decisions</span></header>
+<header><span class="brand">Drupal Site Architect</span><span class="eyebrow">Drupal evidence · Jev decisions</span></header>
 <h1>From a brief. <span>To a Drupal plan.</span></h1>
 <p id="phase"></p>
 <div id="brief"><span class="eyebrow">The brief · shortened for display</span><span class="line" id="line1">Create</span><span class="line" id="line-with">with</span><span class="line" id="line2">and receive</span></div>
@@ -140,7 +140,7 @@ function setPlaying(value){playing=value;$('play').textContent=value?'Pause':'Pl
 $('play').addEventListener('click',()=>setPlaying(!playing));$('restart').addEventListener('click',()=>{render(0);setPlaying(true);});$('seek').addEventListener('input',()=>{setPlaying(false);render(Number($('seek').value));});
 addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>lastFrame=performance.now());
 function tick(now){if(playing&&!document.hidden)render((time+Math.min(.15,(now-lastFrame)/1000))%duration);lastFrame=now;requestAnimationFrame(tick);}
-window.AdvisorAnimation=Object.freeze({duration,chapters,seek(seconds){setPlaying(false);render(seconds);},play(){setPlaying(true);},pause(){setPlaying(false);},state(){return{time,stage:current,playing,duration};}});
+window.ArchitectAnimation=Object.freeze({duration,chapters,seek(seconds){setPlaying(false);render(seconds);},play(){setPlaying(true);},pause(){setPlaying(false);},state(){return{time,stage:current,playing,duration};}});
 resize();render(Number(query.get('t'))||0);setPlaying(playing);requestAnimationFrame(tick);
 })();
 </script>

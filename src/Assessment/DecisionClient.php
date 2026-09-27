@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Assessment;
+namespace Drupal\site_architect\Assessment;
 
 use Drupal\ai\AiProviderPluginManager;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
@@ -28,7 +28,7 @@ final class DecisionClient implements DecisionClientInterface {
     }
     try {
       $provider = $this->providers->createInstance($default['provider_id']);
-      return $provider->decision($input, $default['model_id'], ['ai_site_advisor'])->getNormalized();
+      return $provider->decision($input, $default['model_id'], ['site_architect'])->getNormalized();
     }
     catch (\Throwable) {
       // Transport adapters may log exception messages. Do not let raw provider

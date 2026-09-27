@@ -17,7 +17,7 @@ panels:
 The examples are illustrative, not a replay of measured Jev responses. The
 existing content type, Comment, Views and notification options illustrate roles
 in a possible plan. They are **not** hardcoded feature-to-module mappings in the
-adviser. Green connections indicate a proposed match; they are not compatibility
+architect. Green connections indicate a proposed match; they are not compatibility
 or integration verification. The notification choice is left unresolved.
 
 The visual groups extraction and later requirement decomposition for readability.
@@ -32,7 +32,7 @@ shown before candidate scoring, and normalisation remains a code operation.
 No dependencies, live provider calls or network resources are required. Open
 the HTML directly, or use the local demo URL:
 
-`https://webmcp-integration.ddev.site/modules/custom/ai_site_advisor/docs/architecture/visual.html`
+`https://webmcp-integration.ddev.site/modules/custom/site_architect/docs/architecture/visual.html`
 
 Play/Pause, Restart and the scrubber are below the animation. The clean recording
 link adds `?record=1`. A paused frame can be selected with
@@ -45,8 +45,8 @@ Node.js 22+, Chromium and FFmpeg are required by the optional renderer. From the
 DDEV project root:
 
 ```sh
-ddev exec node web/modules/custom/ai_site_advisor/docs/architecture/render-visual.mjs \
-  --output /var/www/html/artifacts/ai-site-advisor-visual
+ddev exec node web/modules/custom/site_architect/docs/architecture/render-visual.mjs \
+  --output /var/www/html/artifacts/site-architect-visual
 ```
 
 Add `--check` for chapter stills and verification without video encoding.
@@ -54,8 +54,8 @@ The renderer uses a fresh temporary browser profile and deletes it afterward.
 
 Outputs are separate from the original animation:
 
-- `ai-site-advisor-visual.mp4`: 1280 × 900, 30 fps, 25 seconds, no audio.
-- `ai-site-advisor-visual.gif`: 960 × 675, 15 fps, infinite loop.
+- `site-architect-visual.mp4`: 1280 × 900, 30 fps, 25 seconds, no audio.
+- `site-architect-visual.gif`: 960 × 675, 15 fps, infinite loop.
 - `chapter-01.png` through `chapter-06.png`.
 - `checks.json`: source hash, stage bounds, resource text bounds, reproducible
   seeking, controls, reduced-motion and JavaScript checks.

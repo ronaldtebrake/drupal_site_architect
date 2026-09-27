@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Presentation;
+namespace Drupal\site_architect\Presentation;
 
 /**
  * Explains judged connections without inventing configuration or prose claims.

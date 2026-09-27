@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Assessment;
+namespace Drupal\site_architect\Assessment;
 
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\Value\ChoiceQuestion;
-use Drupal\ai_site_advisor\Context\ModuleInventory;
+use Drupal\site_architect\Context\ModuleInventory;
 
 /**
  * Jev decides whether discovery helps and selects a keyword from the brief.
@@ -16,7 +16,7 @@ final class SearchPlanner implements SearchPlannerInterface {
   public const VERSION = 'ecosystem-search-v5';
 
   /**
-   * Constructs the planner using the same Decision provider as the adviser.
+   * Constructs the planner using the same Decision provider as the architect.
    */
   public function __construct(private readonly DecisionClientInterface $decision) {}
 
@@ -47,7 +47,7 @@ final class SearchPlanner implements SearchPlannerInterface {
       }
       $questions['capability_' . $index] = new ChoiceQuestion([
         'clause' => $clause['text'],
-        'question' => 'Which source phrase best names the website feature or content subject requested by this clause, in the context of the complete brief? In a named section, prefer its heading when it identifies that feature; the remaining passage supplies its constraints. A short noun can name a feature. Choose a compound phrase when its words belong together. Choose none for filler, individual field attributes, private identifiers or a feature explicitly excluded by the brief. Instructions to the adviser to compare, inspect site configuration or produce an implementation plan are not website features: choose none for those instructions.',
+        'question' => 'Which source phrase best names the website feature or content subject requested by this clause, in the context of the complete brief? In a named section, prefer its heading when it identifies that feature; the remaining passage supplies its constraints. A short noun can name a feature. Choose a compound phrase when its words belong together. Choose none for filler, individual field attributes, private identifiers or a feature explicitly excluded by the brief. Instructions to the architect to compare, inspect site configuration or produce an implementation plan are not website features: choose none for those instructions.',
         'guard' => $guard,
       ], $options[$index] + ['none' => 'The clause has no requested feature or content subject to plan.']);
       $questions['scope_' . $index] = new ChoiceQuestion([

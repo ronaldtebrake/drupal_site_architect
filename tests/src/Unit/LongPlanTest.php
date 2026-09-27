@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Tests\UnitTestCase;
@@ -10,21 +10,21 @@ use Drupal\ai\Dto\TokenUsageDto;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
-use Drupal\ai_site_advisor\Assessment\ContentPlanningProfile;
-use Drupal\ai_site_advisor\Assessment\DecisionBatch;
-use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
-use Drupal\ai_site_advisor\Assessment\SearchPlanner;
-use Drupal\ai_site_advisor\Assessment\SiteAdvisor;
-use Drupal\ai_site_advisor\Assessment\RequirementPlanner;
-use Drupal\ai_site_advisor\Context\CandidateCatalog;
-use Drupal\ai_site_advisor\Context\CatalogSourceInterface;
-use Drupal\ai_site_advisor\Context\SiteContextCollectorInterface;
+use Drupal\site_architect\Assessment\ContentPlanningProfile;
+use Drupal\site_architect\Assessment\DecisionBatch;
+use Drupal\site_architect\Assessment\DecisionClientInterface;
+use Drupal\site_architect\Assessment\SearchPlanner;
+use Drupal\site_architect\Assessment\SiteArchitect;
+use Drupal\site_architect\Assessment\RequirementPlanner;
+use Drupal\site_architect\Context\CandidateCatalog;
+use Drupal\site_architect\Context\CatalogSourceInterface;
+use Drupal\site_architect\Context\SiteContextCollectorInterface;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Exercises extraction, retrieval and assessment together without live calls.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class LongPlanTest extends UnitTestCase {
 
   /**
@@ -118,8 +118,8 @@ final class LongPlanTest extends UnitTestCase {
       }
       return new DecisionResponse($answers, 'fixture', new TokenUsageDto(10, 2, 12));
     });
-    $advisor = new SiteAdvisor($context, $catalog, new ContentPlanningProfile(), $decision, new SearchPlanner($decision), new RequirementPlanner($decision));
-    $result = $advisor->assess($brief, $account);
+    $architect = new SiteArchitect($context, $catalog, new ContentPlanningProfile(), $decision, new SearchPlanner($decision), new RequirementPlanner($decision));
+    $result = $architect->assess($brief, $account);
     $this->assertCount(14, $searched);
     $this->assertContains('payment', $searched);
     $this->assertCount(168, $result['candidates']);

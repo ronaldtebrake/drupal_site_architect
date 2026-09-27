@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Context;
+namespace Drupal\site_architect\Context;
 
 use Drupal\Core\Session\AccountInterface;
-use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
+use Drupal\site_architect\Assessment\BriefCapabilities;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -16,7 +16,7 @@ class CandidateCatalog {
   /**
    * The registered discovery sources.
    *
-   * @var \Drupal\ai_site_advisor\Context\CatalogSourceInterface[]
+   * @var \Drupal\site_architect\Context\CatalogSourceInterface[]
    */
   private array $sources = [];
 
@@ -38,7 +38,7 @@ class CandidateCatalog {
    * Searches several capabilities and retains evidence from every query.
    */
   public function discoverMany(array $queries, AccountInterface $account, ?int $limit = NULL): array {
-    if (!$account->hasPermission('access ai site advisor')) {
+    if (!$account->hasPermission('access site architect')) {
       throw new AccessDeniedHttpException();
     }
     if (!$queries || count($queries) > BriefCapabilities::MAX_SEGMENTS || ($limit !== NULL && ($limit < 1 || $limit > 24))) {
@@ -99,7 +99,7 @@ class CandidateCatalog {
    * Searches configured sources. Remote searches require explicit keywords.
    */
   public function discover(string $query, AccountInterface $account, int $limit = 12, bool $include_remote = TRUE): array {
-    if (!$account->hasPermission('access ai site advisor')) {
+    if (!$account->hasPermission('access site architect')) {
       throw new AccessDeniedHttpException();
     }
     $query = trim($query);

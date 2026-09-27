@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - site_architect_mcp
+      - mcp_server_tool_bridge
+id: site_architect_discover
+tool_id: 'site_architect:discover_candidates'
+description: null

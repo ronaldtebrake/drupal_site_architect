@@ -1,7 +1,12 @@
 {
-  "name": "drupal/ai_site_advisor",
+  "name": "drupal/site_architect",
   "description": "Evidence-based Drupal content planning through typed AI Decision assessments, with an optional Tool API integration.",
   "type": "drupal-module",
+  "homepage": "https://github.com/ronaldtebrake/drupal_site_architect",
+  "support": {
+    "source": "https://github.com/ronaldtebrake/drupal_site_architect",
+    "issues": "https://github.com/ronaldtebrake/drupal_site_architect/issues"
+  },
   "license": "GPL-2.0-or-later",
   "require": {
     "php": ">=8.3",
@@ -12,9 +17,9 @@
   },
   "suggest": {
     "drupal/ai_provider_typesafeai": "Use Jev as the configured AI Decision provider.",
-    "drupal/tool": "Enable the optional ai_site_advisor_tool submodule (^1.0@beta).",
-    "drupal/project_browser": "Enable the optional ai_site_advisor_project_browser integration (^2.1).",
+    "drupal/tool": "Enable the optional site_architect_tool submodule (^1.0@beta).",
+    "drupal/project_browser": "Enable the optional site_architect_project_browser integration (^2.1).",
     "drupal/api_browser": "Add external recipe catalogs as Project Browser sources (^2.0@beta).",
-    "drupal/mcp_server_tool_bridge": "Expose the two Tool API operations through the optional ai_site_advisor_mcp submodule (^1.0@beta; match your MCP Server version)."
+    "drupal/mcp_server_tool_bridge": "Expose the two Tool API operations through the optional site_architect_mcp submodule (^1.0@beta; match your MCP Server version)."
   }
 }

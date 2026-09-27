@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>From a brief to a Drupal plan · AI Site Advisor</title>
+<title>From a brief to a Drupal plan · Drupal Site Architect</title>
 <style>
 :root{--ink:#20362f;--muted:#65726b;--green:#14694e;--green-soft:#e7f1e9;--violet:#7350bf;--violet-soft:#eee8fa;--line:#d9e1d8;--paper:#f7f8f2;--amber:#886222;--amber-soft:#fbf2dc}
 *{box-sizing:border-box}
@@ -90,16 +90,16 @@ h1 span{color:var(--green)}
 </style>
 </head>
 <body>
-<main id="viewport" aria-label="Animated explanation of the AI Site Advisor architecture">
+<main id="viewport" aria-label="Animated explanation of the Drupal Site Architect architecture">
 <div id="frame">
 <article id="board">
-<div class="masthead"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>AI Site Advisor</div><span class="eyebrow">Drupal evidence · Jev decisions</span></div>
+<div class="masthead"><div class="brand"><span class="brand-mark" aria-hidden="true"></span>Drupal Site Architect</div><span class="eyebrow">Drupal evidence · Jev decisions</span></div>
 <h1>From a brief. <span>To a Drupal plan.</span></h1>
 <p class="subtitle">Understand the requirements. Find the building blocks. Keep the gaps visible.</p>
 <div class="brief">
 <div class="brief-label"><strong>Your brief</strong><span>Example excerpt</span></div>
 <p>“We want a community website for local clubs.<br><b>Topics:</b> discussion posts with replies. <b>Notifications:</b> email updates.”</p>
-<div class="via"><b>Drupal UI or an agent</b><small>Agent → MCP Server → Tool API</small><small>Both use the same adviser service.</small></div>
+<div class="via"><b>Drupal UI or an agent</b><small>Agent → MCP Server → Tool API</small><small>Both use the same architect service.</small></div>
 </div>
 <ol class="pipeline" aria-label="Planning stages">
 <li class="step" data-step="0"><span class="stepnum">1</span><span class="steptext"><b>Receive the brief</b><small>One shared service</small></span></li>
@@ -115,7 +115,7 @@ h1 span{color:var(--green)}
 <div class="detail-head"><span class="phase-name" id="phase"></span><span class="pill" id="owner"></span></div>
 <h2 id="heading"></h2><p class="detail-intro" id="intro"></p><div id="scene"></div><p class="detail-note" id="note"></p>
 </section>
-<div class="provider"><span class="provider-label">Every Jev judgment follows this path</span><span>Adviser</span><span class="sep">→</span><span>Drupal AI · Decision operation</span><span class="sep">→</span><span>TypeSafe AI provider</span><span class="sep">→</span><strong>Jev</strong></div>
+<div class="provider"><span class="provider-label">Every Jev judgment follows this path</span><span>Architect</span><span class="sep">→</span><span>Drupal AI · Decision operation</span><span class="sep">→</span><span>TypeSafe AI provider</span><span class="sep">→</span><strong>Jev</strong></div>
 <div class="footer"><span class="truth"><span class="dot"></span>Read-only advice · nothing installed or changed</span><span>Architecture walkthrough · illustrative content, not a live assessment</span><span id="chapter-count">01 / 08</span></div>
 <div class="progress-track" aria-hidden="true"><div id="progress"></div></div>
 </article>
@@ -133,12 +133,12 @@ const scenes = [
 {
 duration:4, phase:'01 / Input', owner:'SHARED SERVICE', title:'One brief. Two ways in.',
 intro:'The same assessment is available to a person in Drupal and an agent through MCP.',
-content:'<div class="grid2"><div class="box"><div class="eyebrow">A site builder</div><h3>Drupal adviser form</h3><p>Describe the build in your own words.</p><div class="flow-line"><span>Drupal UI</span><span class="arrow">→</span><strong>AI Site Advisor</strong></div><p class="source-small">The form calls the shared assessment service.</p></div><div class="box green"><div class="eyebrow">An agent</div><h3>A reusable Tool API operation</h3><div class="flow-line"><span>MCP Server</span><span class="arrow">→</span><span>Tool API</span></div><div class="mono">ai_site_advisor:assess_content_brief</div><p class="source-small">The tool calls that same service.</p></div></div>',
+content:'<div class="grid2"><div class="box"><div class="eyebrow">A site builder</div><h3>Drupal architect form</h3><p>Describe the build in your own words.</p><div class="flow-line"><span>Drupal UI</span><span class="arrow">→</span><strong>Drupal Site Architect</strong></div><p class="source-small">The form calls the shared assessment service.</p></div><div class="box green"><div class="eyebrow">An agent</div><h3>A reusable Tool API operation</h3><div class="flow-line"><span>MCP Server</span><span class="arrow">→</span><span>Tool API</span></div><div class="mono">site_architect:assess_content_brief</div><p class="source-small">The tool calls that same service.</p></div></div>',
 note:'Tool API is an optional interface to the service. The Drupal form can call it directly.'
 },
 {
 duration:5, phase:'02 / Site evidence', owner:'DRUPAL APIS', title:'Start with what is actually there.',
-intro:'The adviser reads structural metadata before asking Jev to make planning decisions.',
+intro:'The architect reads structural metadata before asking Jev to make planning decisions.',
 content:'<div class="grid2"><div class="box"><h3>Inspect current configuration</h3><div class="source-row"><span class="swatch-icon">N</span><span><strong>Content types and fields</strong><br><small>Types, required fields and references</small></span></div><div class="source-row"><span class="swatch-icon">C</span><span><strong>Configuration evidence</strong><br><small>Workflows, Views, media and more</small></span></div><div class="source-row"><span class="swatch-icon">M</span><span><strong>Available modules</strong><br><small>Core and contributed · enabled or available</small></span></div></div><div class="box green"><div class="eyebrow">Evidence passed into decisions</div><h3>What can this site already do?</h3><div class="chips small-chips"><span class="tag">Actual field definitions</span><span class="tag">Existing configuration</span><span class="tag">Module descriptions</span><span class="tag">Local availability</span></div><p>Check what exists before proposing another content type or package.</p></div></div>',
 note:'SiteContextCollector + ConfigurationInspector + ModuleInventory · metadata is evidence, not proof of complete coverage.'
 },
@@ -239,7 +239,7 @@ function tick(now) {
   lastFrame = now; requestAnimationFrame(tick);
 }
 // Deterministic timeline for reproducible exports. This page makes no network or model calls.
-window.AdvisorAnimation = Object.freeze({
+window.ArchitectAnimation = Object.freeze({
   duration,
   seek(seconds) { setPlaying(false); render(seconds); },
   play() { setPlaying(true); }, pause() { setPlaying(false); },

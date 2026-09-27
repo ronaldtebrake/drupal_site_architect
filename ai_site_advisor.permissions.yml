@@ -1,7 +1,0 @@
-access ai site advisor:
-  title: 'Use AI Site Advisor'
-  description: 'Read site structure and send selected configuration metadata and briefs to the configured AI Decision provider.'
-  restrict access: true
-administer ai site advisor:
-  title: 'Administer AI Site Advisor'
-  restrict access: true

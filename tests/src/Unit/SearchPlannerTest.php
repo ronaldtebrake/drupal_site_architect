@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\ai\Dto\TokenUsageDto;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
-use Drupal\ai_site_advisor\Assessment\BriefCapabilities;
-use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
-use Drupal\ai_site_advisor\Assessment\SearchPlanner;
+use Drupal\site_architect\Assessment\BriefCapabilities;
+use Drupal\site_architect\Assessment\DecisionClientInterface;
+use Drupal\site_architect\Assessment\SearchPlanner;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests source coverage, normalization and routing without live inference.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class SearchPlannerTest extends UnitTestCase {
 
   /**

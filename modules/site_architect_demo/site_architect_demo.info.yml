@@ -1,0 +1,9 @@
+name: Drupal Site Architect Demo
+type: module
+description: Adds a real Workshop content type for the architect demonstration. Optional; no inference or fixtures are faked.
+package: AI
+core_version_requirement: ^11.2
+dependencies:
+  - site_architect:site_architect
+  - drupal:datetime
+  - drupal:text

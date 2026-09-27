@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
-use Drupal\ai_site_advisor\Assessment\CapabilityPlan;
+use Drupal\site_architect\Assessment\CapabilityPlan;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Tests that plan cards preserve uncertainty and inspected evidence.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class CapabilityPlanTest extends UnitTestCase {
 
   /**

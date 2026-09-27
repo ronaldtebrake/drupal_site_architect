@@ -1,0 +1,7 @@
+name: 'Drupal Site Architect test source'
+description: 'Provides a fixture catalog source for integration tests.'
+type: module
+package: Testing
+core_version_requirement: ^11.2
+dependencies:
+  - project_browser:project_browser

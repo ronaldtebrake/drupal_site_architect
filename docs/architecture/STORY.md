@@ -12,7 +12,7 @@ final frame adds next steps and unresolved work.
 
 The three partial-fit judgments come from the sandbox's recorded
 `artifacts/ai-site-advisor-parts/focused-assessment.json`. That development run
-preceded later adviser refinements; this is a narrative replay, not a fresh
+preceded later architect refinements; this is a narrative replay, not a fresh
 assessment or a benchmark. The brief and candidate labels are shortened for
 display. The full brief, original question IDs, source hash and distributions
 are retained in [story-scores.json](story-scores.json).
@@ -40,22 +40,22 @@ The animation shows only three selected examples to keep the story legible.
 
 Open the self-contained HTML directly or at:
 
-`https://webmcp-integration.ddev.site/modules/custom/ai_site_advisor/docs/architecture/story.html`
+`https://webmcp-integration.ddev.site/modules/custom/site_architect/docs/architecture/story.html`
 
 The page has Play/Pause, Restart, a scrubber and a clean `?record=1` view.
 Reduced-motion preferences disable autoplay. The page makes no network or model
 calls and contains no credentials.
 
 ```sh
-ddev exec node web/modules/custom/ai_site_advisor/docs/architecture/render-story.mjs \
-  --output /var/www/html/artifacts/ai-site-advisor-story
+ddev exec node web/modules/custom/site_architect/docs/architecture/render-story.mjs \
+  --output /var/www/html/artifacts/site-architect-story
 ```
 
 The renderer requires Node 22+, Chromium and FFmpeg; no npm packages are needed.
 Use `--check` to verify chapters and controls without encoding.
 
-- MP4: `ai-site-advisor-story.mp4`, 1280 × 900, 30 fps, 22 seconds, no audio.
-- GIF: `ai-site-advisor-story.gif`, 960 × 675, 15 fps, infinite loop.
+- MP4: `site-architect-story.mp4`, 1280 × 900, 30 fps, 22 seconds, no audio.
+- GIF: `site-architect-story.gif`, 960 × 675, 15 fps, infinite loop.
 - Five chapter stills, source hash, layout/score-overlap checks, deterministic
   seeking, playback controls, reduced-motion checks and encoded video metadata.
 

@@ -1,0 +1,18 @@
+site_architect.assess:
+  path: '/admin/structure/site-architect'
+  defaults:
+    _form: '\Drupal\site_architect\Form\ArchitectForm'
+    _title: 'Drupal Site Architect'
+  requirements:
+    _permission: 'access site architect'
+  options:
+    _admin_route: true
+site_architect.settings:
+  path: '/admin/config/ai/site-architect'
+  defaults:
+    _form: '\Drupal\site_architect\Form\SettingsForm'
+    _title: 'Drupal Site Architect settings'
+  requirements:
+    _permission: 'administer site architect'
+  options:
+    _admin_route: true

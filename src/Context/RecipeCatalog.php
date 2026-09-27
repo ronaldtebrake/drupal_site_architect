@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Context;
+namespace Drupal\site_architect\Context;
 
 use Composer\InstalledVersions;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -167,7 +167,7 @@ class RecipeCatalog implements CatalogSourceInterface {
   private function manifestPaths(): array {
     $root = InstalledVersions::getRootPackage()['install_path'];
     $roots = [$this->appRoot . '/core/recipes', $root . '/recipes', $this->appRoot . '/recipes'];
-    foreach ($this->config->get('ai_site_advisor.settings')->get('recipe_directories') ?? [] as $directory) {
+    foreach ($this->config->get('site_architect.settings')->get('recipe_directories') ?? [] as $directory) {
       $roots[] = str_starts_with($directory, '/') ? $directory : $root . '/' . $directory;
     }
     $paths = [];

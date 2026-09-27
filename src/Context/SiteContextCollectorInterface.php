@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Context;
+namespace Drupal\site_architect\Context;
 
 use Drupal\Core\Session\AccountInterface;
 

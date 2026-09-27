@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Unit;
+namespace Drupal\Tests\site_architect\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
-use Drupal\ai_site_advisor\Assessment\AgentPlan;
-use Drupal\ai_site_advisor\Assessment\DecisionClientInterface;
-use Drupal\ai_site_advisor\Assessment\RequirementPlanner;
-use Drupal\ai_site_advisor\Presentation\ImplementationStory;
+use Drupal\site_architect\Assessment\AgentPlan;
+use Drupal\site_architect\Assessment\DecisionClientInterface;
+use Drupal\site_architect\Assessment\RequirementPlanner;
+use Drupal\site_architect\Presentation\ImplementationStory;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Connections use actual records and fields, including uncertainty safeguards.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class RequirementConnectionsTest extends UnitTestCase {
 
   /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Assessment;
+namespace Drupal\site_architect\Assessment;
 
 use Drupal\ai\Dto\TokenUsageDto;
 use Drupal\ai_decision\OperationType\Decision\DecisionInput;
@@ -29,7 +29,7 @@ final class DecisionBatch {
       }
       $questions[$id] = $question;
       if (self::bytes(new DecisionInput($input->getState(), $questions)) > self::MAX_REQUEST_BYTES) {
-        throw new \LengthException('A single decision still exceeds the 100 KB evidence limit after batching. Narrow the selected site evidence in AI Site Advisor settings. No partial plan was produced.');
+        throw new \LengthException('A single decision still exceeds the 100 KB evidence limit after batching. Narrow the selected site evidence in Drupal Site Architect settings. No partial plan was produced.');
       }
     }
     if ($questions) {

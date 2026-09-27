@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\Tests\ai_site_advisor\Kernel;
+namespace Drupal\Tests\site_architect\Kernel;
 
 use Drupal\Core\Session\UserSession;
 use Drupal\KernelTests\KernelTestBase;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\Group;
 /**
  * Dynamic entity metadata and access-checked destinations, without fixtures.
  */
-#[Group('ai_site_advisor')]
+#[Group('site_architect')]
 final class ConfigurationInspectorTest extends KernelTestBase {
 
   /**
@@ -27,7 +27,7 @@ final class ConfigurationInspectorTest extends KernelTestBase {
    * A newly created non-node model is immediately available with real links.
    */
   public function testNewBundleAndRouteAccess(): void {
-    $this->container->get('module_installer')->install(['ai_site_advisor', 'taxonomy', 'field_ui']);
+    $this->container->get('module_installer')->install(['site_architect', 'taxonomy', 'field_ui']);
     Vocabulary::create(['vid' => 'knowledge', 'name' => 'Knowledge areas'])->save();
     FieldStorageConfig::create([
       'entity_type' => 'taxonomy_term',
@@ -41,7 +41,7 @@ final class ConfigurationInspectorTest extends KernelTestBase {
       'label' => 'External identifier',
     ])->save();
     $this->container->get('router.builder')->rebuild();
-    $inspector = $this->container->get('ai_site_advisor.configuration');
+    $inspector = $this->container->get('site_architect.configuration');
     Role::create([
       'id' => 'builder',
       'label' => 'Builder',

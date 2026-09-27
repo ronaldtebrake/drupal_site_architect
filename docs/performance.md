@@ -36,7 +36,7 @@ controlled end-to-end benchmark.
 | Observed full assessment | Total | Time inside Decision calls | Decision calls |
 | --- | ---: | ---: | ---: |
 | Before | 70.59 s | 39.08 s | 76 |
-| Final implementation, no advisor catalogue cache hits | 31.42 s | 29.36 s | 68 |
+| Final implementation, no architect catalogue cache hits | 31.42 s | 29.36 s | 68 |
 | Final implementation, repeated catalogue queries | 30.31 s | 29.60 s | 68 |
 
 The final repeat's catalogue discovery took 0.259 s, versus 1.619 s in the
@@ -101,10 +101,10 @@ From the DDEV site root:
 
 ~~~sh
 ddev exec env SIMPLETEST_DB=mysql://db:db@db/db \
-  vendor/bin/phpunit -c web/modules/custom/ai_site_advisor/phpunit.xml.dist
+  vendor/bin/phpunit -c web/modules/custom/site_architect/phpunit.xml.dist
 ~~~
 
-For live inspection, use `/admin/structure/ai-site-advisor`, submit the full brief
+For live inspection, use `/admin/structure/site-architect`, submit the full brief
 above and expand **Time by stage (milliseconds)** and **Requests and usage within
 each stage**. Repeat within five minutes to inspect catalogue reuse. These runs
 call the configured provider; no credentials are printed or included in the plan.

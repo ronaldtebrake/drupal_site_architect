@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Drupal\ai_site_advisor\Presentation;
+namespace Drupal\site_architect\Presentation;
 
-use Drupal\ai_site_advisor\Assessment\OptionRanking;
+use Drupal\site_architect\Assessment\OptionRanking;
 
 /**
  * Highlights the model's choice without changing the assessment or its scores.
