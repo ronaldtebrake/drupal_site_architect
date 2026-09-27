@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - site_architect
+      - simple_oauth
+id: drupal_site_architect_plan
+name: 'drupal:site-architect:plan'
+description: 'Inspect site structure, discover Drupal projects and request scored plans'
+grant_types:
+  authorization_code:
+    status: true
+  refresh_token:
+    status: true
+umbrella: false
+parent: null
+granularity_id: permission
+granularity_configuration:
+  permission: 'access site architect'

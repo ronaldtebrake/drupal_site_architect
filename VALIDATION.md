@@ -1,5 +1,50 @@
 # Validation record
 
+## Agent Access base and shorter documentation (27 September 2026)
+
+Site Architect now requires the upstream Agent Access recipe and extends it with
+its two existing Tool API operations plus the permission scope
+`drupal:site-architect:plan`. No upstream project was forked. The README is about
+100 lines; installation, OAuth setup, tool contracts, discovery, demos and
+development details have moved to linked pages under `docs/`.
+
+Verified in a separate Composer project and fresh SQLite Drupal installation,
+with an explicit isolated document root and loopback HTTP server:
+
+- Drupal **11.4.8**, Agent Access **1.0.0-alpha2**, Tool API **1.0.0-beta9**,
+  Tool Belt **1.0.0-alpha5**, MCP Server **2.0.0-beta5**, Tool Bridge
+  **1.0.0-beta3**, MCP Server OAuth **1.0.0-alpha1**, Simple OAuth **6.1.1**,
+  Simple OAuth 2.1 **1.13.0**, Drupal AI **1.5.0**, and the standalone
+  `1.0.x-dev` AI Decision and TypeSafe provider packages.
+- Composer resolved the complete product through a local path repository for
+  this checkout and the documented AI VCS overrides. Composer validation passed.
+- Applied Agent Access, enabled Site Architect and rebuilt caches. Both planning
+  plugins and mappings were installed; the provider remained unconfigured and
+  the optional Workshop recipe was not applied.
+- A real HTTP MCP session listed `entity_list`, `entity_metadata`,
+  `site_architect_assess` and `site_architect_discover` (all with the `tool_api__`
+  prefix). Calling discovery succeeded without a Jev key.
+- Signed, short-lived OAuth bearer tokens were issued through Simple OAuth's
+  repository for dedicated non-administrator test users. Actual HTTP tool calls
+  succeeded with both planning permission and scope, and returned MCP tool
+  errors when either was missing. Anonymous MCP access returned **401**. Tool
+  listing is not permission-filtered by this stack; execution is checked.
+- The scope's optional configuration supports installing OAuth after Site
+  Architect. The post-update creates a missing scope on existing installations,
+  preserves customized or disabled scopes, and uninstalling Site Architect
+  removes its scope while leaving Simple OAuth installed.
+- **77 PHP tests / 5,269 assertions**, **3 JavaScript tests**, PHP coding standards
+  for the new code, documentation link checks and Git whitespace checks passed.
+
+This verifies fresh installation, session/bearer MCP calls, scope enforcement for
+ordinary accounts and scope lifecycle. The bearer-token check bypassed the
+interactive authorization-code/PKCE consent flow; it does not certify client
+registration or an external agent's OAuth UI. No new inference call was made.
+Test tokens were revoked and test accounts/consumer removed; no credentials were
+committed or printed. Agent Access remains an alpha with its documented upstream
+limitations. The existing shared demo site's authentication configuration was
+not replaced by this isolated verification.
+
 ## Jev comparison (27 September 2026)
 
 The [recorded comparison](docs/jev-comparison/README.md) contains all three
@@ -62,8 +107,9 @@ installing the product does not add a demo content type.
   Decision and its provider. The README documents the two upstream VCS overrides
   needed to install the actual modules without duplicate legacy submodules.
 - MCP Server **2.0.0-beta5** changed its plugin discovery directory and did not
-  discover Tool Bridge **1.0.0-beta1**. The package intentionally pins the tested
-  **beta2/beta1** pair until a newer pair is verified together.
+  discover Tool Bridge **1.0.0-beta1**. This check initially pinned the tested
+  **beta2/beta1** pair. The Agent Access verification above supersedes those pins
+  with the compatible **beta5/beta3** pair.
 - Before migrating the existing prototype, a database snapshot was taken.
   Four former submodule registrations were removed; all **14 affected
   configuration objects** were verified against the migration receipt. Row
@@ -201,7 +247,7 @@ No inference or external catalogue requests are made by the automated tests.
   JavaScript syntax and Git whitespace checks pass.
 
 Commands and optional test dependencies are described in
-[README.md](README.md#extending-and-validating).
+[development reference](docs/development.md#extending-and-validating).
 
 ## Live ecosystem discovery
 

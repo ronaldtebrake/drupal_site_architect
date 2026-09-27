@@ -1,108 +1,35 @@
 # Drupal Site Architect
 
-Source: [ronaldtebrake/drupal_site_architect](https://github.com/ronaldtebrake/drupal_site_architect).
-Drupal machine name: `site_architect`. Composer package: `drupal/site_architect`.
+Turn a feature brief into a Drupal implementation plan grounded in the current
+site. Site Architect inspects existing configuration, discovers modules and
+recipes through Project Browser, and uses **Jev** to score what could be reused,
+extended or added. The result names building blocks, field connections and work
+that still needs a decision.
 
-Help site builders and agents decide what to reuse, investigate or build on a Drupal site.
-The architect reads the current site structure, identifies capabilities in a
-brief, decides whether ecosystem searches would help, and returns a draft plan
-grounded in the site and discovered recipe/module candidates.
-The phase-one demo uses **Jev through the TypeSafe AI provider**.
+Review the plan in Drupal or request the same assessment from an agent over MCP.
+It provides **read-only planning**: it does not install packages or change content
+or configuration. Scores guide review; they do not prove compatibility.
 
-A site builder can inspect the same advice in a normal Drupal form. The same
-installation includes Jev, Project Browser ecosystem discovery, Tool API plugins
-and MCP Server mappings. One module supplies both the human planning interface
-and the agent-facing tools. Canvas, WebMCP and ECA are not required.
+[![Brief → phrases → site and ecosystem → scores → plan](docs/architecture/site-architect-story.gif)](docs/architecture/story.html)
 
-For example: “We need an editorial workflow for our existing news content.
-What can we reuse here, which ecosystem solutions should we investigate, and
-what would remain to build?” The architect compares actual moderation states,
-transitions and assigned content types with discovered recipes and modules.
-It works whether the existing workflow came from a recipe, a site builder or
-custom code. Recipe application history is not required.
+## Built on Agent Access
 
-This is read-only advice. A relevance judgment is not a compatibility check or
-permission to install. No recipe is applied, package installed, content created
-or configuration changed by either architect tool. Phase one includes software
-tests and live checks; model evals and cost comparisons remain later work.
+[Agent Access](https://www.drupal.org/project/agent_access) supplies the recipe for
+MCP, OAuth and a small starter tool catalog. Site Architect adds two Tool API
+tools: **discover Drupal candidates** and **assess a feature brief**.
 
-## Two entry points, one assessment
+Composer downloads that base and the planning dependencies together. Applying
+the recipe configures the connection; enabling Site Architect registers the
+planning tools. Site Architect keeps direct dependencies on the APIs it uses.
+No upstream project is forked or copied.
 
-The architect serves two equally important workflows:
+## Install
 
-- **A site builder in Drupal:** review a readable plan, compare options and see
-  how records, fields and supporting capabilities fit together. **Copy plan for
-  an agent** includes the original brief, site URL and the exact scored draft on
-  screen. A preview supports manual copying. Copying does not rerun inference,
-  select every alternative, send data to an agent or change the site.
-- **An agent through MCP:** send the user's brief to `assess_content_brief` before
-  building or extending the site. The compact response identifies existing
-  configuration, ecosystem candidates, scored choices and unresolved gaps. The
-  agent can inspect those references and use its existing implementation tools.
+Requires **Drupal 11.4+ within Drupal 11**, **PHP 8.3+**, a Composer-managed site
+and a TypeSafe API key. The commands below use project-local Drush. Agent Access
+is currently an alpha recipe; see its [current limits](https://git.drupalcode.org/project/agent_access/-/blob/1.0.x/SECURITY.md).
 
-Both use the same assessment service and compact handoff contract. The UI copy
-wraps that contract with the brief and site context; MCP callers already have
-their user's brief and server connection. Neither path depends on the other.
-
-WebMCP-assisted implementation is a future interface for reviewing and acting on
-that plan in the browser. It could connect the editor's current context to
-existing Tool API/build capabilities without routing browser operations through
-MCP Server. Execution, progress and revalidation belong to that next stage;
-this module currently supplies informed planning and discovery.
-
-## Architecture walkthrough
-
-[![A brief becomes key phrases, matches to the Drupal site and ecosystem, and a draft plan](docs/architecture/site-architect-story.gif)](docs/architecture/story.html)
-
-The concise [22-second visual story](docs/architecture/story.html) follows a
-brief through phrases, site/ecosystem evidence, recorded Jev scores and a draft
-plan. [Score provenance and export instructions](docs/architecture/STORY.md)
-explain the partial-fit judgments and keep their limitations visible.
-
-For a visual explanation of the brief-to-plan pipeline, open the standalone
-[architecture animation](docs/architecture/index.html). It walks through site
-inspection, source-phrase selection, discovery, typed Jev judgments and the
-human/agent handoff. [Recording and export instructions](docs/architecture/README.md)
-include a reproducible silent MP4 and GIF renderer. The animation is illustrative;
-it does not call a provider or change the site.
-
-A separate [25-second visual version](docs/architecture/visual.html) animates
-source phrases, candidate matches and building blocks assembling into a plan.
-It retains the original walkthrough. [Visual export instructions](docs/architecture/VISUAL.md)
-describe its separate MP4/GIF renderer.
-
-## What Jev adds to the plan
-
-The [side-by-side comparison](docs/jev-comparison/README.md) runs three briefs
-against shared site and catalog evidence: workshops, translation, and discussion
-notifications. It compares a keyword-based inspection checklist with the actual
-Jev judgments and shows the proposed record, field and component connections.
-Useful keyword matches and weak Jev suggestions are both retained.
-
-[Explore the comparison](docs/jev-comparison/index.html) ·
-[Share the Workshop poster](docs/jev-comparison/workshops.png)
-
-This is a recorded comparison with a documented lexical baseline, not a benchmark
-against another LLM. No production planning code was changed for the experiment.
-
-## Requirements and standalone installation
-
-Site Architect is **one module with the complete planning stack included**.
-Requiring `drupal/site_architect` downloads Drupal AI, AI Decision, the TypeSafe
-AI provider for Jev, Project Browser, API Browser, Tool API, MCP Server and its
-Tool API bridge. Composer resolves their dependencies too, including Key.
-You do not need separate `composer require` commands for those modules.
-
-You need an existing **Drupal 11 site, version 11.2+**, on **PHP 8.3+**, managed with Composer,
-and a TypeSafe API key to run Jev assessments. The site needs outbound HTTPS
-access to the provider and the catalog sources you enable. Canvas, ECA and
-WebMCP are not required. No demo content type is installed automatically.
-
-### 1. Download the module and its dependencies
-
-Run these commands from the directory containing your site's `composer.json`.
-The standard Drupal Composer repository, `https://packages.drupal.org/8`, must
-already be configured, as it is in `drupal/recommended-project`.
+From the directory containing the site's `composer.json`:
 
 ```sh
 composer config repositories.site_architect vcs https://github.com/ronaldtebrake/drupal_site_architect.git
@@ -111,785 +38,64 @@ composer config repositories.ai_provider_typesafeai vcs https://git.drupalcode.o
 composer config minimum-stability dev
 composer config prefer-stable true
 composer require drupal/site_architect:dev-main --with-all-dependencies
-```
 
-The GitHub repository setting is needed because this project is currently
-distributed directly from GitHub. Its Composer package name is
-`drupal/site_architect`, even though the repository is named
-`drupal_site_architect`. A bare `composer require drupal/site_architect` cannot
-discover an unregistered GitHub package on its own.
-
-The AI Decision and TypeSafe repository settings are temporary upstream packaging workarounds:
-Drupal's package index currently maps `drupal/ai_decision` to an old metapackage
-which does not provide the standalone module files. The override fetches the
-actual AI Decision module. The matching provider override prevents its stale
-package metadata from pulling in a second copy under the old submodule package
-name. These overrides can be removed once both index entries are corrected.
-See the [upstream packaging note](https://git.drupalcode.org/project/ai_provider_typesafeai/-/blob/1.0.x/README.md).
-
-Some required dependencies currently have only development or prerelease
-versions. `minimum-stability` and `prefer-stable` are **site-wide Composer
-settings**: they allow those versions while preferring stable releases where
-available. Skip those two commands if your project already uses these settings.
-If your project must keep a stable minimum, explicitly allow the required
-prerelease packages in its root `composer.json` instead. A module cannot set
-that policy for its host project; see [Composer's stability rules](https://getcomposer.org/doc/04-schema.md#minimum-stability).
-Commit the resulting site `composer.json` and `composer.lock` for repeatable installs.
-
-The current package pins MCP Server `2.0.0-beta2` with Tool Bridge
-`1.0.0-beta1`. Later prereleases change plugin discovery and server APIs;
-upgrade this pair together after verifying interoperability. These intentional
-pins keep both tools discoverable on a fresh installation.
-
-### 2. Enable Site Architect
-
-```sh
+vendor/bin/drush --uri=https://your-site.example recipe ../recipes/agent_access
 vendor/bin/drush en site_architect -y
 vendor/bin/drush cr
 ```
 
-Alternatively, open **Extend** (`/admin/modules`), select **Drupal Site Architect**
-and install it with its required dependencies. Drupal enables the required
-modules together. Composer downloads code; enabling the module installs Drupal
-configuration and registers the services and tools.
+Replace the example URL with your site's HTTPS address. The GitHub repository
+setting discovers this package; the two AI repository settings work around
+current upstream packaging metadata. Stability settings apply to the whole
+site. [Installation details and existing-site upgrades](docs/installation.md)
+explain these requirements and the recipe path.
 
-There are no integration submodules to select. Installation registers both
-Tool API plugins and these two enabled MCP mappings:
+## Configure and use
 
-- `tool_api__site_architect_assess`
-- `tool_api__site_architect_discover`
+1. Add the TypeSafe API key through **Key**, select it at
+   `/admin/config/ai/providers/typesafeai`, then choose **TypeSafe AI / Jev** as
+   the default **Decision** provider at `/admin/config/ai/settings`.
+2. At `/admin/config/development/project_browser`, enable the **Drupal.org** and
+   **Packagist Drupal Recipes** sources. Preserve any other sources the site uses.
+3. Grant **Use Drupal Site Architect** to the site builders who need planning.
+4. Open **Structure → Drupal Site Architect**
+   (`/admin/structure/site-architect`), enter a brief and select **Propose a plan**.
 
-### 3. Configure Jev
+For example:
 
-1. Get your API key from [TypeSafe](https://typesafe.ai).
-2. At **Configuration → System → Keys** (`/admin/config/system/keys`), create a
-   Key holding that credential. Use the site's normal secret-storage approach;
-   do not put the secret in version-controlled configuration.
-3. Open `/admin/config/ai/providers/typesafeai`, select that Key under
-   **TypeSafe API Key**, and save. The provider verifies the connection.
-4. Open `/admin/config/ai/settings`. For the **Decision** operation, select
-   **TypeSafe AI** and **Jev** (`jev-latest`), then save.
+> We want recurring workshops with a date, location, capacity and description.
+> Visitors should filter the listing by location. Reuse a suitable existing
+> content type and give every workshop a shared layout.
 
-The planning service uses Drupal AI's configured default Decision provider.
-The package includes TypeSafe for the Jev setup above; no key or provider
-selection is shipped with the module. A chat/completion model selected elsewhere
-in Drupal AI does not configure the Decision operation.
+Review the proposed starting point, supporting components and unresolved work.
+**Copy plan for an agent** copies the current scored draft for implementation
+with your existing tools. Planning policy lives at `/admin/config/ai/site-architect`.
 
-### 4. Enable ecosystem catalogs
+## Use it from an agent
 
-Open `/admin/config/development/project_browser`:
+Finish [Agent Access's OAuth setup](docs/agent-access.md): generate keys, grant
+the account the required permissions, and connect the agent to
+`https://your-site.example/mcp`. For planning, request the scopes
+`drupal:mcp:connect` and **`drupal:site-architect:plan`**. Add
+`drupal:content:read` if using Agent Access's starter content tools too.
 
-- Enable the **Drupal.org** module source (`drupalorg_jsonapi`). It is enabled
-  by default on a fresh Project Browser installation.
-- Enable **Packagist Drupal Recipes** (`api_browser_project:packagist_recipes`).
-  API Browser supplies this catalog configuration automatically, but the source
-  must be selected in Project Browser before it is searched.
-- Keep any other sources your site uses enabled, then save.
-
-Site Architect respects this source selection. It does not overwrite an existing
-site's catalog settings. The local **Recipes** source is not a substitute for
-the Packagist ecosystem catalog: local recipe files are already inspected
-directly by Site Architect. Project Browser's package-installation UI can remain
-disabled; discovery does not require installation permissions.
-
-### 5. Set access and site policy
-
-At `/admin/people/permissions`, grant **Use Drupal Site Architect**
-(`access site architect`) to the roles that should inspect site structure,
-query catalogs and run assessments. Grant **Administer Drupal Site Architect**
-(`administer site architect`) only to roles that should change planning settings.
-
-At `/admin/config/ai/site-architect`, review the planning policy, content-type
-scope and any additional local recipe directories. Empty content-type scope
-includes all supported content types. Core recipes and installed Composer recipe
-packages are discovered automatically.
-
-### 6. Create a plan
-
-Open **Structure → Drupal Site Architect** (`/admin/structure/site-architect`).
-Describe what you want to build or extend, then select **Propose a plan**.
-Review the inspected site structures, scored options and remaining questions.
-**Copy plan for an agent** copies the current draft and its evidence pointers.
-
-The assessment performs discovery and planning only. It does not install
-recommended packages, apply recipes or change content or configuration.
-
-### 7. Connect an agent over MCP
-
-Use your site's MCP endpoint, normally `https://your-site.example/mcp`.
-The agent's Drupal account needs both `access mcp server` and
-`access site architect`. Check the two Site Architect mappings at
-`/admin/config/services/mcp-server/tools`.
-
-The supported MCP Server 2.x route uses **Drupal session-cookie authentication**.
-Your MCP client or its transport must carry an authenticated Drupal session.
-Pasting the endpoint URL into a client alone does not log it in, and the Jev API
-key is not an MCP login credential. Clients that only support OAuth or bearer
-tokens need a compatible server-side authentication integration; those methods
-are not provided by this package's current MCP endpoint.
-
-Once authenticated, `tools/list` should include both mappings. Call
-`tool_api__site_architect_discover` with `{"query":"workflow"}` to verify
-discovery without inference. Call `tool_api__site_architect_assess` with
-`{"brief":"We need an editorial review workflow for our existing news content."}`
-to get a compact scored plan. [Tool contracts and examples](#tool-api-and-mcp-server) describe
-the response and the full-evidence option.
-
-### Optional Workshop example
-
-To try a known content structure on a development site, apply the bundled recipe:
-
-```sh
-vendor/bin/drush recipe modules/contrib/site_architect/recipes/workshop
-```
-
-The recipe path is relative to Drupal's document root. It creates a normal
-**Workshop** content type with date, location, capacity and
-description fields; it creates no content records. The existing
-`advisor_workshop` bundle ID is retained for compatibility with earlier demos.
-You can inspect its normal form at `/node/add/advisor_workshop` and then try the
-**Recurring workshops** brief. This recipe is independent of installing the
-planning product, and its configuration survives uninstalling Site Architect.
-
-### Existing prototype installations
-
-Fresh installs use only `site_architect`. Older installations using
-`ai_site_advisor` or the former `site_architect_*` integration modules need their
-module registrations and configuration dependencies migrated before replacing
-the code. Uninstalling the old demo or MCP modules can remove their owned
-configuration. The local prototype was migrated with content and mapping settings
-preserved; see [VALIDATION.md](VALIDATION.md).
-
-## Dynamic recipe discovery
-
-There is no fixed list of recipe names. The local source discovers `recipe.yml`
-files from:
-
-- Drupal core's `core/recipes` directory.
-- Composer packages of type `drupal-recipe`, using their recorded install paths.
-- Conventional `recipes` directories at the Composer root and Drupal docroot.
-- Additional directories configured in the architect settings, relative to the
-  Composer root or absolute. Directory scans include manifests up to two
-  subdirectory levels down and follow links. Add a nearer root for deeper trees.
-
-The source reads names, descriptions, declared extensions, included recipe names,
-configuration-action targets and a source hash. It also reads a sibling
-`composer.json` for package identity when present. A newly added or edited
-manifest appears on the next discovery call without editing this module.
-Malformed manifests are reported while valid results remain available.
-
-For local recipes it also inspects `config/*.yml` and explicitly named imports
-and action targets. Only structural metadata is retained: configuration names,
-labels, entity/bundle/field identifiers, field types, required flags and file
-hashes. Arbitrary settings, defaults, action arguments and credentials are not
-exported. Each explicit name is checked against active configuration. Existence
-does not establish matching settings or application history. Included recipes,
-wildcard imports and action behavior still require inspection; this is not a
-complete recipe simulation.
-
-Local availability means **code is present**. It does not prove that a recipe
-was applied, that its configuration remains in use, or that applying it would
-be compatible. The site collector separately reads current configuration.
-
-## Core and existing module capabilities
-
-The architect reads visible module metadata from Drupal's extension list. Every
-module shipped with core is considered even when disabled; enabled contributed
-and custom modules are also included. Hidden and test modules are excluded.
-Names and descriptions come from the modules themselves. There is no list mapping
-planning keywords to specific projects.
-
-An independent semantic screening stage compares each module with the complete
-brief. Only a confidently unrelated result (at least 75% probability and 70%
-confidence) excludes it from detailed comparison. Useful and uncertain modules
-remain named candidates, with starting-point and contribution judgments for each
-work area. The full screening results, including exclusions, are inspectable in
-**Local capability screening**. These prototype thresholds are not calibrated
-coverage guarantees.
-
-This lets core capabilities such as Content Translation and Views participate
-alongside recipes and external projects. The starting-point question distinguishes
-creating records from adding behavior to those records. For example, an event
-content type is not automatically the best choice for translating existing events
-or building an overview of them.
-
-Local modules carry their machine name, core/contributed identity, enabled state,
-declared dependencies and accessible configuration links. Links come from module
-configure routes and registered configuration entities. A disabled core module
-needs enabling and configuration, **not Composer acquisition**. For extensions
-without a declared Drupal project, `local/<module>` is a local identity, not an
-installable Composer recommendation. Available code does not establish configured
-languages, translatable fields, listing filters or operational access behavior.
-
-The inventory is collected fresh and included in the site fingerprint. Scoring
-packets retain module descriptions and dependencies but omit duplicate inventories
-and output-only routes/source paths. The complete result keeps that evidence.
-Screening adds provider work, reported separately under `local_discovery`; the
-normal three-option UI and compact MCP handoff still apply.
-
-## Discovering the ecosystem through Project Browser
-
-The Project Browser adapter is part of the main module and is enabled when
-Site Architect is installed.
-
-The adapter calls Project Browser's public source plugin API and respects its
-enabled-source configuration. It accepts recipe and module projects. The built-in
-local recipe source is skipped because the main module already reads those
-manifests with richer evidence.
-
-Project Browser supplies a contributed-module catalogue. To include recipes
-that have **not** been downloaded or applied, Site Architect includes
-[API Browser](https://www.drupal.org/project/api_browser).
-
-At `/admin/config/development/project_browser`, enable **Packagist Drupal
-Recipes**, keeping any existing sources you need. API Browser ships this source
-configuration; its plugin ID is `api_browser_project:packagist_recipes`.
-Use its **API Browser Services** settings to configure other external JSON
-catalogues. The architect has no dependency on Packagist or a particular source ID.
-Project Browser's installation UI does not need to be enabled for discovery.
-
-Enter the requirement in the original brief; there is no separate search field.
-Jev receives the brief and current site
-structure and chooses one of three paths:
-
-- **Search** when comparing existing solutions would help. Jev selects source
-  phrases for several capabilities, such as events, groups and activity stream.
-- **Local** when current site/core configuration is a sufficient starting point,
-  or the brief explicitly asks to stay local.
-- **Clarify** when the requirement or search decision is too uncertain.
-
-Only the search path queries external catalogue adapters. Local recipe files
-remain available on every path. The resulting candidates then inform the
-assessment stage. The local and clarification paths assess local evidence
-without querying external catalogs.
-
-The form and assessment tool accept **10–20,000 characters**. Named paragraphs
-such as `Groups: ...` retain their requirements together. Other prose is split
-at punctuation and common conjunctions. Long sections or clauses use overlapping
-96-word windows, supplying adjacent one- and two-word source phrases without
-discarding the tail. URLs, email addresses and tokens with digits are excluded.
-The route and extraction questions run in batches of up to 12 questions, each
-with the complete brief and site context. Jev selects a phrase or `none` for
-each segment, and classifies its scope as a work area, detail or context.
-`BriefGrouping` then assigns details to proposed subjects before discovery. Stored
-attributes, filters and presentation can belong to the same subject instead of
-becoming separate catalogue queries. Each assignment must pass the 75% probability /
-70% confidence policy. Uncertain assignments retain the original independent work
-area or remain visible as unassigned passages; source requirements are not discarded.
-Repeated search phrases merge while preserving their source passages. Compound nouns such as
-`activity stream` remain intact; English singularization turns `groups` into
-`group` and `events` into `event`. Only the search route sends these terms to
-external sources. Local plans retain their capability scope without searching.
-
-No topic-to-module mapping or recipe list is hardcoded. This is bounded source
-selection, not arbitrary synonym generation or guaranteed anonymization. The
-English clause splitter can miss implicit requirements and complex prose. The
-UI reports segments processed and exposes unmapped passages for review. Processing
-every segment does not establish that every requirement was understood. Current module
-labels/descriptions enrich the site evidence, but do not prove that their
-configuration or integrations work.
-
-The result shows the selected path, its predefined criterion and any search
-term. Uncertain routes and the absence of a suitable term trigger a review flag
-and no ecosystem search. These criteria are static descriptions of the options,
-not generated explanations of the model's reasoning.
-
-Discovery reports source IDs, candidate packages, availability, match counts,
-truncation and failures. A direct search returns at most 12 candidates,
-alternating local and Project Browser results and Project Browser sources.
-The adapter fetches up to 24 source results and prefers project-name matches
-over incidental description mentions. Compound assessments search each selected
-capability separately and retain up to 12 candidates **per query**, deduplicating
-shared packages. There is no shared 24-candidate cap on a plan. The assessment
-packs questions with their relevant evidence into multiple requests as needed.
-Every work-area choice sees all candidates retained for that query. Each
-candidate retains its matching queries and each
-source report retains its query. These lexical preferences are not semantic
-relevance judgments; Jev assesses the retrieved descriptions afterward.
-Stable IDs are based on kind and package, with separate core component IDs.
-Duplicate packages retain additional source references.
-
-Search is bounded, and upstream sources manage their own caches. A source may
-hide upstream fetch failures or provide fixed compatibility flags. Such flags
-remain explicitly **unverified source claims**. No results, partial results or
-high relevance cannot establish that custom development is necessary or that a
-package is safe to adopt. Inspect dependencies, recipe actions, configuration
-overlap and target-site compatibility before choosing an installation plan.
-
-## Tool API and MCP Server
-
-Both plugins are included in the main module. Enabling Site Architect installs
-Tool API and registers them automatically.
-
-| Tool API plugin | Input | Output |
+| MCP tool | Input | Result |
 | --- | --- | --- |
-| `site_architect:discover_candidates` | `query`: 1–120 characters; optional `detail`: `compact` (default) or `full` | `discovery`: candidate pointers and conditional acquisition steps; no inference call. |
-| `site_architect:assess_content_brief` | `brief`: 10–20,000 characters; optional advanced `catalog_query` override: up to 120; optional `detail`: `compact` (default) or `full` | `assessment`: compact build handoff, or complete evidence with `detail: "full"`. |
-
-The operations are `Read` and `Explain`. Both check `access site architect`
-inside the service, including for callers that skip Tool API's access method.
-
-### Compact agent handoff
-
-Both tools default to a compact response. **Callers expecting the previous full
-output must now pass `"detail": "full"`.** The output keys `assessment` and
-`discovery` are unchanged. PHP services and the Drupal form retain full evidence.
-This formatting happens in the Tool API adapter, so MCP and other tool callers
-get the same contract without changes to their transports.
-
-The compact assessment (`schema_version: agent-plan-v2`) contains:
-
-- `work_areas`: every identified area, its starting point, configuration links,
-  matching existing configuration, candidate references and an unresolved check.
-  `parts` maps source requirements to content types or candidate references,
-  with `supported`, `partial`, `open` or `check` status and individual review flags.
-  `assessed_preference` retains a weak starting-point choice without promoting it
-  to a recommendation. Shortlisted candidates include contribution `evidence`;
-  parts include separate component-selection and coverage judgments. Target and
-  field references also retain their selected judgment's evidence.
-  `integration_verified` is always false; `assembly_check` identifies work still
-  needed to connect and verify the chosen components.
-- `candidates`: one entry per retained candidate, with project or manifest
-  pointers, availability and conditional acquisition/configuration steps.
-- `discovery`: extraction coverage, unassigned source passages, search truncation
-  and source warnings.
-- `needs_review` and individual review flags, plus the site fingerprint.
-
-Compact evidence contains `choice`, its `probability`, `confidence` and
-`needs_review`, rather than the full distribution over alternatives. Missing
-scores remain `null`. These are separate judgments on a 0–1 scale, not an overall
-quality percentage or proof of compatibility. The same numbers are copied from
-the assessment; exporting never runs another model call. Use `detail: "full"`
-for complete source descriptions, all candidates and score distributions.
-
-Each work area keeps up to two candidates for each useful contribution role
-(foundation or complement), deduplicated. Only a starting point supported by both
-selection and contribution is pinned; otherwise `starting_point` remains undecided.
-Checked matches for individual requirements are prioritized, followed by independent
-contribution evidence. Every component referenced by a part is included in the
-candidate dictionary even if it falls outside the general shortlist.
-`other_package_options` counts omitted packages; an empty shortlist does not
-prove that no solution exists. Complete alternatives and scores remain available
-with `detail: "full"`.
-
-An external candidate includes this conditional acquisition instruction:
-
-```json
-{
-  "acquire": {
-    "action": "composer_require_if_selected",
-    "argv": ["composer", "require", "vendor/package"]
-  }
-}
-```
-
-The building agent chooses among alternatives and checks a compatible release
-before running Composer in its project environment. This is structured command
-data, not an executed command. Packages already available locally instead return
-`code_available`; enabled modules and local recipes have separate next steps.
-Recipe files do not establish recipe application, and available code does not
-establish enabled modules. Unknown package identities require inspection.
-
-The default response omits repeated descriptions, raw questions, fields, score
-distributions and provider usage. `detail: "full"` performs a fresh assessment,
-not a lookup of a saved report, so results can differ. Formatting reduces the
-agent-facing payload; it does not reduce the architect's internal inference work
-or establish a token-cost saving. The current MCP bridge includes the output
-in both its text content and `structuredContent`.
-
-### MCP connection
-
-MCP Server and Tool Bridge are installed with Site Architect. The main module
-owns two enabled mappings: `tool_api__site_architect_discover` and
-`tool_api__site_architect_assess`. Configure the agent's authenticated connection
-as described in [Connect an agent over MCP](#7-connect-an-agent-over-mcp).
-The Decision provider credential remains in Drupal.
-
-An agent can send the original brief directly to assessment:
-
-```json
-{
-  "brief": "We need an editorial workflow for our existing news content. Writers save drafts, editors review them, then publish approved articles. Compare the existing configuration with available solutions before proposing custom development."
-}
-```
-
-The service handles search planning for both the form and Tool API/MCP. A caller
-that already knows the desired search can use discovery with
-`{"query":"workflow"}` without an inference call. Supplying the optional
-`catalog_query` to assessment explicitly requests that search and bypasses the
-planning stage; normally omit it.
-
-Assessment reads the site and discovers candidates afresh. It never accepts an
-agent-supplied evidence packet as proof. Candidate IDs are stable; the set may
-change when a source updates. Resolve review flags and inspect candidate details
-before invoking separate installation or build tools.
-
-```mermaid
-flowchart LR
-  Agent --> MCP[MCP Server]
-  MCP --> Bridge[Tool API bridge]
-  Bridge --> Tools[Discovery and assessment tools]
-  Tools --> Architect[Shared architect services]
-  Form[Drupal form] --> Architect
-  Architect --> Site[Current fields and workflows]
-  Architect --> Local[Local recipe manifests]
-  Architect --> Plan[Decide local / search / clarify]
-  Plan -->|search only| PB[Enabled Project Browser sources]
-  PB --> Catalogs[Module and recipe catalogues]
-  Architect --> Decision[AI Decision / Jev]
-```
-
-ECA, WebMCP and other callers can use the same service or Tool API plugins through
-their adapters. WebMCP can invoke them directly; it does not need MCP Server.
-Browser path scope, human handover, transport authentication and write-tool
-permissions remain responsibilities of those interfaces.
-
-## A short demo
-
-Select **A community site** and click **Propose a plan**. The example asks for
-events and topics in groups, an activity stream and notifications. Show the
-separate queries, the existing Workshop type as a possible event starting point,
-and `drupal/group` as a discovered candidate. Activity-stream and notification
-options remain reviewable; a package's description does not prove the combination
-works. The brief should distinguish discussions from taxonomy when asking for
-topics. No project name is embedded in the example or retrieval logic.
-
-The plan has three parts: work areas with evidence and open decisions, validation
-of the chosen combination, and preparation of build tasks. Work areas follow the
-brief; they are not a verified dependency graph. Candidate descriptions come
-from sources. Actions and checks are predefined text composed from typed choices,
-not an LLM-generated implementation narrative. A work area leads with a
-**Recommended starting point** only when its selection and contribution both pass
-the review policy. Otherwise it shows **No recommendation yet**, while useful
-components and requirement matches remain visible. The original preference and
-all scores stay in the expanded evidence, including weak or conflicting choices.
-
-The main view highlights at most **three distinct options**, including any
-recommended existing content type. A confirmed choice leads. Checked matches for
-specific requirement parts come next; other resources are ordered by contribution
-review status, contribution probability and
-confidence, with a stable ID tie-break. They are labelled as alternative
-foundations or supporting options. Their separate starting-point probability
-does not exclude an independently useful addition. Every assessed option remains
-available in **Options, scores and remaining gaps**, including existing content
-types, Drupal configuration, uncertain packages and unrelated matches.
-This limit affects resource highlights, not the requirement breakdown. Every
-source part remains available even when its component is outside those cards.
-
-The plan now separates three different judgments:
-
-- **Starting point**: one competing Choice across the inspected options. Its
-  probability can be low for a useful module when an existing content type is
-  preferred. Weak preferences remain in the evidence without leading the ranking.
-- **Contribution here**: an independent Choice for each option in each work area:
-  possible foundation, possible addition, unrelated or insufficient evidence.
-  Several building blocks can be useful. The role's distribution, confidence,
-  criterion and review flag are available beside its source evidence.
-- **Whole-brief relevance**: the earlier independent package relevance question,
-  explicitly labelled as applying to the complete brief. A package can be useful
-  elsewhere without contributing to this particular work area.
-
-Foundation and addition summaries suggest investigation paths. They do not assert
-that the packages integrate. For example, a module that supplies its own event
-entities may be an alternative foundation to a Workshop node type, while a
-field-oriented recurrence module may extend an existing model. The architect uses
-retrieved descriptions to judge this distinction; it does not contain package
-rules or automatically install combinations. Roles needing review are identified
-in the summary and table. Missing evidence and runtime compatibility remain open.
-The same structured `plan`, full option list and judgments are available to MCP
-with `detail: "full"`; the default agent handoff is compact.
-
-### Several components for one work area
-
-`RequirementPlanner` adds a separate `requirement-parts-v2` stage after candidate
-assessment. It retains grouped source passages and their sentence/list items;
-no feature-to-module map is embedded. Jev distinguishes record subjects, stored
-fields, listings, presentation, other behavior and conditions. It
-selects a possible component from that area's inspected options, including existing
-node types, local modules and discovered packages. A second call independently
-checks that selected component against the exact item using its description,
-actual bundle fields and any inspected recipe configuration.
-
-In the same two passes it can select an inspected target node type, then check
-individual field definitions for the requested storage or filter/sort usage.
-Only confident matches become field references. Ambiguous, conflicting or absent
-targets remain unresolved, and an uncertain field match never becomes an asserted
-mapping. A suggested component and target content type are separate decisions:
-the former supplies behavior; the latter identifies the records it operates on.
-
-The UI's **How the parts fit together** groups these connections into content and
-fields, listing, presentation and remaining behavior/conditions. For example,
-inspected workshop fields can appear under the Workshop type, while an independently
-selected listing component points to that same type and its Location field.
-There are no workshop names, field names or Views/Canvas mappings in this logic.
-Module choices still come from source descriptions and typed judgments. Settings
-links come from inspected configuration routes. Existing listing filters and
-template mappings are not declared verified.
-
-The compact Tool API/MCP plan includes each part's optional `target` (entity type,
-bundle and configuration links) and `fields` (name, type and proposed purpose).
-It retains the selected probabilities and confidence while omitting full option
-distributions; the full response retains every judgment.
-This is an additive extension of `agent-plan-v2`, shared with the normal form.
-
-For example, storing an opening post and adding replies are separate needs.
-They can point to an existing record model and a reply capability, while club
-access remains a condition to verify. A named component can serve several parts.
-Different record models remain alternatives; this is not an install-all list.
-
-Each part reports direct source support, a partial building block, an open gap
-or an acceptance check. The `supported` status requires a direct judgment passing the
-existing 75% probability / 70% confidence policy. If the combined probability of
-direct or partial support is at least 75%, a match can remain **partial** even
-when the distinction between those two roles is uncertain. Partial matches always
-need review. These are prototype thresholds, not calibrated correctness claims.
-An uncertain choice between two viable candidates does not erase independently
-supported usefulness, but its selection review flag is preserved.
-
-The service reports this under `plan.areas.*.requirements` and keeps version,
-answers, requests and usage under `requirement_plan`. Usage totals include both
-new passes under `requirement_planning`, including any targeted recovery. Valid
-earlier assessments are not rerun. All request-size and response checks still apply.
-
-This is a source-based breakdown, not exhaustive semantic extraction: one sentence
-may contain several needs, and candidate metadata may not establish their coverage.
-Such items stay partial or open. Integration, entity compatibility, field wiring
-and access behavior across components still require inspection and testing; this
-stage never marks a combination verified. It uses the area's bounded candidate
-set, so cross-area dependencies can still require broader discovery.
-
-### A handoff for site builders
-
-The default view presents readable next steps; probabilities remain in the
-expandable evidence table. `plan.areas.*.handoff` contains the same guidance in
-the service response and the full Tool API/MCP response:
-
-- A concrete starting point and an explanation of what remains undecided.
-- A suggested administration area, selected from Drupal's registered config
-  entity definitions. Its collection/edit/Field UI links are generated from
-  actual routes and checked against the caller's access.
-- Existing bundle definitions and configurable fields, including non-node
-  bundles discovered through entity metadata. The node scope setting is retained.
-- Recipe configuration names already present versus proposed additions, with
-  direct links to matching current bundle definitions. When all explicitly
-  listed names exist, the recipe is presented as a reference to review.
-- Project details for remote candidates and a clear distinction between
-  enabled modules, locally available recipes and catalog-only resources.
-
-The former “Configure Drupal” option is now explicitly an unspecified approach,
-not a competing component or a scored foundation. A named recipe can supply
-the same configuration. This fallback always needs review; it never establishes
-an implementation on its own.
-
-Jev selects configuration areas and judges candidates. Human-authored interface
-copy composes those judgments with current evidence; there is no scenario-to-
-module mapping or generated configuration URL. The prose does not invent field
-names, integrations or installation instructions. Where the evidence cannot
-establish the exact change, the handoff tells the builder what to inspect and
-retains the requirement. Applying recipes, simulating their effects and detailed
-field-by-field implementation design remain separate work.
-
-For the earlier workflow example:
-
-1. Open the architect and expand **Available capabilities and recipe catalog**.
-   Show the site's actual fields, moderation states and discovered local files.
-2. Select **Editorial workflow** and click **Propose a plan**. Show Jev's
-   search decision and selected term above the results. In the live check it
-   selected `workflow` from the brief and queried the configured sources.
-3. Compare the existing workflows with the discovered recipe/module cards.
-   Expand a workflow to inspect its transitions and content-type assignments.
-4. Expand a candidate's **Evidence and adoption checks**. A remote recipe is
-   shown as available in the ecosystem; its presence is not called “applied”.
-5. Inspect **Which sources were searched?** and the exact questions and evidence.
-   Explain that Jev judges fit from supplied facts; it does not discover Drupal
-   projects from memory or decide installation permissions.
-6. Try **Recurring workshops**, then **An unclear brief** to demonstrate when
-   an ecosystem search may add nothing or the requirement needs clarification.
-7. In an MCP agent, ask: “Use the architect to assess our news workflow requirement.
-   Compare what we have with available solutions before proposing custom work.
-   Do not install or change anything yet.” Only the original brief is required.
-
-The site must have a moderation workflow for the reuse part of this example.
-Without one, discovery still works and the result reports no existing workflow.
-The Workshop and campaign examples remain available for content-model planning.
-Live judgments vary; the UI shows predefined criteria and review flags rather
-than inventing a generated explanation.
-
-For a longer exercise, paste [the detailed community brief](docs/community-planning-brief.txt).
-It covers groups, events, discussions, an activity stream, notifications, search,
-media, moderation and translation. This is a sample requirement document, not
-a fixed catalogue or a model-quality benchmark.
-
-## Service contract and evidence
-
-Inject `Drupal\site_architect\Assessment\SiteArchitectInterface`, or service
-`site_architect.architect`:
-
-```php
-$assessment = $architect->assess($brief, $account);
-```
-
-For discovery alone, inject `site_architect.candidates`:
-
-```php
-$discovery = $catalog->discover('workflow', $account, limit: 12);
-```
-
-| Assessment key | Meaning |
-| --- | --- |
-| `status`, `summary`, `follow_up` | Architecty outcome and unresolved questions; never authorisation to build. |
-| `answers` | Choices, full distributions, confidence, individual review flags and static criteria. |
-| `reuse_candidates`, `extension_candidates` | Confidently matched node content-type IDs. |
-| `workflow_candidates` | Existing workflow IDs with a `ready` or `extend` judgment. |
-| `adoption_candidates` | Confidently relevant local-module and catalogue candidate IDs, not verified install targets. |
-| `local_discovery` | Semantic screening of shipped core and enabled local modules: retained candidates, every screening judgment, questions and usage. |
-| `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
-| `plan` | Draft work areas, visible preferred selections, every assessed option with separate contribution/selection/brief-relevance judgments, foundation/addition investigation paths, checks and handoff boundaries. |
-| `search_plan` | Route, grouped capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v5`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
-| `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v7`). |
-| `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
-| `requests_by_stage` | Model, question IDs, evidence IDs, compact bytes and reported usage for every provider request. |
-| `build_guidance`, `limitations`, `contradictory_judgments` | Boundaries callers must retain. |
-
-`recipes` remains an alias of `candidates`, and candidate question IDs retain
-the `recipe__` prefix for compatibility with the initial prototype. These now
-include module candidates; inspect each candidate's `kind`. Local module IDs
-use `module__<machine_name>`, so core modules remain separate choices despite
-sharing `drupal/core`. A discovered project representing the same local module
-is coalesced in the comparison; the raw catalogue result remains in `discovery`.
-
-Collected evidence is allowlisted: node-type labels/descriptions, title and
-configurable field definitions, reference targets, selected enabled features,
-Views/template identities, active moderation states/transitions/bundles and site
-policy, plus enabled module names/descriptions. Node content, user records,
-provider settings and arbitrary config are
-not collected. Role permissions, notifications, ECA models and runtime behavior
-are not inferred from workflow labels.
-
-The brief and selected structural metadata go to the configured Decision
-provider for search planning; the assessment also includes bounded candidates.
-Catalogue sources receive the selected search term (or explicit override),
-not site evidence or the full brief. Drupal's normal form/session
-handling and host AI logging/cache settings still apply. This module sanitizes
-provider exceptions before they reach Tool API or MCP transport logs.
-
-Independent questions are batched within each stage. With an ecosystem adapter,
-planning precedes discovery and assessment; each stage may make multiple Decision
-requests. Valid global content-model and presentation answers are reused throughout
-the assessment.
-Candidate relevance needs its source description; a work-area choice sees the
-matching candidates and the complete brief. Evidence is repacked when a full
-plan would exceed the per-request limit, without dropping questions or candidates.
-Large plans group independent contribution questions with the candidates they
-actually inspect, keeping each work area's complete source text separate. A
-starting-point selection still sees all its alternatives. The full brief, site
-evidence, question wording and validation policy are retained.
-Independent `role__<work-area>__<option>` questions assess potential contributions
-within that work area. They run in the assessment stage and increase reported
-usage; the starting-point distribution is not reused as a relevance score.
-Local module screening precedes detailed assessment, including when no ecosystem
-adapter is installed. Its usage and requests are recorded as `local_discovery`.
-`usage` sums all requests; `usage_by_stage` preserves the breakdown. Unknown counts stay
-`null` rather than being treated as zero. An explicit search override skips
-planning, as does a site without a remote adapter.
-
-If a normalized response has missing answers, mismatched options, an invalid
-distribution total or a selected option below the highest score, the architect
-retries only the affected questions once. Evidence and criteria stay identical;
-valid answers (including uncertain ones) are kept. Scores are never repaired
-or normalized locally. A second invalid response rejects the entire plan.
-Provider execution errors still stop immediately. `requests_by_stage` records
-each attempt and `rejected_answers` reason codes; usage includes rejected
-attempts and recovery. Persistent contract failures log only reason counts,
-without provider responses or site evidence.
-
-The page presents site reuse within each work area's plan and configuration
-links. There is no separate "What the architect can see" panel or extra site scan
-when the form rebuilds. Removing that panel does not narrow assessment evidence.
-
-Site evidence and local recipe files are inspected afresh; the architect does not
-cache assessments. The Project Browser adapter reuses successful
-catalogue pages for up to five minutes, scoped by source configuration, query,
-account/permissions, language and Composer lockfile. Source refresh tags and
-changes to enabled sources/modules invalidate these entries. Package availability
-is checked again when mapping results. Failures are not cached. Discovery reports
-include cache hit, stored time and lifetime; upstream fetch age may still be unknown.
-The provider may cache its own responses, including their usage metadata. Reported tokens are **not necessarily
-newly billed tokens for this call**, and elapsed time is not a full agent-task
-measurement. Unknown usage remains `null`; cached-input/billing breakdown is not
-available through this response contract.
-
-The full result exposes `timings_ms` for site inspection, search planning,
-catalogue discovery, local screening, scoring, requirement checks and composition.
-Each provider attempt has `elapsed_ms`, including targeted retries. These timings
-also appear under the UI's expandable evidence. See [performance checks and
-measurements](docs/performance.md) for the observed gains and quality limits.
-
-These are module resource limits, not claims about Jev's context window:
-
-- A brief is at most 20,000 characters; automatic extraction accepts up to 200
-  text segments. An over-limit brief is rejected before inference, never clipped.
-- Extraction batches contain up to 12 questions; assessment batches up to 48.
-  Each compact UTF-8 JSON request is at most 100,000 bytes. Larger plans use
-  additional requests. A single oversized evidence packet fails explicitly.
-- A keyword sent to a catalogue is at most 120 characters. It is a short search
-  phrase selected from the brief, not the planning brief itself.
-- Each query has up to 12 retained candidates from bounded source pages. Search
-  coverage is still limited and is reported separately from extraction coverage.
-- Site inspection supports at most 24 selected node types; narrow the scope in
-  settings for larger sites. This is independent of brief length.
-
-The constants are in `BriefCapabilities` and `DecisionBatch`; batching is an
-implementation detail, not a request for the site builder to split ordinary
-briefs manually. Longer plans increase latency and provider usage. This remains
-a synchronous prototype; very large planning jobs need a resumable background
-workflow rather than unbounded request limits. Display formatting is not included
-in request size checks. Missing answers and invalid options/distributions stop
-assessment if targeted recovery fails; denied access and failed inference stop
-immediately. Review flags use probability below 0.75, confidence below 0.7,
-unknown/unclear answers or contradictory primary judgments. These are prototype
-display thresholds, not calibrated correctness guarantees. Callers must retain
-individual review flags even when the overall status is `assessed`.
-
-## Extending and validating
-
-The collector, search planner, profile, provider adapter, architect and UI are
-separate classes. Replace the planner through `SearchPlannerInterface`, decorate
-the collector or replace the architect through their interfaces. Add a
-catalogue adapter by implementing `CatalogSourceInterface` and tagging its
-service `site_architect.catalog_source`. No procedural `.module` file is needed.
-Keep rubric changes versioned. New entity types, package compatibility checks,
-approved installation workflows and model evals are separate follow-up work.
-
-Run from a Drupal project with Site Architect and development tools installed:
-
-```sh
-SIMPLETEST_DB=sqlite://localhost/:memory: vendor/bin/phpunit \
-  -c web/modules/contrib/site_architect/phpunit.xml.dist
-vendor/bin/phpcs --standard=Drupal,DrupalPractice --extensions=php \
-  web/modules/contrib/site_architect
-node --check web/modules/contrib/site_architect/js/architect.js
-node --test web/modules/contrib/site_architect/tests/js/architect.test.cjs
-```
-
-Adjust `contrib` to `custom` as needed. Tests use an isolated SQLite database,
-real local manifests and a fixture Project Browser source. They make no external
-catalogue or inference requests and require no API key. See
-[VALIDATION.md](VALIDATION.md) for verified behavior and live MCP/browser checks.
-
-## Attribution and license
-
-Original integration code, GPL-2.0-or-later. It consumes Drupal core, Drupal AI,
-AI Decision, the TypeSafe provider,
-[Tool API](https://www.drupal.org/project/tool),
-[Project Browser](https://www.drupal.org/project/project_browser),
-[API Browser](https://www.drupal.org/project/api_browser),
-[MCP Server](https://www.drupal.org/project/mcp_server) and
-[MCP Server Tool Bridge](https://www.drupal.org/project/mcp_server_tool_bridge)
-through their APIs and configuration.
-
-No upstream module was forked or vendored for this work. Recipe manifests are
-read from the host installation; API Browser supplies the Packagist source
-configuration. Symfony String supplies the English inflector. This repository
-also supplies the optional Workshop example recipe.
-Please retain these upstream attributions when contributing or adapting it.
+| `tool_api__site_architect_assess` | `{"brief":"Your feature brief…"}` | Compact scored plan with configuration pointers, candidates and remaining work. |
+| `tool_api__site_architect_discover` | `{"query":"workflow"}` | Local and ecosystem candidates, without a model call. |
+
+Both default to compact output. Add `"detail":"full"` for the complete evidence.
+[Tool contracts and examples](docs/tools.md) cover other callers, including
+WebMCP and ECA. They can use the same Tool API operations through their adapters.
+
+## Explore further
+
+- [Jev comparison: keyword matches versus a connected plan](docs/jev-comparison/README.md)
+- [Demo scenarios and the optional Workshop recipe](docs/demo.md)
+- [Discovery, site evidence and search limits](docs/discovery.md)
+- [Service contracts, extension points and tests](docs/development.md)
+- [Performance measurements](docs/performance.md) · [Validation record](VALIDATION.md)
+
+Source: [ronaldtebrake/drupal_site_architect](https://github.com/ronaldtebrake/drupal_site_architect).
+Package: `drupal/site_architect`. Module: `site_architect`.
+GPL-2.0-or-later; [upstream attribution](docs/attribution.md).
