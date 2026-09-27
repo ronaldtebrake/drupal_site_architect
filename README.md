@@ -24,6 +24,8 @@ tests and live checks; model evals and cost comparisons remain later work.
 
 ## Architecture walkthrough
 
+[![A brief becomes key phrases, matches to the Drupal site and ecosystem, and a draft plan](docs/architecture/ai-site-advisor-visual.gif)](docs/architecture/visual.html)
+
 The concise [22-second visual story](docs/architecture/story.html) follows a
 brief through phrases, site/ecosystem evidence, recorded Jev scores and a draft
 plan. [Score provenance and export instructions](docs/architecture/STORY.md)
