@@ -1,0 +1,5 @@
+name: 'OAuth without optional config'
+description: 'Reproduces recipe-based OAuth installation on an existing planning site.'
+type: Testing
+install:
+  - simple_oauth

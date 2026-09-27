@@ -1,5 +1,54 @@
 # Validation record
 
+## Shared demo: Agent Access and OAuth activated (27 September 2026)
+
+After explicit approval, applied Agent Access **1.0.0-alpha2** to the shared
+demo. Its dependency update installed MCP Server **2.0.0-beta5**, Tool Bridge
+**1.0.0-beta3**, Simple OAuth **6.1.1** and Simple OAuth 2.1 **1.13.0**, and
+updated Drupal core from **11.4.6** to **11.4.8**. A database snapshot and copies
+of the previous Composer files were taken first. Existing account roles and
+planning/catalog settings were preserved.
+
+This exposed an installation-order gap: applying the recipe after Site Architect
+skips ordinary optional configuration, leaving its planning scope absent. A
+module-owned service and recipe-completion subscriber now add only the missing
+scope after a relevant installation. They preserve existing scopes and do not
+recreate deleted scopes when a recipe installs no relevant modules. A new
+post-update repairs affected installations. Normal module installation and
+uninstallation behavior remains covered by the existing tests.
+
+Verified on the actual HTTPS demo endpoint:
+
+- OAuth keys are readable outside the document root, with restricted filesystem
+  permissions. No key material or provider credentials were printed or committed.
+- Authorization-server and protected-resource metadata return **200**. The
+  registration endpoint uses the actual HTTPS origin and the planning scope is
+  advertised.
+- An automated HTTP flow logged in as a temporary non-administrator account,
+  obtained explicit consent, exchanged an authorization code with **S256 PKCE**,
+  and used the returned token for real MCP discovery and a Jev assessment.
+  Attempting to reuse the authorization code returned **400**.
+- `tools/list` includes Agent Access's `entity_list` and `entity_metadata` plus
+  Site Architect's `assess` and `discover` tools, all with the `tool_api__` prefix.
+- Both planning tools returned MCP tool errors when a permitted account's token
+  lacked the planning scope, and when a scoped token belonged to an account
+  without planning permission. Those negative cases used short-lived signed
+  tokens issued through Simple OAuth's repository to isolate each access check.
+- Anonymous and invalid-token requests returned **401**. Tool listing remains
+  visible to connected callers even when execution is refused.
+- All temporary accounts, roles, tokens and the test Consumer were removed.
+  No existing user's permissions were broadened. The Drupal planning form still
+  loads through the existing browser session.
+- **82 PHP tests / 5,315 assertions**, Drupal/DrupalPractice checks for changed
+  PHP code and Git whitespace checks passed. The new regression applies a recipe
+  that installs OAuth without importing optional configuration.
+
+This covers a manually configured test Consumer and the authorization-code flow,
+not dynamic registration by a particular external agent, refresh-token behavior
+or the upstream revocation endpoint. Agent Access's documented alpha limitations
+still apply. The DDEV hostname is reachable by local clients; a remote service
+needs its own reachable HTTPS deployment.
+
 ## Ecosystem routing and discovery diagnostics (27 September 2026)
 
 Reproduced the missing-contrib report with the brief: “We want a Community site,

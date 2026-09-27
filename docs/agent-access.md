@@ -52,6 +52,19 @@ Simple OAuth and Site Architect are enabled; it is owned by Site Architect and
 removed if this module is uninstalled. UI/session callers continue to use Drupal's
 normal permission check.
 
+If Site Architect is installed first, applying Agent Access still registers the
+planning scope. Drupal recipes skip ordinary optional configuration imports, so
+Site Architect completes its own missing scope after a recipe installs OAuth.
+Existing scopes, including disabled or customized scopes, are preserved. An
+update repairs earlier installations affected by this installation order.
+
+OAuth authenticates the connection and limits its approved scopes. It does not
+replace the account's Drupal permissions or a tool's access checks. Site
+Architect checks planning permission in both its Tool API plugins and the shared
+service; authenticated agents receive the same read-only planning capabilities
+as authorized Drupal users. Keep implementation permissions separate from the
+planning permission.
+
 ## What the agent gets
 
 On a clean installation with the relevant permissions/scopes, the starter catalog

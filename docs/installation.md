@@ -190,6 +190,8 @@ preserved; see [VALIDATION.md](../VALIDATION.md).
 For an existing consolidated `site_architect` installation, update with Composer
 and run `vendor/bin/drush updatedb -y` and `vendor/bin/drush cr`. The post-update
 adds the planning scope if Simple OAuth is already enabled, preserving any
-existing scope configuration. If OAuth is installed later by Agent Access,
-Drupal imports the scope as optional configuration during module installation.
+existing scope configuration. If OAuth is installed later normally, Drupal
+imports the optional planning scope. If Agent Access installs it through a
+recipe, Site Architect registers its missing scope after the recipe completes.
+This also fixes upgrades where an earlier update ran before OAuth was enabled.
 Updating code does not apply Agent Access or grant account permissions.

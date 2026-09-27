@@ -1,4 +1,12 @@
 services:
+  site_architect.planning_scope_installer:
+    class: Drupal\site_architect\Integration\PlanningScopeInstaller
+    arguments: ['@entity_type.manager', '@module_handler']
+  site_architect.planning_scope_subscriber:
+    class: Drupal\site_architect\EventSubscriber\PlanningScopeSubscriber
+    arguments: ['@site_architect.planning_scope_installer']
+    tags:
+      - { name: event_subscriber }
   site_architect.context:
     class: Drupal\site_architect\Context\SiteContextCollector
     arguments: ['@entity_type.manager', '@entity_field.manager', '@module_handler', '@config.factory', '@extension.list.module', '@site_architect.configuration', '@site_architect.module_inventory']
