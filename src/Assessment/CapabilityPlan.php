@@ -48,7 +48,7 @@ final class CapabilityPlan {
       $candidate = $candidates[$choice] ?? NULL;
       $bundle_id = str_starts_with($choice, 'bundle__') ? substr($choice, 8) : NULL;
       $bundle = $site['bundles'][$bundle_id] ?? NULL;
-      $review = $answer['needs_review'] || $choice === 'unresolved' || ($capability['grouping_needs_review'] ?? FALSE);
+      $review = $answer['needs_review'] || $choice === 'unresolved' || ($capability['grouping_needs_review'] ?? FALSE) || ($capability['extraction_needs_review'] ?? FALSE);
       // A generic configuration approach is not a concrete implementation.
       $review = $review || $choice === 'configure';
       $sources = CapabilityOptions::sources($site, $candidates, $capability);

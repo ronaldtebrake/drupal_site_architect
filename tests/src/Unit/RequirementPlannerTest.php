@@ -22,6 +22,54 @@ use PHPUnit\Framework\Attributes\Group;
 final class RequirementPlannerTest extends UnitTestCase {
 
   /**
+   * Supporting source phrases get their own match without losing the sentence.
+   */
+  public function testSupportingCapabilityHasAnIndependentMatch(): void {
+    $brief = 'In a group members create discussion posts.';
+    $plan = [
+      'areas' => [
+        'discussion' => [
+          'source_text' => $brief,
+          'supporting_capabilities' => [
+            ['label' => 'group', 'source_text' => $brief],
+            ['label' => 'group', 'source_text' => $brief],
+          ],
+          'options' => [
+            ['id' => 'posts', 'label' => 'Post model', 'package' => 'fixture/posts'],
+            ['id' => 'group', 'label' => 'Membership', 'package' => 'fixture/membership'],
+          ],
+        ],
+      ],
+    ];
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->method('decide')->willReturnCallback(function ($input) use ($brief) {
+      $this->assertSame($brief, $input->getState()['brief']);
+      $this->assertSame($brief, $input->getState()['work_area']);
+      if (isset($input->getState()['parts'])) {
+        $this->assertSame(['p0' => $brief, 'p1' => 'group'], $input->getState()['parts']);
+      }
+      $answers = [];
+      foreach ($input->getQuestions() as $id => $question) {
+        $choice = match (TRUE) {
+          str_starts_with($id, 'part_kind__') => 'capability',
+          str_starts_with($id, 'part_option__') => str_ends_with($id, '__p1') ? 'group' : 'posts',
+          default => str_ends_with($id, '__p1') ? 'direct' : 'partial',
+        };
+        $probabilities = array_fill_keys($question->getOptionKeys(), 0.0);
+        $probabilities[$choice] = 1.0;
+        $answers[$id] = new ChoiceAnswer($choice, $probabilities, 1.0);
+      }
+      return new DecisionResponse($answers);
+    });
+    $result = (new RequirementPlanner($client))->plan($brief, [], $plan);
+    $parts = $result['areas']['discussion']['parts'];
+    $this->assertSame([$brief, 'group'], array_column($parts, 'text'));
+    $this->assertSame(['posts', 'group'], array_column($parts, 'option_id'));
+    $this->assertSame(['partial', 'supported'], array_column($parts, 'status'));
+    $this->assertFalse($result['areas']['discussion']['integration_verified']);
+  }
+
+  /**
    * One work area uses records plus replies without claiming full integration.
    */
   public function testIndependentPartsAndVerification(): void {

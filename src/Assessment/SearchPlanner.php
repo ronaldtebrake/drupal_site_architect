@@ -13,7 +13,7 @@ use Drupal\site_architect\Context\ModuleInventory;
  */
 final class SearchPlanner implements SearchPlannerInterface {
 
-  public const VERSION = 'ecosystem-search-v7';
+  public const VERSION = 'ecosystem-search-v8';
 
   /**
    * Constructs the planner using the same Decision provider as the architect.
@@ -143,6 +143,15 @@ final class SearchPlanner implements SearchPlannerInterface {
         default => 'Jev selected clarification before searching. External catalogs were not queried; describe the capability or gap more precisely.',
       };
     }
+    $expansion = CapabilityExpansion::expand($this->decision, $brief, $clauses, $capabilities);
+    $capabilities = $expansion['areas'];
+    $answers += $expansion['answers'];
+    $all_questions += $expansion['questions'];
+    $requests = array_merge($requests, $expansion['requests']);
+    foreach ($expansion['usage'] as $key => $value) {
+      $usage[$key] = $value !== NULL && $usage[$key] !== NULL ? $value + $usage[$key] : NULL;
+    }
+    $needs_review = $needs_review || $expansion['needs_review'];
     if ($action === 'search' && !$capabilities) {
       $action = 'clarify';
       $needs_review = TRUE;
@@ -156,7 +165,16 @@ final class SearchPlanner implements SearchPlannerInterface {
     // An unresolved implementation can still benefit from public evidence.
     // Preserve the clarification judgment without making a recommendation.
     $exploratory = $action === 'clarify' && $public_discovery && (bool) $capabilities;
-    $queries = $action === 'search' || $exploratory ? array_column($capabilities, 'query') : [];
+    $queries = [];
+    if ($action === 'search' || $exploratory) {
+      foreach ($capabilities as $capability) {
+        $queries[] = $capability['query'];
+        foreach ($capability['supporting_capabilities'] as $supporting) {
+          $queries[] = $supporting['query'];
+        }
+      }
+      $queries = array_values(array_unique($queries));
+    }
     $exploratory_truncated = $exploratory && count($queries) > 3;
     if ($exploratory) {
       $queries = array_slice($queries, 0, 3);

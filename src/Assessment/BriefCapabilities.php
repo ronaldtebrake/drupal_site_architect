@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\site_architect\Assessment;
 
-use Symfony\Component\String\Inflector\EnglishInflector;
-
 /**
  * Supplies bounded source phrases, without a catalog of Drupal solutions.
  */
@@ -65,15 +63,10 @@ final class BriefCapabilities {
   }
 
   /**
-   * Normalizes the final English noun without mapping capabilities to modules.
+   * Normalizes spacing and case without guessing noun stems or singular forms.
    */
   public static function query(string $phrase): string {
-    $words = explode(' ', $phrase);
-    $last = array_pop($words);
-    // Preserve collective source nouns such as media and data. Mechanical
-    // conversion to medium or datum changes the intended catalog search.
-    $words[] = str_ends_with($last, 's') ? ((new EnglishInflector())->singularize($last)[0] ?? $last) : $last;
-    return implode(' ', $words);
+    return mb_strtolower(trim(preg_replace('/\s+/u', ' ', $phrase)));
   }
 
 }

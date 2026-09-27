@@ -12,7 +12,7 @@ use Drupal\ai_decision\Value\ChoiceQuestion;
  */
 final class RequirementPlanner implements RequirementPlannerInterface {
 
-  public const VERSION = 'requirement-parts-v2';
+  public const VERSION = 'requirement-parts-v3';
 
   private const KINDS = [
     'record' => 'Requests a record subject or content type, rather than one of its individual attributes. A product statement about what the site will manage is a requirement, not background.',
@@ -58,6 +58,13 @@ final class RequirementPlanner implements RequirementPlannerInterface {
       foreach ($area['source_texts'] ?? [$area['source_text'] ?? ''] as $passage) {
         foreach (self::parts($passage) as $text) {
           $parts['p' . count($parts)] = $text;
+        }
+      }
+      // A sentence may need several components. Assess retained source phrases
+      // independently as well as keeping the complete original requirement.
+      foreach ($area['supporting_capabilities'] ?? [] as $supporting) {
+        if (!in_array(BriefCapabilities::query($supporting['label']), array_map(BriefCapabilities::query(...), $parts), TRUE)) {
+          $parts['p' . count($parts)] = $supporting['label'];
         }
       }
       $source_parts[$id] = $parts;

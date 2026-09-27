@@ -39,6 +39,7 @@ final class ContentPlanningProfileTest extends UnitTestCase {
       ];
     }
     $candidates['c59']['matched_queries'] = ['area0'];
+    $candidates['c58']['matched_queries'] = ['supporting need'];
     $capabilities = [];
     for ($i = 0; $i < 8; $i++) {
       $capabilities['area' . $i] = [
@@ -47,6 +48,7 @@ final class ContentPlanningProfileTest extends UnitTestCase {
         'source_text' => 'Complete source requirement ' . $i,
       ];
     }
+    $capabilities['area0']['supporting_capabilities'] = [['query' => 'supporting need']];
     $profile = new ContentPlanningProfile();
     $original = $profile->buildInput($brief, $site, $candidates, $capabilities);
     $packed = $profile->buildInputs($brief, $site, $candidates, $capabilities);
@@ -83,6 +85,8 @@ final class ContentPlanningProfileTest extends UnitTestCase {
     $this->assertTrue($has_focused_packet);
     $this->assertContains('c59', $original->getQuestions()['plan__area0']->getOptionKeys());
     $this->assertNotContains('c59', $original->getQuestions()['plan__area1']->getOptionKeys());
+    $this->assertContains('c58', $original->getQuestions()['plan__area0']->getOptionKeys());
+    $this->assertNotContains('c58', $original->getQuestions()['plan__area1']->getOptionKeys());
   }
 
 }

@@ -11,6 +11,14 @@ use Drupal\ai_decision\Value\ChoiceQuestion;
  */
 final class CapabilityOptions {
 
+  /**
+   * Matches both the main subject and its retained supporting capabilities.
+   */
+  public static function matches(array $candidate, array $capability): bool {
+    $queries = array_merge([$capability['query']], array_column($capability['supporting_capabilities'] ?? [], 'query'));
+    return !isset($candidate['matched_queries']) || (bool) array_intersect($queries, $candidate['matched_queries']);
+  }
+
   public const ROLES = [
     'foundation' => 'Provides a credible primary data model or main capability for this work area. It can be a partial starting point needing fields, configuration or integration. A package that owns its own record entities is a foundation to compare, not automatically an add-on to existing nodes.',
     'complement' => 'Provides a requested supporting capability around a separate foundation, such as a field, recurrence behavior, display, access integration or delivery. Evidence must describe that supporting role. Compatibility with the chosen foundation is still unverified.',
@@ -50,7 +58,7 @@ final class CapabilityOptions {
       ];
     }
     foreach ($candidates as $id => $candidate) {
-      if (!isset($candidate['matched_queries']) || in_array($capability['query'], $candidate['matched_queries'], TRUE)) {
+      if (self::matches($candidate, $capability)) {
         $keys = [
           'id', 'kind', 'label', 'package', 'description', 'url', 'availability',
           'source', 'configuration', 'installs', 'includes_recipes',

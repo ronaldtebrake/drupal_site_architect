@@ -39,7 +39,7 @@ final class ContentPlanningProfile {
       $atoms[] = $input;
     }
     foreach ($capabilities as $id => $capability) {
-      $matching = array_filter($recipes, static fn ($candidate) => !isset($candidate['matched_queries']) || in_array($capability['query'], $candidate['matched_queries'], TRUE));
+      $matching = array_filter($recipes, static fn ($candidate) => CapabilityOptions::matches($candidate, $capability));
       $questions = CapabilityPlan::questions($site, $matching, [$id => $capability]);
       foreach (CapabilityOptions::sources($site, $matching, $capability) as $option_id => $option) {
         $key = 'role__' . $id . '__' . $option_id;

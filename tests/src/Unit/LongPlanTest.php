@@ -89,6 +89,8 @@ final class LongPlanTest extends UnitTestCase {
           $id === 'public_discovery' => 'allowed',
           str_starts_with($id, 'scope_') => 'work_area',
           str_starts_with($id, 'group_') => 'separate',
+          str_starts_with($id, 'support_') => 'omit',
+          str_starts_with($id, 'label_support_') => 'label',
           $id === 'content_model' => 'records',
           $id === 'presentation' => 'drupal_display',
           str_starts_with($id, 'recipe__') => 'relevant',
@@ -122,13 +124,13 @@ final class LongPlanTest extends UnitTestCase {
     $architect = new SiteArchitect($context, $catalog, new ContentPlanningProfile(), $decision, new SearchPlanner($decision), new RequirementPlanner($decision));
     $result = $architect->assess($brief, $account);
     $this->assertCount(14, $searched);
-    $this->assertContains('payment', $searched);
+    $this->assertContains('payments', $searched);
     $this->assertCount(168, $result['candidates']);
     $this->assertCount(14, $result['plan']['areas']);
     $this->assertSame('payments', end($result['plan']['areas'])['label']);
     $this->assertSame('Fixture settings', end($result['plan']['areas'])['handoff']['configuration_area']['label']);
     $this->assertCount(14, array_filter($asked, static fn ($id) => str_starts_with($id, 'settings__')));
-    $this->assertSame('fixture/payment_0', end($result['plan']['areas'])['package']);
+    $this->assertSame('fixture/payments_0', end($result['plan']['areas'])['package']);
     $this->assertGreaterThan(1, count($result['requests_by_stage']['assessment']));
     $this->assertSame($calls * 10, $result['usage']['input']);
     $this->assertSame($calls * 2, $result['usage']['output']);

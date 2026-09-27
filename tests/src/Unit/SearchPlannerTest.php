@@ -10,6 +10,8 @@ use Drupal\ai_decision\OperationType\Decision\DecisionInput;
 use Drupal\ai_decision\OperationType\Decision\DecisionResponse;
 use Drupal\ai_decision\Value\ChoiceAnswer;
 use Drupal\site_architect\Assessment\BriefCapabilities;
+use Drupal\site_architect\Assessment\CapabilityExpansion;
+use Drupal\site_architect\Assessment\CapabilityOptions;
 use Drupal\site_architect\Assessment\DecisionClientInterface;
 use Drupal\site_architect\Assessment\SearchPlanner;
 use PHPUnit\Framework\Attributes\Group;
@@ -26,6 +28,16 @@ final class SearchPlannerTest extends UnitTestCase {
   private function response(DecisionInput $input, string $route, array $selected = [], string $permission = 'allowed'): DecisionResponse {
     $answers = [];
     foreach ($input->getQuestions() as $id => $question) {
+      if (str_starts_with($id, 'label_support_')) {
+        $answers[$id] = new ChoiceAnswer('label', ['label' => 1.0, 'fragment' => 0.0], 1.0);
+        continue;
+      }
+      if (str_starts_with($id, 'support_')) {
+        $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
+        $distribution['omit'] = 1.0;
+        $answers[$id] = new ChoiceAnswer('omit', $distribution, 1.0);
+        continue;
+      }
       $choice = $id === 'ecosystem_search' ? $route : 'none';
       if ($id === 'public_discovery') {
         $choice = $permission;
@@ -56,6 +68,111 @@ final class SearchPlannerTest extends UnitTestCase {
   }
 
   /**
+   * Several capabilities in one clause survive through discovery and scoring.
+   */
+  public function testSupportingCapabilitiesStayWithTheirWorkArea(): void {
+    $brief = 'In a group members create discussion posts using translation';
+    $client = $this->createMock(DecisionClientInterface::class);
+    $calls = 0;
+    $client->method('decide')->willReturnCallback(function ($input) use (&$calls) {
+      $calls++;
+      $answers = $this->response($input, 'search', ['discussion posts'])->getAnswers();
+      foreach ($input->getQuestions() as $id => $question) {
+        if (!str_starts_with($id, 'support_')) {
+          continue;
+        }
+        $choice = in_array($question->getInstructions()['phrase'], ['group', 'translation'], TRUE) ? 'capability' : 'omit';
+        $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
+        $distribution[$choice] = 1.0;
+        $answers[$id] = new ChoiceAnswer($choice, $distribution, 1.0);
+      }
+      return new DecisionResponse($answers, 'fixture', new TokenUsageDto(10, 2, 12));
+    });
+    $plan = (new SearchPlanner($client))->plan($brief, []);
+    $this->assertSame(['discussion posts', 'group', 'translation'], $plan['queries']);
+    $this->assertCount(1, $plan['capabilities'], 'Supporting needs do not create disconnected work areas.');
+    $area = reset($plan['capabilities']);
+    $this->assertSame(['group', 'translation'], array_column($area['supporting_capabilities'], 'label'));
+    $this->assertSame($brief, $area['source_text']);
+    $this->assertSame([$brief, $brief], array_column($area['supporting_capabilities'], 'source_text'));
+    $this->assertSame($calls * 10, $plan['usage']['input']);
+    $this->assertSame($calls, count($plan['requests']));
+    $this->assertFalse($area['extraction_needs_review']);
+    $this->assertTrue(CapabilityOptions::matches(['matched_queries' => ['group']], $area));
+    $this->assertTrue(CapabilityOptions::matches(['matched_queries' => ['translation']], $area));
+    $this->assertFalse(CapabilityOptions::matches(['matched_queries' => ['unrelated']], $area));
+  }
+
+  /**
+   * A doubtful extra capability remains visible and cannot bypass local-only.
+   */
+  public function testUncertainSupportingCapabilityAndRestrictedSearch(): void {
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->method('decide')->willReturnCallback(function ($input) {
+      $answers = $this->response($input, 'search', ['discussion posts'], 'restricted')->getAnswers();
+      foreach ($input->getQuestions() as $id => $question) {
+        if (str_starts_with($id, 'support_') && $question->getInstructions()['phrase'] === 'group') {
+          $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
+          $distribution['capability'] = 0.6;
+          $distribution['omit'] = 0.4;
+          $answers[$id] = new ChoiceAnswer('capability', $distribution, 0.2);
+        }
+      }
+      return new DecisionResponse($answers);
+    });
+    $plan = (new SearchPlanner($client))->plan('In a group create discussion posts. Do not search external catalogs.', []);
+    $area = reset($plan['capabilities']);
+    $this->assertSame([], $plan['queries']);
+    $this->assertTrue($plan['needs_review']);
+    $this->assertTrue($area['extraction_needs_review']);
+    $this->assertSame('group', $area['supporting_capabilities'][0]['label']);
+    $this->assertTrue($area['supporting_capabilities'][0]['needs_review']);
+  }
+
+  /**
+   * Fields and fragments stay in their source; complete phrases are deduped.
+   */
+  public function testSupportingLabelsNeedIndependentGrammarAndRoleEvidence(): void {
+    $brief = 'Store a serial number and use a shared visual layout. Do not add translation.';
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->method('decide')->willReturnCallback(static function ($input) {
+      $answers = [];
+      foreach ($input->getQuestions() as $id => $question) {
+        $term = $question->getInstructions()['phrase'];
+        $confidence = 1.0;
+        if (str_starts_with($id, 'label_')) {
+          $choice = $term === 'store' ? 'fragment' : 'label';
+          // A doubtful modifier must not become a search despite a high role
+          // score; grammar and role are independent evidence.
+          $confidence = $term === 'shared' ? 0.5 : 1.0;
+        }
+        else {
+          $choice = match ($term) {
+            'serial number' => 'attribute',
+            'translation' => 'omit',
+            default => 'capability',
+          };
+        }
+        $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
+        $distribution[$choice] = 1.0;
+        $answers[$id] = new ChoiceAnswer($choice, $distribution, $confidence);
+      }
+      return new DecisionResponse($answers);
+    });
+    $areas = ['inventory' => ['label' => 'inventory', 'source_texts' => [$brief]]];
+    $clauses = [
+      [
+        'source_text' => $brief,
+        'terms' => ['store', 'serial number', 'shared', 'visual layout', 'layout', 'translation'],
+      ],
+    ];
+    $result = CapabilityExpansion::expand($client, $brief, $clauses, $areas);
+    $this->assertSame(['visual layout'], array_column($result['areas']['inventory']['supporting_capabilities'], 'label'));
+    $this->assertSame([$brief], $result['areas']['inventory']['source_texts'], 'The original requirements remain intact.');
+    $this->assertCount(12, $result['answers'], 'Both judgments remain inspectable for every phrase.');
+  }
+
+  /**
    * A compound request must supply candidates for every meaningful clause.
    */
   public function testCompoundBriefCoverage(): void {
@@ -67,7 +184,7 @@ final class SearchPlannerTest extends UnitTestCase {
       return $this->response($input, 'search', ['events', 'topics', 'groups', 'activity stream', 'notifications']);
     });
     $result = (new SearchPlanner($client))->plan('We want a Community site, with events and topics, placed in groups, with an activity stream and notifications.', ['bundles' => []]);
-    $this->assertSame(['event', 'topic', 'group', 'activity stream', 'notification'], $result['queries']);
+    $this->assertSame(['events', 'topics', 'groups', 'activity stream', 'notifications'], $result['queries']);
     $this->assertCount(5, $result['capabilities']);
     $this->assertSame('search', $result['action']);
     $this->assertFalse($result['terms_truncated']);
@@ -81,6 +198,16 @@ final class SearchPlannerTest extends UnitTestCase {
     $client->method('decide')->willReturnCallback(static function (DecisionInput $input): DecisionResponse {
       $answers = [];
       foreach ($input->getQuestions() as $id => $question) {
+        if (str_starts_with($id, 'label_support_')) {
+          $answers[$id] = new ChoiceAnswer('label', ['label' => 1.0, 'fragment' => 0.0], 1.0);
+          continue;
+        }
+        if (str_starts_with($id, 'support_')) {
+          $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
+          $distribution['attribute'] = 1.0;
+          $answers[$id] = new ChoiceAnswer('attribute', $distribution, 1.0);
+          continue;
+        }
         $choice = $id === 'public_discovery' ? 'allowed' : 'search';
         if (str_starts_with($id, 'capability_')) {
           $phrase = $id === 'capability_0' ? 'equipment' : 'serial number';
@@ -129,12 +256,12 @@ final class SearchPlannerTest extends UnitTestCase {
     $this->assertGreaterThan(4000, mb_strlen($brief));
     $this->assertGreaterThan(1, $calls);
     $this->assertCount(14, $result['capabilities']);
-    $this->assertContains('payment', $result['queries']);
+    $this->assertContains('payments', $result['queries']);
     $this->assertSame($result['coverage']['segments_total'], $result['coverage']['segments_processed']);
     $this->assertSame($calls * 10, $result['usage']['input']);
     $this->assertCount($calls, $result['requests']);
     $this->assertFalse($result['terms_truncated']);
-    $notifications = array_values(array_filter($result['capabilities'], static fn ($capability) => $capability['query'] === 'notification'))[0];
+    $notifications = array_values(array_filter($result['capabilities'], static fn ($capability) => $capability['query'] === 'notifications'))[0];
     $this->assertCount(2, $notifications['source_texts']);
   }
 
@@ -163,7 +290,11 @@ final class SearchPlannerTest extends UnitTestCase {
     $this->assertContains('subscription controls', $clauses[1]['terms']);
     $this->assertSame('media', BriefCapabilities::query('media'));
     $this->assertSame('data', BriefCapabilities::query('data'));
-    $this->assertSame('event', BriefCapabilities::query('events'));
+    $this->assertSame('events', BriefCapabilities::query('events'));
+    $this->assertSame('email updates', BriefCapabilities::query("  Email \t updates  "));
+    $this->assertSame('news', BriefCapabilities::query('news'));
+    $this->assertSame('access', BriefCapabilities::query('access'));
+    $this->assertSame('series', BriefCapabilities::query('series'));
   }
 
   /**
@@ -214,7 +345,7 @@ final class SearchPlannerTest extends UnitTestCase {
     });
     $plan = (new SearchPlanner($client))->plan('Maybe events.', []);
     $this->assertSame('search', $plan['action']);
-    $this->assertSame(['event'], $plan['queries']);
+    $this->assertSame(['events'], $plan['queries']);
     $this->assertTrue($plan['needs_review']);
     $this->assertStringContainsString('Jev preferred an ecosystem search', $plan['reason']);
     $this->assertStringContainsString('searched to gather evidence', $plan['reason']);
@@ -258,7 +389,7 @@ final class SearchPlannerTest extends UnitTestCase {
       return new DecisionResponse($answers);
     });
     $plan = (new SearchPlanner($client))->plan('Manage events, placed in groups.', []);
-    $this->assertSame(['event', 'group'], $plan['queries']);
+    $this->assertSame(['events', 'groups'], $plan['queries']);
     $this->assertSame([], $plan['unmapped_clauses']);
     $groups = array_values($plan['capabilities'])[1];
     $this->assertSame('placed in groups', $groups['source_text']);
