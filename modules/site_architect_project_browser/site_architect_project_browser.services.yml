@@ -1,9 +1,0 @@
-services:
-  site_architect.project_browser_source:
-    class: Drupal\site_architect_project_browser\ProjectBrowserCatalogSource
-    arguments: ['@Drupal\project_browser\Plugin\ProjectBrowserSourceManager', '@module_handler', '@site_architect.project_browser_pages']
-    tags:
-      - { name: site_architect.catalog_source }
-  site_architect.project_browser_pages:
-    class: Drupal\site_architect_project_browser\CatalogPageCache
-    arguments: ['@cache.default', '@datetime.time', '@cache_contexts_manager']

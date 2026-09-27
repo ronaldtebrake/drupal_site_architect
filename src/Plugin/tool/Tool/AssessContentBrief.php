@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\site_architect_tool\Plugin\tool\Tool;
+namespace Drupal\site_architect\Plugin\tool\Tool;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Access\AccessResultInterface;

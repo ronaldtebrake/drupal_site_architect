@@ -1,10 +1,16 @@
-name: Drupal Site Architect
+name: 'Drupal Site Architect'
 type: module
-description: Assess a content brief against live Drupal configuration before building.
+description: 'Assess a content brief against live Drupal configuration before building.'
 package: AI
 core_version_requirement: ^11.2
 configure: site_architect.settings
 dependencies:
-  - drupal:node
-  - ai:ai
-  - ai_decision:ai_decision
+  - 'drupal:node'
+  - 'ai:ai'
+  - 'ai_decision:ai_decision'
+  - 'ai_provider_typesafeai:ai_provider_typesafeai'
+  - 'tool:tool (>=1.0.0-beta8)'
+  - 'project_browser:project_browser (>=2.1)'
+  - 'api_browser:api_browser (>=2.0.0-beta1)'
+  - 'mcp_server:mcp_server (>=2.0.0-beta2)'
+  - 'mcp_server_tool_bridge:mcp_server_tool_bridge'

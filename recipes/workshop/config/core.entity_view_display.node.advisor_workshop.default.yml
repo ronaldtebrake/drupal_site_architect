@@ -1,0 +1,46 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.advisor_workshop
+    - field.field.node.advisor_workshop.field_workshop_description
+    - field.field.node.advisor_workshop.field_workshop_date
+    - field.field.node.advisor_workshop.field_workshop_location
+    - field.field.node.advisor_workshop.field_workshop_capacity
+  module:
+    - datetime
+    - text
+id: node.advisor_workshop.default
+targetEntityType: node
+bundle: advisor_workshop
+mode: default
+content:
+  field_workshop_description:
+    type: text_default
+    weight: 1
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+  field_workshop_date:
+    type: datetime_default
+    weight: 2
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+  field_workshop_location:
+    type: string
+    weight: 3
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+  field_workshop_capacity:
+    type: number_integer
+    weight: 4
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+hidden: {  }

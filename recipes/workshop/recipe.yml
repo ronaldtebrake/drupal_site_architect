@@ -1,0 +1,7 @@
+name: 'Site Architect Workshop example'
+description: 'A Workshop content type with date, location, capacity and description fields for trying a planning brief.'
+type: 'Content type'
+install:
+  - node
+  - datetime
+  - text

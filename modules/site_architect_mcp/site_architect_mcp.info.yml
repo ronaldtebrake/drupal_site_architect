@@ -1,8 +1,0 @@
-name: Drupal Site Architect MCP
-type: module
-description: Register the architect discovery and assessment tools with MCP Server Tool Bridge.
-package: AI
-core_version_requirement: ^11.2
-dependencies:
-  - site_architect:site_architect_tool
-  - mcp_server_tool_bridge:mcp_server_tool_bridge

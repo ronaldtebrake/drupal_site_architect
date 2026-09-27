@@ -7,7 +7,7 @@ namespace Drupal\Tests\site_architect\Kernel;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Session\UserSession;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\site_architect_project_browser\CatalogPageCache;
+use Drupal\site_architect\Context\CatalogPageCache;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -27,7 +27,7 @@ final class CatalogPageCacheTest extends KernelTestBase {
   public function testCacheScopeAndFreshness(): void {
     $this->installEntitySchema('user');
     $this->installSchema('user', ['users_data']);
-    $this->container->get('module_installer')->install(['site_architect_project_browser', 'site_architect_test']);
+    $this->container->get('module_installer')->install(['site_architect', 'site_architect_test']);
     $state = $this->container->get('state');
     $source = $this->container->get('Drupal\project_browser\Plugin\ProjectBrowserSourceManager')->createInstance('architect_fixture');
     $now = time();

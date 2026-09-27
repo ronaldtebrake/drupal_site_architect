@@ -1,5 +1,51 @@
 # Validation record
 
+## Complete standalone product (27 September 2026)
+
+Project Browser discovery, Tool API plugins and MCP mappings now belong to the
+main `site_architect` module. Composer requires the complete stack, including AI
+Decision and the TypeSafe provider. The former Workshop demo is an opt-in recipe;
+installing the product does not add a demo content type.
+
+- Full PHPUnit suite: **76 tests, 5,254 assertions**. Installation coverage enables
+  only the main module, checks its required dependencies and both MCP mappings,
+  applies the Workshop recipe, and verifies that uninstalling Site Architect
+  removes its mappings while preserving the recipe's configuration.
+- All **three JavaScript handoff tests**, Drupal/DrupalPractice coding standards
+  and the original architecture walkthrough's layout, playback and reduced-motion
+  checks passed. Composer metadata validates with intentional exact-version
+  warnings for the tested MCP Server and Tool Bridge pair.
+- A separate `drupal/recommended-project` installation resolved dependencies from
+  public package sources, using the candidate Site Architect package through a
+  local Composer path repository. It installed Drupal **11.4.8**, Drupal AI
+  **1.5.0**, Tool API **1.0.0-beta9**, Project Browser **2.1.5**, API Browser
+  **2.0.0-beta1**, MCP Server **2.0.0-beta2** and Tool Bridge **1.0.0-beta1**.
+  AI Decision and the TypeSafe provider used their public `1.0.x` branches.
+- Only `site_architect` was explicitly enabled on that fresh site. Both Tool API
+  plugins, enabled MCP mappings and the recipe catalog source were available.
+  No provider key or default provider selection was installed. The documented
+  `drush recipe` command was also exercised successfully.
+- An authenticated HTTP MCP session on the fresh site listed both bundled tools
+  and successfully called discovery without a provider key. The existing
+  configured site also passed live discovery and a real Jev assessment through
+  MCP, returning HTTP 200 and structured output. These are integration smoke
+  checks, not model accuracy evaluations.
+- Fresh-install testing exposed stale Drupal package-index metadata for AI
+  Decision and its provider. The README documents the two upstream VCS overrides
+  needed to install the actual modules without duplicate legacy submodules.
+- MCP Server **2.0.0-beta5** changed its plugin discovery directory and did not
+  discover Tool Bridge **1.0.0-beta1**. The package intentionally pins the tested
+  **beta2/beta1** pair until a newer pair is verified together.
+- Before migrating the existing prototype, a database snapshot was taken.
+  Four former submodule registrations were removed; all **14 affected
+  configuration objects** were verified against the migration receipt. Row
+  counts and hashes across **17 node tables** remained unchanged.
+
+The earlier records below describe previous module layouts. Optional-integration
+instructions in those historical records do not describe the current product.
+No provider credentials, test-site settings or local migration scripts are
+committed.
+
 ## Site Architect rename (27 September 2026)
 
 Renamed the main module and its optional integrations to `site_architect`, with

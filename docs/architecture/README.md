@@ -25,19 +25,19 @@ This is an **architecture explanation with illustrative content**, not a
 recording of an assessment. It contains no measured scores or performance
 claims. Its fixed sample labels and module names illustrate a path through the
 architecture; they are not a feature mapping used by the architect. The current
-automatic planning path assumes the optional Project Browser integration is
-available; without a remote catalogue adapter, the service falls back to a
-single work area and local evidence.
+automatic planning path uses the included Project Browser integration and the
+catalog sources configured on the site. The service also supports local-only
+assessments when that matches the brief.
 
 ## Story and implementation references
 
 | Time | Stage | Current implementation |
 | --- | --- | --- |
-| 0–4 s | Receive a brief from the Drupal form or an agent | `SiteArchitect::assess()`; optional `AssessContentBrief` Tool API plugin and MCP Server adapter |
+| 0–4 s | Receive a brief from the Drupal form or an agent | `SiteArchitect::assess()`; `AssessContentBrief` Tool API plugin and MCP Server adapter |
 | 4–9 s | Read actual site structure | `SiteContextCollector`, `ConfigurationInspector`, `ModuleInventory` |
 | 9–14 s | Split source text and construct possible labels | `BriefCapabilities::clauses()` |
 | 14–19 s | Select labels and the search route, then normalise terms | Jev via `SearchPlanner`; `BriefCapabilities::query()` |
-| 19–25 s | Discover candidate building blocks | `CandidateCatalog`, `RecipeCatalog`, `LocalModuleCandidates`, optional `ProjectBrowserCatalogSource` |
+| 19–25 s | Discover candidate building blocks | `CandidateCatalog`, `RecipeCatalog`, `LocalModuleCandidates`, `ProjectBrowserCatalogSource` |
 | 25–31 s | Assess the fit using typed decisions | `ContentPlanningProfile`, `DecisionBatch`, `ChoiceValidator` |
 | 31–37 s | Match individual requirement parts and check support | `RequirementPlanner` |
 | 37–43 s | Rank and present the draft plan | `OptionRanking`, `PlanHighlights`, `AgentPlan`, Drupal template |

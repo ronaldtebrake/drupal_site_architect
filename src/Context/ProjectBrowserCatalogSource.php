@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Drupal\site_architect_project_browser;
+namespace Drupal\site_architect\Context;
 
 use Composer\InstalledVersions;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\site_architect\Context\CatalogSourceInterface;
 use Drupal\project_browser\Plugin\ProjectBrowserSourceManager;
 use Drupal\project_browser\ProjectType;
 

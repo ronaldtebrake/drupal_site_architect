@@ -31,7 +31,7 @@ final class ToolResponseTest extends KernelTestBase {
   public function testResponseFormats(): void {
     $this->installEntitySchema('user');
     $this->installSchema('user', ['users_data']);
-    $this->container->get('module_installer')->install(['site_architect_tool']);
+    $this->container->get('module_installer')->install(['site_architect']);
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->willReturn(TRUE);
     $this->container->get('current_user')->setAccount($account);

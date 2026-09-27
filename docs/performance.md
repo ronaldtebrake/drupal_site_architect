@@ -13,7 +13,7 @@ Each work area's source requirements stay separate. Competing starting-point
 choices still receive all matching alternatives. Small plans keep the existing
 shared-state path.
 
-The optional Project Browser adapter caches successful result pages for up to
+The Project Browser adapter caches successful result pages for up to
 300 seconds through the public source-plugin API. It does not depend on Project
 Browser's internal QueryManager. Cache identity includes source ID/configuration,
 complete query, user/permission/language contexts, Drupal version and Composer

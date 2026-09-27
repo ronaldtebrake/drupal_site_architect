@@ -33,3 +33,18 @@ services:
     arguments: ['@site_architect.context', '@site_architect.candidates', '@site_architect.profile', '@site_architect.decision', '@site_architect.search_planner', '@site_architect.requirement_planner']
   Drupal\site_architect\Assessment\SiteArchitectInterface:
     alias: site_architect.architect
+  site_architect.project_browser_source:
+    class: Drupal\site_architect\Context\ProjectBrowserCatalogSource
+    arguments:
+      - '@Drupal\project_browser\Plugin\ProjectBrowserSourceManager'
+      - '@module_handler'
+      - '@site_architect.project_browser_pages'
+    tags:
+      -
+        name: site_architect.catalog_source
+  site_architect.project_browser_pages:
+    class: Drupal\site_architect\Context\CatalogPageCache
+    arguments:
+      - '@cache.default'
+      - '@datetime.time'
+      - '@cache_contexts_manager'

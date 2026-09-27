@@ -3,8 +3,8 @@ status: true
 dependencies:
   enforced:
     module:
-      - site_architect_mcp
+      - site_architect
       - mcp_server_tool_bridge
-id: site_architect_assess
-tool_id: 'site_architect:assess_content_brief'
+id: site_architect_discover
+tool_id: 'site_architect:discover_candidates'
 description: null

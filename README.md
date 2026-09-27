@@ -9,9 +9,10 @@ brief, decides whether ecosystem searches would help, and returns a draft plan
 grounded in the site and discovered recipe/module candidates.
 The phase-one demo uses **Jev through the TypeSafe AI provider**.
 
-A site builder can inspect the same advice in a normal Drupal form. Optional
-submodules connect Project Browser, Tool API and MCP Server. The main service
-works independently of those integrations and of Canvas, WebMCP and ECA.
+A site builder can inspect the same advice in a normal Drupal form. The same
+installation includes Jev, Project Browser ecosystem discovery, Tool API plugins
+and MCP Server mappings. One module supplies both the human planning interface
+and the agent-facing tools. Canvas, WebMCP and ECA are not required.
 
 For example: “We need an editorial workflow for our existing news content.
 What can we reuse here, which ecosystem solutions should we investigate, and
@@ -72,55 +73,178 @@ describe its separate MP4/GIF renderer.
 
 ## Requirements and standalone installation
 
-- PHP 8.3+, Drupal 11.2+ within Drupal 11, and core Node.
-- Symfony String `^7.3` for English singularization (declared in Composer).
-- [Drupal AI](https://www.drupal.org/project/ai) `^1.5@RC`.
-- [AI Decision](https://www.drupal.org/project/ai_decision) `^1.0@dev`.
-- A configured default **Decision** provider and model in Drupal AI.
+Site Architect is **one module with the complete planning stack included**.
+Requiring `drupal/site_architect` downloads Drupal AI, AI Decision, the TypeSafe
+AI provider for Jev, Project Browser, API Browser, Tool API, MCP Server and its
+Tool API bridge. Composer resolves their dependencies too, including Key.
+You do not need separate `composer require` commands for those modules.
 
-This directory is a self-contained module with its own Composer metadata and
-license. Until it has a published release, place it at
-`web/modules/contrib/site_architect`, or use a Composer path/VCS repository.
+You need an existing **Drupal 11 site, version 11.2+**, on **PHP 8.3+**, managed with Composer,
+and a TypeSafe API key to run Jev assessments. The site needs outbound HTTPS
+access to the provider and the catalog sources you enable. Canvas, ECA and
+WebMCP are not required. No demo content type is installed automatically.
 
-This module was previously named `ai_site_advisor`. Existing prototype installs
-need their enabled module names, settings, configuration dependencies, permissions
-and MCP mappings migrated before replacing the code. Changing the directory name
-alone is insufficient. The local demo was migrated with its content preserved;
-see [rename verification](VALIDATION.md#site-architect-rename-27-september-2026).
+### 1. Download the module and its dependencies
 
-From the Drupal project root:
-
-```sh
-composer require 'drupal/ai:^1.5@RC' 'drupal/ai_decision:^1.0@dev'
-drush en site_architect -y
-```
-
-For Jev, install
-[AI Provider TypeSafe AI](https://www.drupal.org/project/ai_provider_typesafeai):
+Run these commands from the directory containing your site's `composer.json`.
+The standard Drupal Composer repository, `https://packages.drupal.org/8`, must
+already be configured, as it is in `drupal/recommended-project`.
 
 ```sh
-composer require 'drupal/ai_provider_typesafeai:^1.0@dev'
-drush en ai_provider_typesafeai -y
+composer config repositories.site_architect vcs https://github.com/ronaldtebrake/drupal_site_architect.git
+composer config repositories.ai_decision vcs https://git.drupalcode.org/project/ai_decision.git
+composer config repositories.ai_provider_typesafeai vcs https://git.drupalcode.org/project/ai_provider_typesafeai.git
+composer config minimum-stability dev
+composer config prefer-stable true
+composer require drupal/site_architect:dev-main --with-all-dependencies
 ```
 
-Configure its credential through Drupal Key and choose the Jev model as the
-default **Decision** model. Credentials and provider configuration are never
-shipped with this module. Pin development dependencies in the host site's lock
-file; tested versions are recorded in [VALIDATION.md](VALIDATION.md).
+The GitHub repository setting is needed because this project is currently
+distributed directly from GitHub. Its Composer package name is
+`drupal/site_architect`, even though the repository is named
+`drupal_site_architect`. A bare `composer require drupal/site_architect` cannot
+discover an unregistered GitHub package on its own.
 
-Grant `access site architect` to trusted site builders. It permits structural
-metadata inspection, configured catalogue searches and provider calls.
+The AI Decision and TypeSafe repository settings are temporary upstream packaging workarounds:
+Drupal's package index currently maps `drupal/ai_decision` to an old metapackage
+which does not provide the standalone module files. The override fetches the
+actual AI Decision module. The matching provider override prevents its stale
+package metadata from pulling in a second copy under the old submodule package
+name. These overrides can be removed once both index entries are corrected.
+See the [upstream packaging note](https://git.drupalcode.org/project/ai_provider_typesafeai/-/blob/1.0.x/README.md).
 
-- Architect: `/admin/structure/site-architect` (Structure → Drupal Site Architect).
-- Policy, content-type scope and additional recipe directories:
-  `/admin/config/ai/site-architect`.
-- Optional sample content type: `drush en site_architect_demo -y` creates a
-  regular Workshop node type with description, date, location and capacity.
-  Its normal form is `/node/add/advisor_workshop`. It creates no content records.
-  The demo keeps its original `advisor_workshop` bundle ID to preserve existing
-  demo content when the module is renamed.
+Some required dependencies currently have only development or prerelease
+versions. `minimum-stability` and `prefer-stable` are **site-wide Composer
+settings**: they allow those versions while preferring stable releases where
+available. Skip those two commands if your project already uses these settings.
+If your project must keep a stable minimum, explicitly allow the required
+prerelease packages in its root `composer.json` instead. A module cannot set
+that policy for its host project; see [Composer's stability rules](https://getcomposer.org/doc/04-schema.md#minimum-stability).
+Commit the resulting site `composer.json` and `composer.lock` for repeatable installs.
 
-In DDEV, prefix Composer and Drush commands with `ddev`.
+The current package pins MCP Server `2.0.0-beta2` with Tool Bridge
+`1.0.0-beta1`. Later prereleases change plugin discovery and server APIs;
+upgrade this pair together after verifying interoperability. These intentional
+pins keep both tools discoverable on a fresh installation.
+
+### 2. Enable Site Architect
+
+```sh
+vendor/bin/drush en site_architect -y
+vendor/bin/drush cr
+```
+
+Alternatively, open **Extend** (`/admin/modules`), select **Drupal Site Architect**
+and install it with its required dependencies. Drupal enables the required
+modules together. Composer downloads code; enabling the module installs Drupal
+configuration and registers the services and tools.
+
+There are no integration submodules to select. Installation registers both
+Tool API plugins and these two enabled MCP mappings:
+
+- `tool_api__site_architect_assess`
+- `tool_api__site_architect_discover`
+
+### 3. Configure Jev
+
+1. Get your API key from [TypeSafe](https://typesafe.ai).
+2. At **Configuration → System → Keys** (`/admin/config/system/keys`), create a
+   Key holding that credential. Use the site's normal secret-storage approach;
+   do not put the secret in version-controlled configuration.
+3. Open `/admin/config/ai/providers/typesafeai`, select that Key under
+   **TypeSafe API Key**, and save. The provider verifies the connection.
+4. Open `/admin/config/ai/settings`. For the **Decision** operation, select
+   **TypeSafe AI** and **Jev** (`jev-latest`), then save.
+
+The planning service uses Drupal AI's configured default Decision provider.
+The package includes TypeSafe for the Jev setup above; no key or provider
+selection is shipped with the module. A chat/completion model selected elsewhere
+in Drupal AI does not configure the Decision operation.
+
+### 4. Enable ecosystem catalogs
+
+Open `/admin/config/development/project_browser`:
+
+- Enable the **Drupal.org** module source (`drupalorg_jsonapi`). It is enabled
+  by default on a fresh Project Browser installation.
+- Enable **Packagist Drupal Recipes** (`api_browser_project:packagist_recipes`).
+  API Browser supplies this catalog configuration automatically, but the source
+  must be selected in Project Browser before it is searched.
+- Keep any other sources your site uses enabled, then save.
+
+Site Architect respects this source selection. It does not overwrite an existing
+site's catalog settings. The local **Recipes** source is not a substitute for
+the Packagist ecosystem catalog: local recipe files are already inspected
+directly by Site Architect. Project Browser's package-installation UI can remain
+disabled; discovery does not require installation permissions.
+
+### 5. Set access and site policy
+
+At `/admin/people/permissions`, grant **Use Drupal Site Architect**
+(`access site architect`) to the roles that should inspect site structure,
+query catalogs and run assessments. Grant **Administer Drupal Site Architect**
+(`administer site architect`) only to roles that should change planning settings.
+
+At `/admin/config/ai/site-architect`, review the planning policy, content-type
+scope and any additional local recipe directories. Empty content-type scope
+includes all supported content types. Core recipes and installed Composer recipe
+packages are discovered automatically.
+
+### 6. Create a plan
+
+Open **Structure → Drupal Site Architect** (`/admin/structure/site-architect`).
+Describe what you want to build or extend, then select **Propose a plan**.
+Review the inspected site structures, scored options and remaining questions.
+**Copy plan for an agent** copies the current draft and its evidence pointers.
+
+The assessment performs discovery and planning only. It does not install
+recommended packages, apply recipes or change content or configuration.
+
+### 7. Connect an agent over MCP
+
+Use your site's MCP endpoint, normally `https://your-site.example/mcp`.
+The agent's Drupal account needs both `access mcp server` and
+`access site architect`. Check the two Site Architect mappings at
+`/admin/config/services/mcp-server/tools`.
+
+The supported MCP Server 2.x route uses **Drupal session-cookie authentication**.
+Your MCP client or its transport must carry an authenticated Drupal session.
+Pasting the endpoint URL into a client alone does not log it in, and the Jev API
+key is not an MCP login credential. Clients that only support OAuth or bearer
+tokens need a compatible server-side authentication integration; those methods
+are not provided by this package's current MCP endpoint.
+
+Once authenticated, `tools/list` should include both mappings. Call
+`tool_api__site_architect_discover` with `{"query":"workflow"}` to verify
+discovery without inference. Call `tool_api__site_architect_assess` with
+`{"brief":"We need an editorial review workflow for our existing news content."}`
+to get a compact scored plan. [Tool contracts and examples](#tool-api-and-mcp-server) describe
+the response and the full-evidence option.
+
+### Optional Workshop example
+
+To try a known content structure on a development site, apply the bundled recipe:
+
+```sh
+vendor/bin/drush recipe modules/contrib/site_architect/recipes/workshop
+```
+
+The recipe path is relative to Drupal's document root. It creates a normal
+**Workshop** content type with date, location, capacity and
+description fields; it creates no content records. The existing
+`advisor_workshop` bundle ID is retained for compatibility with earlier demos.
+You can inspect its normal form at `/node/add/advisor_workshop` and then try the
+**Recurring workshops** brief. This recipe is independent of installing the
+planning product, and its configuration survives uninstalling Site Architect.
+
+### Existing prototype installations
+
+Fresh installs use only `site_architect`. Older installations using
+`ai_site_advisor` or the former `site_architect_*` integration modules need their
+module registrations and configuration dependencies migrated before replacing
+the code. Uninstalling the old demo or MCP modules can remove their owned
+configuration. The local prototype was migrated with content and mapping settings
+preserved; see [VALIDATION.md](VALIDATION.md).
 
 ## Dynamic recipe discovery
 
@@ -191,12 +315,8 @@ normal three-option UI and compact MCP handoff still apply.
 
 ## Discovering the ecosystem through Project Browser
 
-Enable the optional adapter:
-
-```sh
-composer require 'drupal/project_browser:^2.1'
-drush en site_architect_project_browser -y
-```
+The Project Browser adapter is part of the main module and is enabled when
+Site Architect is installed.
 
 The adapter calls Project Browser's public source plugin API and respects its
 enabled-source configuration. It accepts recipe and module projects. The built-in
@@ -204,13 +324,8 @@ local recipe source is skipped because the main module already reads those
 manifests with richer evidence.
 
 Project Browser supplies a contributed-module catalogue. To include recipes
-that have **not** been downloaded or applied, the demo uses
-[API Browser](https://www.drupal.org/project/api_browser):
-
-```sh
-composer require 'drupal/api_browser:^2.0@beta'
-drush en api_browser -y
-```
+that have **not** been downloaded or applied, Site Architect includes
+[API Browser](https://www.drupal.org/project/api_browser).
 
 At `/admin/config/development/project_browser`, enable **Packagist Drupal
 Recipes**, keeping any existing sources you need. API Browser ships this source
@@ -220,7 +335,7 @@ catalogues. The architect has no dependency on Packagist or a particular source 
 Project Browser's installation UI does not need to be enabled for discovery.
 
 Enter the requirement in the original brief; there is no separate search field.
-When an ecosystem adapter is available, Jev receives the brief and current site
+Jev receives the brief and current site
 structure and chooses one of three paths:
 
 - **Search** when comparing existing solutions would help. Jev selects source
@@ -231,8 +346,8 @@ structure and chooses one of three paths:
 
 Only the search path queries external catalogue adapters. Local recipe files
 remain available on every path. The resulting candidates then inform the
-assessment stage. Without an ecosystem adapter, the architect skips
-search planning and assesses the local evidence directly.
+assessment stage. The local and clarification paths assess local evidence
+without querying external catalogs.
 
 The form and assessment tool accept **10–20,000 characters**. Named paragraphs
 such as `Groups: ...` retain their requirements together. Other prose is split
@@ -289,12 +404,8 @@ overlap and target-site compatibility before choosing an installation plan.
 
 ## Tool API and MCP Server
 
-Enable Tool API integration:
-
-```sh
-composer require 'drupal/tool:^1.0@beta'
-drush en site_architect_tool -y
-```
+Both plugins are included in the main module. Enabling Site Architect installs
+Tool API and registers them automatically.
 
 | Tool API plugin | Input | Output |
 | --- | --- | --- |
@@ -374,37 +485,11 @@ in both its text content and `structuredContent`.
 
 ### MCP connection
 
-For an MCP client, install
-[MCP Server Tool Bridge](https://www.drupal.org/project/mcp_server_tool_bridge)
-at a version compatible with your MCP Server installation:
-
-```sh
-composer require 'drupal/mcp_server_tool_bridge:^1.0@beta'
-drush en site_architect_mcp -y
-drush cr
-```
-
-This optional submodule installs two enabled Tool API mappings. The demo uses
-MCP Server `2.0.0-beta2` and bridge `1.0.0-beta1`; newer bridge releases require
-newer server APIs. Review the host's existing MCP tool mappings when enabling
-the bridge: other installed modules can supply optional mappings of their own.
-This module owns only its two architect mappings.
-
-The default MCP HTTP endpoint is `/mcp`. Use the host's configured authenticated
-MCP connection and an account with both `access mcp server` and
-`access site architect`. This module does not provision credentials or anonymous access. The
-verified wire names are:
-
-- `tool_api__site_architect_discover`
-- `tool_api__site_architect_assess`
-
-Manage these mappings at `/admin/config/services/mcp-server/tools`. On the local
-demo, MCP Server currently authenticates HTTP requests through a Drupal login
-session. Adding the endpoint URL to a desktop MCP client does not establish that
-session; configure a supported authentication method for the chosen client
-before testing there. The server's OAuth companion is a separate integration,
-not enabled automatically by this module. The Decision provider credential
-stays in Drupal and is not needed in the MCP client.
+MCP Server and Tool Bridge are installed with Site Architect. The main module
+owns two enabled mappings: `tool_api__site_architect_discover` and
+`tool_api__site_architect_assess`. Configure the agent's authenticated connection
+as described in [Connect an agent over MCP](#7-connect-an-agent-over-mcp).
+The Decision provider credential remains in Drupal.
 
 An agent can send the original brief directly to assessment:
 
@@ -709,7 +794,7 @@ links. There is no separate "What the architect can see" panel or extra site sca
 when the form rebuilds. Removing that panel does not narrow assessment evidence.
 
 Site evidence and local recipe files are inspected afresh; the architect does not
-cache assessments. The optional Project Browser adapter reuses successful
+cache assessments. The Project Browser adapter reuses successful
 catalogue pages for up to five minutes, scoped by source configuration, query,
 account/permissions, language and Composer lockfile. Source refresh tags and
 changes to enabled sources/modules invalidate these entries. Package availability
@@ -762,8 +847,7 @@ service `site_architect.catalog_source`. No procedural `.module` file is needed.
 Keep rubric changes versioned. New entity types, package compatibility checks,
 approved installation workflows and model evals are separate follow-up work.
 
-Run from a Drupal project with development tools and the optional integration
-dependencies installed:
+Run from a Drupal project with Site Architect and development tools installed:
 
 ```sh
 SIMPLETEST_DB=sqlite://localhost/:memory: vendor/bin/phpunit \
@@ -782,7 +866,7 @@ catalogue or inference requests and require no API key. See
 ## Attribution and license
 
 Original integration code, GPL-2.0-or-later. It consumes Drupal core, Drupal AI,
-AI Decision, the TypeSafe provider and optional
+AI Decision, the TypeSafe provider,
 [Tool API](https://www.drupal.org/project/tool),
 [Project Browser](https://www.drupal.org/project/project_browser),
 [API Browser](https://www.drupal.org/project/api_browser),
@@ -792,6 +876,6 @@ through their APIs and configuration.
 
 No upstream module was forked or vendored for this work. Recipe manifests are
 read from the host installation; API Browser supplies the Packagist source
-configuration. Symfony String supplies the English inflector. The optional
-Workshop configuration belongs to this module.
+configuration. Symfony String supplies the English inflector. This repository
+also supplies the optional Workshop example recipe.
 Please retain these upstream attributions when contributing or adapting it.

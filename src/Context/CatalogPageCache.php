@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\site_architect_project_browser;
+namespace Drupal\site_architect\Context;
 
 use Composer\InstalledVersions;
 use Drupal\Component\Datetime\TimeInterface;

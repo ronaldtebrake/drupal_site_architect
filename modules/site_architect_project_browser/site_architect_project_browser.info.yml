@@ -1,8 +1,0 @@
-name: Drupal Site Architect Project Browser
-type: module
-description: Discover ecosystem candidates through enabled Project Browser sources.
-package: AI
-core_version_requirement: ^11.2
-dependencies:
-  - site_architect:site_architect
-  - project_browser:project_browser (>=2.1)

@@ -6,6 +6,8 @@ namespace Drupal\Tests\site_architect\Kernel;
 
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Form\FormState;
+use Drupal\Core\Recipe\Recipe;
+use Drupal\Core\Recipe\RecipeRunner;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\site_architect\Assessment\SiteArchitectInterface;
 use Drupal\site_architect\Form\ArchitectForm;
@@ -14,7 +16,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
- * Proves installation and fresh evidence without optional integrations.
+ * Proves one-module installation, recipe independence and fresh evidence.
  */
 #[Group('site_architect')]
 final class StandaloneInstallTest extends KernelTestBase {
@@ -27,26 +29,34 @@ final class StandaloneInstallTest extends KernelTestBase {
   /**
    * Installs into an isolated site and inspects actual field configuration.
    */
-  public function testStandaloneAndOptionalIntegrations(): void {
+  public function testCompleteProductAndExampleRecipe(): void {
     $this->installEntitySchema('user');
     $this->installSchema('user', ['users_data']);
     $installer = $this->container->get('module_installer');
-    $installer->install(['site_architect_demo']);
+    $installer->install(['site_architect']);
     $this->assertInstanceOf(SiteArchitectInterface::class, $this->container->get('site_architect.architect'));
     $handler = $this->container->get('module_handler');
-    $optional_modules = [
+    $required_modules = [
+      'ai', 'ai_decision', 'ai_provider_typesafeai', 'key', 'tool',
+      'project_browser', 'api_browser', 'mcp_server', 'mcp_server_tool_bridge',
+    ];
+    foreach ($required_modules as $module) {
+      $this->assertTrue($handler->moduleExists($module), $module . ' is installed with the product.');
+    }
+    $unrelated_modules = [
       'canvas',
       'canvas_tools',
-      'tool',
       'webmcp_integration',
-      'ai_provider_typesafeai',
-      'project_browser',
-      'api_browser',
-      'mcp_server',
     ];
-    foreach ($optional_modules as $module) {
+    foreach ($unrelated_modules as $module) {
       $this->assertFalse($handler->moduleExists($module), $module . ' is not required.');
     }
+    $this->assertNull($this->container->get('entity_type.manager')->getStorage('node_type')->load('advisor_workshop'));
+    $this->assertSame('site_architect:assess_content_brief', $this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_assess')->get('tool_id'));
+    $this->assertSame('site_architect:discover_candidates', $this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_discover')->get('tool_id'));
+    $this->assertArrayHasKey('api_browser_project:packagist_recipes', $this->container->get('Drupal\project_browser\Plugin\ProjectBrowserSourceManager')->getDefinitions());
+    $recipe_path = $handler->getModule('site_architect')->getPath() . '/recipes/workshop';
+    RecipeRunner::processRecipe(Recipe::createFromDirectory($recipe_path));
     $account = $this->createMock(AccountInterface::class);
     $account->method('hasPermission')->willReturnCallback(static fn ($permission) => $permission === 'access site architect');
     $collector = $this->container->get('site_architect.context');
@@ -88,11 +98,13 @@ final class StandaloneInstallTest extends KernelTestBase {
 
     // The provider is configured by the host site, never shipped with a key.
     $this->assertEmpty($this->container->get('ai.provider')->getDefaultProviderForOperationType('decision'));
-    $installer->install(['site_architect_tool']);
     $this->assertTrue($this->container->get('module_handler')->moduleExists('tool'));
     $this->assertArrayHasKey('site_architect:assess_content_brief', $this->container->get('plugin.manager.tool')->getDefinitions());
-    $installer->uninstall(['site_architect_tool']);
-    $this->assertTrue($this->container->get('module_handler')->moduleExists('site_architect'));
+    $installer->uninstall(['site_architect']);
+    $this->assertFalse($this->container->get('module_handler')->moduleExists('site_architect'));
+    $this->assertTrue($this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_assess')->isNew());
+    $this->assertTrue($this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_discover')->isNew());
+    $this->assertNotNull($this->container->get('entity_type.manager')->getStorage('node_type')->load('advisor_workshop'), 'Recipe configuration survives uninstalling the planning module.');
   }
 
 }

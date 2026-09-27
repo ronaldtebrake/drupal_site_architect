@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Drupal\Tests\site_architect\Kernel;
 
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Recipe\Recipe;
+use Drupal\Core\Recipe\RecipeRunner;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\workflows\Entity\Workflow;
 use PHPUnit\Framework\Attributes\Group;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Tests fresh discovery, real workflow evidence and optional source wiring.
+ * Tests fresh discovery, real workflow evidence and built-in source wiring.
  */
 #[Group('site_architect')]
 final class CatalogIntegrationTest extends KernelTestBase {
@@ -90,7 +92,9 @@ final class CatalogIntegrationTest extends KernelTestBase {
    * Workflow evidence comes from current configuration, with no recipe history.
    */
   public function testActiveWorkflowEvidence(): void {
-    $this->container->get('module_installer')->install(['site_architect_demo', 'content_moderation']);
+    $this->container->get('module_installer')->install(['site_architect', 'content_moderation']);
+    $path = $this->container->get('module_handler')->getModule('site_architect')->getPath() . '/recipes/workshop';
+    RecipeRunner::processRecipe(Recipe::createFromDirectory($path));
     Workflow::create([
       'id' => 'review',
       'label' => 'Review content',
@@ -120,12 +124,12 @@ final class CatalogIntegrationTest extends KernelTestBase {
   }
 
   /**
-   * Enabled public PB plugins feed the catalog and MCP bindings install alone.
+   * Public PB plugins feed the catalog; MCP bindings install with the product.
    */
   public function testProjectBrowserAndMcpIntegrations(): void {
     $this->installEntitySchema('user');
     $this->installSchema('user', ['users_data']);
-    $this->container->get('module_installer')->install(['site_architect_project_browser', 'site_architect_test']);
+    $this->container->get('module_installer')->install(['site_architect', 'site_architect_test']);
     $this->config('project_browser.admin_settings')->set('enabled_sources', ['architect_fixture' => []])->save();
     $catalog = $this->container->get('site_architect.candidates');
     $result = $catalog->discover('workflow', $this->account());
@@ -152,7 +156,6 @@ final class CatalogIntegrationTest extends KernelTestBase {
     $this->assertStringNotContainsString('credentials', implode(' ', $partial['warnings']));
     $this->assertStringContainsString('architect_fixture could not be queried', implode(' ', $partial['warnings']));
 
-    $this->container->get('module_installer')->install(['site_architect_mcp']);
     $this->assertSame('site_architect:discover_candidates', $this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_discover')->get('tool_id'));
     $this->assertTrue($this->config('mcp_server_tool_bridge.mcp_tool_config.site_architect_assess')->get('status'));
     $this->assertArrayHasKey('site_architect:discover_candidates', $this->container->get('plugin.manager.tool')->getDefinitions());
