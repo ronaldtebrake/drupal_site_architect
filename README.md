@@ -46,12 +46,7 @@ vendor/bin/drush cr
 Replace the example URL with your site's HTTPS address. The GitHub repository
 setting discovers this package; the two AI repository settings work around
 current upstream packaging metadata. Stability settings apply to the whole
-site. [Installation details and existing-site upgrades](docs/installation.md)
-explain these requirements and the recipe path.
-
-On existing installations, also run `vendor/bin/drush updatedb -y` and
-`vendor/bin/drush cr` after updating. This repairs a missing planning scope if
-Agent Access was applied after Site Architect.
+site. [Setup notes](docs/setup.md) explain the repositories and recipe path.
 
 ## Configure and use
 
@@ -76,7 +71,7 @@ with your existing tools. Planning policy lives at `/admin/config/ai/site-archit
 
 ## Use it from an agent
 
-Finish [the OAuth setup](docs/agent-access.md): generate keys outside the web root
+Finish [the OAuth setup](docs/setup.md#connect-an-agent): generate keys outside the web root
 and use a dedicated Drupal account with `grant simple_oauth codes`,
 `access mcp server` and `access site architect`. OAuth scopes limit the approved
 connection; the account must also have permission to execute each tool.
@@ -85,8 +80,7 @@ Connect an OAuth-capable agent to `https://your-site.example/mcp`, sign in and
 approve the requested access. For planning, request the scopes
 `drupal:mcp:connect` and **`drupal:site-architect:plan`**. Add
 `drupal:content:read` if using Agent Access's starter content tools too.
-Site Architect registers its planning scope automatically. The endpoint must be
-reachable by the agent; a local development hostname only works for local clients.
+Site Architect registers its planning scope automatically.
 
 | MCP tool | Input | Result |
 | --- | --- | --- |
@@ -101,9 +95,7 @@ WebMCP and ECA. They can use the same Tool API operations through their adapters
 
 - [Jev comparison: keyword matches versus a connected plan](docs/jev-comparison/README.md)
 - [Demo scenarios and the optional Workshop recipe](docs/demo.md)
-- [Discovery, site evidence and search limits](docs/discovery.md)
-- [Service contracts, extension points and tests](docs/development.md)
-- [Performance measurements](docs/performance.md) · [Validation record](VALIDATION.md)
+- [How it works, extension points and tests](docs/development.md)
 
 Source: [ronaldtebrake/drupal_site_architect](https://github.com/ronaldtebrake/drupal_site_architect).
 Package: `drupal/site_architect`. Module: `site_architect`.
