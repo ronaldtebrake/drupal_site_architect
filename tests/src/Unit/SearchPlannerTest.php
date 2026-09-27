@@ -27,8 +27,20 @@ final class SearchPlannerTest extends UnitTestCase {
     $answers = [];
     foreach ($input->getQuestions() as $id => $question) {
       $choice = $id === 'ecosystem_search' ? $route : 'none';
+      if (str_starts_with($id, 'scope_')) {
+        $choice = 'work_area';
+      }
+      if (str_starts_with($id, 'group_')) {
+        $choice = 'separate';
+        foreach ($selected as $phrase) {
+          if (str_contains(mb_strtolower($question->getInstructions()['passage']), $phrase) && ($key = array_search($phrase, $question->getCriteria(), TRUE)) !== FALSE) {
+            $choice = $key;
+            break;
+          }
+        }
+      }
       foreach ($selected as $phrase) {
-        if ($id !== 'ecosystem_search' && ($key = array_search($phrase, $question->getCriteria(), TRUE)) !== FALSE) {
+        if (str_starts_with($id, 'capability_') && ($key = array_search($phrase, $question->getCriteria(), TRUE)) !== FALSE) {
           $choice = $key;
           break;
         }
@@ -46,7 +58,9 @@ final class SearchPlannerTest extends UnitTestCase {
   public function testCompoundBriefCoverage(): void {
     $client = $this->createMock(DecisionClientInterface::class);
     $client->method('decide')->willReturnCallback(function (DecisionInput $input): DecisionResponse {
-      $this->assertSame(['bundles' => []], $input->getState()['site']);
+      if (isset($input->getState()['site'])) {
+        $this->assertSame(['bundles' => []], $input->getState()['site']);
+      }
       return $this->response($input, 'search', ['events', 'topics', 'groups', 'activity stream', 'notifications']);
     });
     $result = (new SearchPlanner($client))->plan('We want a Community site, with events and topics, placed in groups, with an activity stream and notifications.', ['bundles' => []]);
@@ -54,6 +68,40 @@ final class SearchPlannerTest extends UnitTestCase {
     $this->assertCount(5, $result['capabilities']);
     $this->assertSame('search', $result['action']);
     $this->assertFalse($result['terms_truncated']);
+  }
+
+  /**
+   * Product details are grouped before they can become catalogue queries.
+   */
+  public function testDetailsDoNotBecomeIndependentSearches(): void {
+    $client = $this->createMock(DecisionClientInterface::class);
+    $client->method('decide')->willReturnCallback(static function (DecisionInput $input): DecisionResponse {
+      $answers = [];
+      foreach ($input->getQuestions() as $id => $question) {
+        $choice = 'search';
+        if (str_starts_with($id, 'capability_')) {
+          $phrase = $id === 'capability_0' ? 'equipment' : 'serial number';
+          $choice = array_search($phrase, $question->getCriteria(), TRUE) ?: 'none';
+        }
+        elseif (str_starts_with($id, 'scope_')) {
+          $choice = $id === 'scope_0' ? 'work_area' : 'detail';
+        }
+        elseif (str_starts_with($id, 'group_')) {
+          $choice = array_search('equipment', $question->getCriteria(), TRUE);
+          self::assertSame([$choice, 'separate'], $question->getOptionKeys());
+        }
+        $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
+        $distribution[$choice] = 1.0;
+        $answers[$id] = new ChoiceAnswer($choice, $distribution, 1.0);
+      }
+      return new DecisionResponse($answers);
+    });
+    $brief = 'Manage equipment. Store a serial number, filter by serial number.';
+    $result = (new SearchPlanner($client))->plan($brief, []);
+    $this->assertSame(['equipment'], $result['queries']);
+    $this->assertCount(1, $result['capabilities']);
+    $this->assertSame(['Manage equipment', 'Store a serial number', 'filter by serial number'], reset($result['capabilities'])['source_texts']);
+    $this->assertSame([], $result['unmapped_clauses']);
   }
 
   /**

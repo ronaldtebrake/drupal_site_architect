@@ -1,36 +1,15 @@
 {% set highlight = area.highlights %}
 <div class="sa-choice sa-choice--{{ highlight.state }}"{% if highlight.primary %} data-option-id="{{ highlight.primary.id }}"{% endif %}>
-  <span class="sa-eyebrow">{% if highlight.state == 'recommended' %}{{ 'Recommended starting point'|t }}{% elseif highlight.state == 'provisional' %}{{ 'Provisional recommendation'|t }}{% elseif highlight.state == 'conflicting' %}{{ 'Recommendation needs clarification'|t }}{% else %}{{ 'No recommendation yet'|t }}{% endif %}</span>
+  <span class="sa-eyebrow">{% if highlight.state == 'recommended' %}{{ 'Recommended starting point'|t }}{% elseif highlight.state == 'provisional' %}{{ 'Provisional recommendation'|t }}{% elseif highlight.state == 'conflicting' %}{{ 'Recommendation needs clarification'|t }}{% elseif area.has_part_matches %}{{ 'A combination to review'|t }}{% else %}{{ 'No recommendation yet'|t }}{% endif %}</span>
   {% if highlight.primary %}
     <h5>{{ highlight.primary.label }}</h5>
     <p class="sa-choice-scores">{{ 'Jev’s starting-point score'|t }}: {{ (area.selection.probability * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (area.selection.confidence * 100)|number_format(0) }}%</p>
     {% if highlight.state == 'conflicting' %}<p>{{ 'Jev selected this starting point, but its separate contribution judgment does not support that choice. Review the conflicting evidence before choosing.'|t }}</p>{% endif %}
   {% endif %}
-  <p class="sa-handoff-intro">{% if highlight.primary %}{{ area.handoff.intro }}{% else %}{{ 'No overall starting point is sufficiently supported yet. Compare the strongest building blocks below and resolve the remaining requirements before choosing a combination.'|t }}{% endif %}</p>
+  <p class="sa-handoff-intro">{% if highlight.primary %}{{ area.handoff.intro }}{% elseif area.has_part_matches %}{{ 'This work area needs several connected pieces. The steps below show which parts have useful matches and which choices remain open.'|t }}{% else %}{{ 'No overall starting point is sufficiently supported yet. Compare the strongest building blocks below and resolve the remaining requirements before choosing a combination.'|t }}{% endif %}</p>
 </div>
-{% if area.requirements.parts %}
-  <div class="sa-implementation-parts">
-    <h5>{{ 'Build this from the following parts'|t }}</h5>
-    <p>{{ 'Each item comes from your brief. Several parts can use the same component; different parts can need different components. These matches are investigation paths, not a verified integration.'|t }}</p>
-    <ul>
-      {% for part in area.requirements.parts %}
-        {% if part.status != 'context' %}
-          <li data-requirement-part="{{ part.id }}" data-status="{{ part.status }}">
-            <p><strong>{{ part.text }}</strong></p>
-            <p>{% if part.status in ['supported', 'partial'] %}<strong>{{ part.option_label }}</strong> · {{ part.status == 'supported' ? 'Candidate for this part'|t : 'Partial building block'|t }}{% elseif part.status == 'check' %}{{ 'Keep this as a condition to verify across the selected components.'|t }}{% else %}{{ 'Open requirement: no sufficiently supported match yet.'|t }}{% if part.option_label %} {{ 'Inspect @option as a possibility.'|t({'@option': part.option_label}) }}{% endif %}{% endif %}</p>
-            {% if part.status == 'partial' %}<p>{{ 'The evidence supports only part of this item. Identify the missing configuration, behavior or additional component before building.'|t }}</p>{% endif %}
-            {% if part.kind == 'record' and part.status in ['open', 'partial'] %}<p>{{ 'Compare existing record types and their fields for this item. If none fits, design a new type or entity and its required fields and relationships.'|t }}</p>{% endif %}
-            {% if part.needs_review and part.status != 'open' %}<p class="sa-note">{{ 'Review needed; this has not been established as complete coverage.'|t }}</p>{% endif %}
-          </li>
-        {% endif %}
-      {% endfor %}
-    </ul>
-    <details><summary>{{ 'Assembly checks and source judgments'|t }}</summary>
-      <p>{{ area.requirements.integration_check }}</p>
-      <p>{{ area.requirements.scope }}</p>
-      {% for part in area.requirements.parts %}<p>{{ part.text }} · {{ part.kind }} · {{ part.status }}{% if part.coverage %} · {{ 'Evidence match'|t }} {{ (part.coverage.probabilities[part.coverage.choice] * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (part.coverage.confidence * 100)|number_format(0) }}%{% endif %}</p>{% endfor %}
-    </details>
-  </div>
+{% if area.implementation_steps %}
+  {% include "@ai_site_advisor/ai-site-advisor-implementation.html.twig" %}
 {% endif %}
 <ol class="sa-builder-steps">
   {% set destination = area.handoff.configuration_area %}

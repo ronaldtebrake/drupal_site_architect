@@ -62,6 +62,12 @@ final class AgentPlan {
           continue;
         }
         $item = array_intersect_key($part, array_flip(['id', 'text', 'kind', 'status', 'needs_review']));
+        if (!empty($part['target'])) {
+          $item['target'] = $part['target'];
+        }
+        if (!empty($part['fields'])) {
+          $item['fields'] = array_map(static fn ($field) => array_diff_key($field, ['judgment' => TRUE]), $part['fields']);
+        }
         $option = $options[$part['option_id'] ?? ''] ?? NULL;
         if (isset($option['package'])) {
           $item['candidate'] = $option['id'];

@@ -43,6 +43,16 @@
 .sa-choice-scores { color: #37595a; font-variant-numeric: tabular-nums; }
 .sa-implementation-parts { background: #fff; border: 1px solid var(--sa-line); border-radius: 8px; padding: 18px 22px; margin: 20px 0; }
 .sa-implementation-parts h5 { font-size: 17px; color: var(--sa-ink); margin: 0 0 10px; }
+.sa-implementation-steps { padding-left: 24px; }
+.sa-implementation-steps > li { padding: 18px 0 18px 12px; border-top: 1px solid var(--sa-line); }
+.sa-implementation-steps > li::marker { font-weight: 700; color: var(--sa-teal); }
+.sa-implementation-steps h6 { font-size: 17px; margin: 0 0 10px; color: var(--sa-ink); }
+.sa-connection-parts { list-style: none; padding: 0; display: grid; gap: 10px; }
+.sa-connection-parts > li { background: #f4f8f7; border-radius: 6px; padding: 10px 14px; }
+.sa-connection-parts p { margin: 4px 0; }
+.sa-connection-parts .sa-part-source { color: #526a6f; font-size: 13px; }
+.sa-field-reference code { white-space: nowrap; }
+.sa-gap { border-left: 3px solid #b48519; padding-left: 10px; }
 .sa-implementation-parts > ul { list-style: none; padding: 0; }
 .sa-implementation-parts > ul > li { border-top: 1px solid var(--sa-line); padding: 10px 0; }
 .sa-implementation-parts > ul > li p { margin: 6px 0; }

@@ -205,8 +205,13 @@ at punctuation and common conjunctions. Long sections or clauses use overlapping
 discarding the tail. URLs, email addresses and tokens with digits are excluded.
 The route and extraction questions run in batches of up to 12 questions, each
 with the complete brief and site context. Jev selects a phrase or `none` for
-each segment. Every extracted capability is retained; repeated search phrases
-merge while preserving their source passages. Compound nouns such as
+each segment, and classifies its scope as a work area, detail or context.
+`BriefGrouping` then assigns details to proposed subjects before discovery. Stored
+attributes, filters and presentation can belong to the same subject instead of
+becoming separate catalogue queries. Each assignment must pass the 75% probability /
+70% confidence policy. Uncertain assignments retain the original independent work
+area or remain visible as unassigned passages; source requirements are not discarded.
+Repeated search phrases merge while preserving their source passages. Compound nouns such as
 `activity stream` remain intact; English singularization turns `groups` into
 `group` and `events` into `event`. Only the search route sends these terms to
 external sources. Local plans retain their capability scope without searching.
@@ -449,13 +454,35 @@ with `detail: "full"`; the default agent handoff is compact.
 
 ### Several components for one work area
 
-`RequirementPlanner` adds a separate `requirement-parts-v1` stage after candidate
-assessment. It copies sentences and list items from each work area's original
-source text; no feature-to-module map is embedded. Jev classifies each item and
+`RequirementPlanner` adds a separate `requirement-parts-v2` stage after candidate
+assessment. It retains grouped source passages and their sentence/list items;
+no feature-to-module map is embedded. Jev distinguishes record subjects, stored
+fields, listings, presentation, other behavior and conditions. It
 selects a possible component from that area's inspected options, including existing
 node types, local modules and discovered packages. A second call independently
 checks that selected component against the exact item using its description,
 actual bundle fields and any inspected recipe configuration.
+
+In the same two passes it can select an inspected target node type, then check
+individual field definitions for the requested storage or filter/sort usage.
+Only confident matches become field references. Ambiguous, conflicting or absent
+targets remain unresolved, and an uncertain field match never becomes an asserted
+mapping. A suggested component and target content type are separate decisions:
+the former supplies behavior; the latter identifies the records it operates on.
+
+The UI's **How the parts fit together** groups these connections into content and
+fields, listing, presentation and remaining behavior/conditions. For example,
+inspected workshop fields can appear under the Workshop type, while an independently
+selected listing component points to that same type and its Location field.
+There are no workshop names, field names or Views/Canvas mappings in this logic.
+Module choices still come from source descriptions and typed judgments. Settings
+links come from inspected configuration routes. Existing listing filters and
+template mappings are not declared verified.
+
+The compact Tool API/MCP plan includes each part's optional `target` (entity type,
+bundle and configuration links) and `fields` (name, type and proposed purpose).
+It omits their probability distributions; the full response retains those judgments.
+This is an additive extension of `agent-plan-v2`, shared with the normal form.
 
 For example, storing an opening post and adding replies are separate needs.
 They can point to an existing record model and a reply capability, while club
@@ -570,7 +597,7 @@ $discovery = $catalog->discover('workflow', $account, limit: 12);
 | `local_discovery` | Semantic screening of shipped core and enabled local modules: retained candidates, every screening judgment, questions and usage. |
 | `site`, `candidates`, `discovery` | Exact evidence, site fingerprint, source reports and search boundaries. |
 | `plan` | Draft work areas, visible preferred selections, every assessed option with separate contribution/selection/brief-relevance judgments, foundation/addition investigation paths, checks and handoff boundaries. |
-| `search_plan` | Route, capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v4`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
+| `search_plan` | Route, grouped capabilities, queries, unmapped clauses, segment coverage and planning questions/answers (`ecosystem-search-v5`). `query` remains the first term for compatibility; `terms_truncated` is false after successful extraction. |
 | `questions`, `profile` | Reviewed questions and versioned rubric (`content-planning-v7`). |
 | `model`, `usage`, `usage_by_stage`, `elapsed_ms` | Assessment model, summed provider usage, per-stage usage and elapsed server time including planning/discovery. |
 | `requests_by_stage` | Model, question IDs, evidence IDs, compact bytes and reported usage for every provider request. |

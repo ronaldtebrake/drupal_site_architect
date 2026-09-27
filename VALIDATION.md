@@ -652,6 +652,48 @@ proposed components require additional inspection. Two additional assessment
 passes increase provider work; their usage is included under
 `usage_by_stage.requirement_planning`. No package combination is declared verified.
 
+## Connected implementation steps (2026-09-27)
+
+The workshop brief now groups stored attributes, filtering and presentation with
+their content subject before catalogue discovery (`ecosystem-search-v5`). The
+`requirement-parts-v2` pass adds typed record targets and individual field checks.
+The UI composes an implementation story from those judgments; the compact MCP
+response retains the same target and field references without full score arrays.
+
+Verified in DDEV with the configured Jev provider and the normal Drupal form:
+
+- The exact workshop brief produced one work area. Date, location, capacity and
+  description mapped to the four corresponding inspected Workshop fields.
+- The listing step targeted Workshop and `field_workshop_location`; Views was
+  selected as a component. Its selection confidence varied between live runs,
+  and the UI kept the review flag when it fell below policy.
+- Presentation targeted the same type. Competing layout choices remained under
+  review; no working display/template integration was asserted.
+- The refreshed UI rendered the three connected steps, configuration links and
+  a maximum of three resource cards. No browser JavaScript errors were observed.
+- An equipment brief grouped its attributes and listing into one subject. The
+  longer community extraction retained all nine named requirement sections.
+  These are smoke checks, not model-quality evals.
+
+The latest measured workshop service call took 6.33 seconds, versus 21.89 seconds
+in the initial fragmented run. Fewer work areas avoid duplicate comparisons, but
+these are individual observations with catalogue/provider cache and service
+latency effects, not a controlled benchmark. No candidate cap or confidence
+threshold was lowered. Both new connection judgments run within the existing
+requirement selection/verification passes and their usage is included.
+
+Regression tests cover grouped discovery queries, preserved ambiguous passages,
+different subjects, field/filter targets, uncertainty, conflicting record choices,
+human-facing step ordering and compact agent output. The full suite passes with
+74 tests; Drupal/DrupalPractice coding standards pass. Live receipts and profiling
+scripts remain outside the module repository and public document root.
+
+Limits: target/field connections currently use the inspected node-type scope.
+Other entity types, newly designed types, multi-record joins, existing view filter
+settings and template field mappings require further inspection. Compound source
+sentences can still need breakdown; uncertain assignments remain visible. No
+configuration, content or packages are changed by the assessment.
+
 ## Remaining boundaries
 
 The MCP protocol and Drupal UI have been exercised; an autonomous LLM agent's

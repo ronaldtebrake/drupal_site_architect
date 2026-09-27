@@ -1,0 +1,52 @@
+<div class="sa-implementation-parts">
+  <h5>{{ 'How the parts fit together'|t }}</h5>
+  <p>{{ 'Start with the content, then connect the behavior and presentation it needs. Existing fields below were inspected on this site; their use in this plan is proposed configuration.'|t }}</p>
+  <ol class="sa-implementation-steps">
+    {% for step in area.implementation_steps %}
+      <li data-step-kind="{{ step.kind }}"{% if step.target %} data-target-bundle="{{ step.target.bundle }}"{% endif %}>
+        <h6>{% if step.kind == 'storage' %}
+          {{ step.target ? 'Store the content in @type'|t({'@type': step.target.label}) : 'Choose the content type and its fields'|t }}
+        {% elseif step.kind == 'listing' %}
+          {{ step.target ? 'Build the listing from @type records'|t({'@type': step.target.label}) : 'Build the listing and choose its content source'|t }}
+        {% elseif step.kind == 'presentation' %}
+          {{ step.target ? 'Give @type records a consistent presentation'|t({'@type': step.target.label}) : 'Configure the presentation'|t }}
+        {% elseif step.kind == 'capability' %}
+          {{ step.target ? 'Add the behavior to @type'|t({'@type': step.target.label}) : 'Connect the supporting behavior'|t }}
+        {% else %}{{ 'Resolve the remaining conditions'|t }}{% endif %}</h6>
+        {% if step.kind == 'storage' and step.target %}<p>{{ 'Reuse this existing content type where the inspected fields fit. Confirm any missing information before adding fields or introducing another type.'|t }}</p>{% endif %}
+        <ul class="sa-connection-parts">
+          {% for part in step.parts %}
+            <li data-requirement-part="{{ part.id }}" data-status="{{ part.status }}">
+              <p class="sa-part-source">{{ part.text }}</p>
+              {% if part.fields %}
+                <p><strong>{{ part.kind == 'listing' ? 'Filter or sort using'|t : 'Existing field to reuse'|t }}:</strong>
+                  {% for field in part.fields %}<span class="sa-field-reference">{{ field.label }} <span class="sa-note">({{ field.type }})</span> <code>{{ field.name }}</code></span>{{ not loop.last ? ', ' }}{% endfor %}
+                </p>
+              {% elseif part.kind in ['field', 'listing'] and step.kind != 'check' %}
+                <p class="sa-gap">{{ part.kind == 'field' ? 'No existing field mapping is established. Inspect the requested data and decide which field to reuse, change or add.'|t : 'The fields needed for filtering or sorting are not established. Resolve them against the chosen content type.'|t }}</p>
+              {% endif %}
+              {% if part.option_label and not (part.kind == 'field' and part.fields) %}
+                <p>{% if not part.selection.needs_review and part.status in ['supported', 'partial'] %}
+                  {{ 'Proposed component'|t }}: <strong>{{ part.option_label }}</strong>{% if part.status == 'partial' %} · {{ 'covers part of this requirement'|t }}{% endif %}.
+                {% else %}
+                  {{ 'Component choice needs review'|t }}: {{ part.option_label }}.
+                {% endif %}</p>
+                {% if part.option_links %}<div class="sa-action-links">{% for link in part.option_links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>{% endif %}
+              {% endif %}
+              {% if step.kind == 'check' %}<p>{{ 'Keep this requirement open and check it against the chosen combination.'|t }}</p>{% endif %}
+              {% if part.kind == 'field' and part.fields and part.status != 'supported' %}<p class="sa-note">{{ 'This field is a proposed match. Check that it covers the complete requirement, including validation and cardinality.'|t }}</p>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+        {% if step.kind == 'listing' %}<p class="sa-note">{{ 'Configure the content source and filters, then test the results and access rules. An existing listing with these settings has not been verified.'|t }}</p>{% endif %}
+        {% if step.kind == 'presentation' %}<p class="sa-note">{{ 'Connect the chosen display or template to the content and its fields. Existing template names do not establish that this mapping is already configured.'|t }}</p>{% endif %}
+        {% if step.target.links %}<div class="sa-action-links">{% for link in step.target.links %}<a href="{{ link.url }}">{{ link.label }} →</a>{% endfor %}</div>{% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+  <details><summary>{{ 'Assembly checks and source judgments'|t }}</summary>
+    <p>{{ area.requirements.integration_check }}</p>
+    <p>{{ area.requirements.scope }}</p>
+    {% for part in area.requirements.parts %}<p>{{ part.text }} · {{ part.kind }} · {{ part.status }}{% if part.coverage %} · {{ 'Evidence match'|t }} {{ (part.coverage.probabilities[part.coverage.choice] * 100)|number_format(0) }}% · {{ 'confidence'|t }} {{ (part.coverage.confidence * 100)|number_format(0) }}%{% endif %}</p>{% endfor %}
+  </details>
+</div>

@@ -55,7 +55,7 @@ final class RequirementPlannerTest extends UnitTestCase {
       $answers = [];
       if ($calls === 1) {
         $this->assertSame('text_long', $input->getState()['options']['bundle__record']['fields']['body']['type']);
-        $this->assertCount(12, $input->getQuestions());
+        $this->assertCount(18, $input->getQuestions());
       }
       else {
         $this->assertCount(3, $input->getQuestions(), 'Conditions, context and configuration gaps are not asserted as component coverage.');
@@ -80,7 +80,12 @@ final class RequirementPlannerTest extends UnitTestCase {
           'p4' => 'unresolved',
           'p5' => 'configure',
         ];
-        $choice = str_starts_with($id, 'part_kind__') ? $kind[$part] : (str_starts_with($id, 'part_option__') ? $choices[$part] : ($part === 'p2' ? 'partial' : 'direct'));
+        $choice = match (TRUE) {
+          str_starts_with($id, 'part_kind__') => $kind[$part],
+          str_starts_with($id, 'part_option__') => $choices[$part],
+          str_starts_with($id, 'part_target__') => 'none',
+          default => $part === 'p2' ? 'partial' : 'direct',
+        };
         $distribution = array_fill_keys($question->getOptionKeys(), 0.0);
         $distribution[$choice] = 1.0;
         $answers[$id] = new ChoiceAnswer($choice, $distribution, 1.0);
@@ -95,7 +100,7 @@ final class RequirementPlannerTest extends UnitTestCase {
     $this->assertTrue($parts[2]['needs_review']);
     $this->assertFalse($result['areas']['discussion']['integration_verified']);
     $this->assertSame(['input' => 20, 'output' => 4, 'total' => 24], $result['usage']);
-    $this->assertCount(15, $result['answers']);
+    $this->assertCount(21, $result['answers']);
 
     // MCP retains each part, even a component outside its general shortlist.
     $assessment = [
@@ -177,6 +182,9 @@ final class RequirementPlannerTest extends UnitTestCase {
         if (str_starts_with($id, 'part_kind__')) {
           $answers[$id] = new ChoiceAnswer('context', [
             'record' => 0.1,
+            'field' => 0.0,
+            'listing' => 0.0,
+            'presentation' => 0.0,
             'capability' => 0.0,
             'constraint' => 0.3,
             'context' => 0.6,
